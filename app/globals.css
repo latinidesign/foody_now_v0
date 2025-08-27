@@ -1,0 +1,145 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color palette for Foody Now - food industry colors */
+  --background: oklch(0.98 0.01 85); /* Warm cream background */
+  --foreground: oklch(0.2 0.02 120); /* Dark green text */
+  --card: oklch(1 0 0); /* Pure white cards */
+  --card-foreground: oklch(0.2 0.02 120);
+  --primary: oklch(0.35 0.08 135); /* Deep forest green #2D5016 */
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.55 0.06 140); /* Medium green #4A7C59 */
+  --secondary-foreground: oklch(0.98 0.01 85);
+  --muted: oklch(0.95 0.01 85); /* Light cream */
+  --muted-foreground: oklch(0.45 0.02 120);
+  --accent: oklch(0.65 0.15 45); /* Warm orange #FF6B35 */
+  --accent-foreground: oklch(0.98 0.01 85);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0.01 85);
+  --border: oklch(0.9 0.01 85);
+  --input: oklch(0.95 0.01 85);
+  --ring: oklch(0.35 0.08 135);
+  --chart-1: oklch(0.35 0.08 135); /* Primary green */
+  --chart-2: oklch(0.55 0.06 140); /* Secondary green */
+  --chart-3: oklch(0.65 0.15 45); /* Orange accent */
+  --chart-4: oklch(0.7 0.1 85); /* Light warm */
+  --chart-5: oklch(0.4 0.04 160); /* Dark green variant */
+  --radius: 0.75rem; /* Slightly more rounded for food industry */
+  --sidebar: oklch(0.98 0.01 85);
+  --sidebar-foreground: oklch(0.2 0.02 120);
+  --sidebar-primary: oklch(0.35 0.08 135);
+  --sidebar-primary-foreground: oklch(0.98 0.01 85);
+  --sidebar-accent: oklch(0.95 0.01 85);
+  --sidebar-accent-foreground: oklch(0.2 0.02 120);
+  --sidebar-border: oklch(0.9 0.01 85);
+  --sidebar-ring: oklch(0.35 0.08 135);
+}
+
+.dark {
+  /* Dark mode colors adapted for food industry */
+  --background: oklch(0.15 0.02 120); /* Dark green background */
+  --foreground: oklch(0.95 0.01 85); /* Light cream text */
+  --card: oklch(0.2 0.02 120);
+  --card-foreground: oklch(0.95 0.01 85);
+  --popover: oklch(0.2 0.02 120);
+  --popover-foreground: oklch(0.95 0.01 85);
+  --primary: oklch(0.55 0.06 140); /* Lighter green for dark mode */
+  --primary-foreground: oklch(0.15 0.02 120);
+  --secondary: oklch(0.25 0.03 120);
+  --secondary-foreground: oklch(0.95 0.01 85);
+  --muted: oklch(0.25 0.03 120);
+  --muted-foreground: oklch(0.7 0.02 85);
+  --accent: oklch(0.65 0.15 45); /* Keep orange accent */
+  --accent-foreground: oklch(0.15 0.02 120);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.95 0.01 85);
+  --border: oklch(0.25 0.03 120);
+  --input: oklch(0.25 0.03 120);
+  --ring: oklch(0.55 0.06 140);
+  --chart-1: oklch(0.55 0.06 140);
+  --chart-2: oklch(0.65 0.15 45);
+  --chart-3: oklch(0.7 0.1 85);
+  --chart-4: oklch(0.4 0.04 160);
+  --chart-5: oklch(0.75 0.08 140);
+  --sidebar: oklch(0.18 0.02 120);
+  --sidebar-foreground: oklch(0.95 0.01 85);
+  --sidebar-primary: oklch(0.55 0.06 140);
+  --sidebar-primary-foreground: oklch(0.15 0.02 120);
+  --sidebar-accent: oklch(0.25 0.03 120);
+  --sidebar-accent-foreground: oklch(0.95 0.01 85);
+  --sidebar-border: oklch(0.25 0.03 120);
+  --sidebar-ring: oklch(0.55 0.06 140);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Added smooth font rendering for better readability */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Added custom scrollbar styling for food industry aesthetic */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/50;
+  }
+}
