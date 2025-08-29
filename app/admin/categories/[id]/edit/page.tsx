@@ -9,7 +9,7 @@ interface EditCategoryPageProps {
 }
 
 export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data: category, error } = await supabase.from("categories").select("*").eq("id", params.id).single()
 

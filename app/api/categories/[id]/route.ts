@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const categoryData = await request.json()
 
     const { data, error } = await supabase
@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     const { error } = await supabase.from("categories").delete().eq("id", params.id)
 

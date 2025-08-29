@@ -22,7 +22,10 @@ export async function GET() {
 
     const { data: categories, error } = await supabase
       .from("categories")
-      .select("*")
+      .select(`
+        *,
+        products!inner(count)
+      `)
       .eq("store_id", store.id)
       .order("name")
 
@@ -31,7 +34,13 @@ export async function GET() {
       return NextResponse.json({ error: "Error al obtener categorías" }, { status: 500 })
     }
 
-    return NextResponse.json({ categories })
+    const categoriesWithCount =
+      categories?.map((category) => ({
+        ...category,
+        product_count: category.products?.[0]?.count || 0,
+      })) || []
+
+    return NextResponse.json({ categories: categoriesWithCount })
   } catch (error) {
     console.error("API error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })

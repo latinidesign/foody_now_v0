@@ -9,15 +9,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Upload, X } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import Image from "next/image"
 
 interface CategoryFormProps {
   category?: {
     id: string
     name: string
     description?: string
+    image_url?: string
   }
 }
 
@@ -27,6 +29,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
   const [formData, setFormData] = useState({
     name: category?.name || "",
     description: category?.description || "",
+    image_url: category?.image_url || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +63,10 @@ export function CategoryForm({ category }: CategoryFormProps) {
     }
   }
 
+  const clearImage = () => {
+    setFormData({ ...formData, image_url: "" })
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
@@ -76,7 +83,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
           <CardTitle>{category ? "Editar Categoría" : "Nueva Categoría"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="name">Nombre *</Label>
               <Input
@@ -97,6 +104,56 @@ export function CategoryForm({ category }: CategoryFormProps) {
                 placeholder="Descripción opcional de la categoría"
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="image_url">Imagen Destacada</Label>
+
+              {formData.image_url ? (
+                <div className="space-y-3">
+                  <div className="relative aspect-video w-full max-w-md rounded-lg overflow-hidden border">
+                    <Image
+                      src={formData.image_url || "/placeholder.svg"}
+                      alt="Vista previa"
+                      fill
+                      className="object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={clearImage}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Input
+                    id="image_url"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                    placeholder="URL de la imagen"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Agrega una imagen para hacer más atractiva tu categoría
+                    </p>
+                    <Input
+                      id="image_url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="Pega la URL de la imagen aquí"
+                    />
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Recomendado: imagen en formato 16:9 (ej: 800x450px) para mejor visualización
+              </p>
             </div>
 
             <div className="flex gap-3 pt-4">
