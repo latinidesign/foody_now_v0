@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2, Eye, EyeOff, Upload } from "lucide-react"
 import type { Store, StoreSettings } from "@/lib/types/database"
 
 interface StoreSettingsFormProps {
@@ -23,6 +23,8 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [showToken, setShowToken] = useState(false)
+  const logoFileRef = useRef<HTMLInputElement>(null)
+  const headerFileRef = useRef<HTMLInputElement>(null)
 
   const [storeData, setStoreData] = useState({
     name: store.name,
@@ -30,6 +32,8 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
     phone: store.phone || "",
     email: store.email || "",
     address: store.address || "",
+    logoUrl: store.logo_url || "",
+    headerImageUrl: store.header_image_url || "",
     deliveryRadius: store.delivery_radius.toString(),
     deliveryFee: store.delivery_fee.toString(),
     minOrderAmount: store.min_order_amount.toString(),
@@ -40,6 +44,20 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
     mercadopagoPublicKey: settings?.mercadopago_public_key || "",
     whatsappNumber: settings?.whatsapp_number || "",
   })
+
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return
+    // Create a simple file URL for preview (in production, upload to storage)
+    const fileUrl = URL.createObjectURL(file)
+    setStoreData({ ...storeData, logoUrl: fileUrl })
+  }
+
+  const handleHeaderUpload = async (file: File) => {
+    if (!file) return
+    // Create a simple file URL for preview (in production, upload to storage)
+    const fileUrl = URL.createObjectURL(file)
+    setStoreData({ ...storeData, headerImageUrl: fileUrl })
+  }
 
   const handleStoreUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +73,8 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
         },
         body: JSON.stringify({
           ...storeData,
+          logo_url: storeData.logoUrl,
+          header_image_url: storeData.headerImageUrl,
           delivery_radius: Number.parseInt(storeData.deliveryRadius),
           delivery_fee: Number.parseFloat(storeData.deliveryFee),
           min_order_amount: Number.parseFloat(storeData.minOrderAmount),
@@ -148,6 +168,113 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
                   value={storeData.description}
                   onChange={(e) => setStoreData({ ...storeData, description: e.target.value })}
                 />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="logoUrl">Logotipo de la Tienda</Label>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        id="logoUrl"
+                        type="url"
+                        value={storeData.logoUrl}
+                        onChange={(e) => setStoreData({ ...storeData, logoUrl: e.target.value })}
+                        placeholder="https://ejemplo.com/logo.png"
+                        className="flex-1"
+                      />
+                      <Button type="button" variant="outline" onClick={() => logoFileRef.current?.click()}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Subir
+                      </Button>
+                    </div>
+                    <input
+                      ref={logoFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handleLogoUpload(file)
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Logotipo que aparecerá en el header de tu tienda (recomendado: 100x100px)
+                    </p>
+                    {storeData.logoUrl && (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={storeData.logoUrl || "/placeholder.svg"}
+                          alt="Vista previa del logotipo"
+                          className="w-16 h-16 object-cover rounded-lg border"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none"
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setStoreData({ ...storeData, logoUrl: "" })}
+                        >
+                          Quitar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="headerImageUrl">Imagen de Header</Label>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        id="headerImageUrl"
+                        type="url"
+                        value={storeData.headerImageUrl}
+                        onChange={(e) => setStoreData({ ...storeData, headerImageUrl: e.target.value })}
+                        placeholder="https://ejemplo.com/header.jpg"
+                        className="flex-1"
+                      />
+                      <Button type="button" variant="outline" onClick={() => headerFileRef.current?.click()}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Subir
+                      </Button>
+                    </div>
+                    <input
+                      ref={headerFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handleHeaderUpload(file)
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Imagen de fondo del header de tu tienda (recomendado: 800x200px)
+                    </p>
+                    {storeData.headerImageUrl && (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={storeData.headerImageUrl || "/placeholder.svg"}
+                          alt="Vista previa del header"
+                          className="w-full h-20 object-cover rounded-lg border max-w-xs"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none"
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setStoreData({ ...storeData, headerImageUrl: "" })}
+                        >
+                          Quitar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Loader2, ArrowLeft, Plus, Package } from "lucide-react"
+import { Loader2, ArrowLeft, Plus, Package, Upload } from "lucide-react"
 import Link from "next/link"
 import type { Category } from "@/lib/types/database"
 
@@ -32,6 +31,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
   const [newCategoryName, setNewCategoryName] = useState("")
   const [localCategories, setLocalCategories] = useState(categories)
   const [continueAdding, setContinueAdding] = useState(false)
+  const imageFileRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
     name: product?.name || "",
@@ -135,6 +135,14 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return
+
+    // Create a simple file URL for preview (in production, upload to storage)
+    const fileUrl = URL.createObjectURL(file)
+    setFormData({ ...formData, imageUrl: fileUrl })
   }
 
   return (
@@ -279,14 +287,53 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">URL de la Imagen</Label>
-                <Input
-                  id="imageUrl"
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                />
+                <Label htmlFor="imageUrl">Imagen del Producto</Label>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      id="imageUrl"
+                      type="url"
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      placeholder="https://ejemplo.com/imagen.jpg"
+                      className="flex-1"
+                    />
+                    <Button type="button" variant="outline" onClick={() => imageFileRef.current?.click()}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Subir
+                    </Button>
+                  </div>
+                  <input
+                    ref={imageFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleImageUpload(file)
+                    }}
+                  />
+                  {formData.imageUrl && (
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={formData.imageUrl || "/placeholder.svg"}
+                        alt="Vista previa del producto"
+                        className="w-20 h-20 object-cover rounded border"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, imageUrl: "" })}
+                      >
+                        Quitar
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
