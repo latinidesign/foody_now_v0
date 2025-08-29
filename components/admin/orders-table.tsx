@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Eye, Phone, MapPin } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface OrderWithItems extends Order {
   order_items: Array<{
@@ -25,6 +28,9 @@ interface OrdersTableProps {
 
 export function OrdersTable({ orders }: OrdersTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
+  const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const router = useRouter()
+  const supabase = createClient()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -65,8 +71,20 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   }
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    // TODO: Implement status update
-    console.log("Update order status:", orderId, newStatus)
+    setIsUpdating(orderId)
+    try {
+      const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId)
+
+      if (error) throw error
+
+      toast.success("Estado del pedido actualizado")
+      router.refresh()
+    } catch (error) {
+      console.error("Error updating order status:", error)
+      toast.error("Error al actualizar el estado del pedido")
+    } finally {
+      setIsUpdating(null)
+    }
   }
 
   return (
@@ -104,11 +122,15 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Select value={order.status} onValueChange={(value) => updateOrderStatus(order.id, value)}>
-                    <SelectTrigger className="w-32">
+                  <Select
+                    value={order.status}
+                    onValueChange={(value) => updateOrderStatus(order.id, value)}
+                    disabled={isUpdating === order.id}
+                  >
+                    <SelectTrigger className="w-32 bg-background">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border shadow-lg">
                       <SelectItem value="pending">Pendiente</SelectItem>
                       <SelectItem value="confirmed">Confirmado</SelectItem>
                       <SelectItem value="preparing">Preparando</SelectItem>
@@ -129,6 +151,32 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                       </DialogHeader>
                       {selectedOrder && (
                         <div className="space-y-4">
+                          <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-semibold mb-1">Estado del Pedido</h4>
+                              <Badge variant={getStatusColor(selectedOrder.status)}>
+                                {getStatusText(selectedOrder.status)}
+                              </Badge>
+                            </div>
+                            <Select
+                              value={selectedOrder.status}
+                              onValueChange={(value) => updateOrderStatus(selectedOrder.id, value)}
+                              disabled={isUpdating === selectedOrder.id}
+                            >
+                              <SelectTrigger className="w-40 bg-background">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background border shadow-lg">
+                                <SelectItem value="pending">Pendiente</SelectItem>
+                                <SelectItem value="confirmed">Confirmado</SelectItem>
+                                <SelectItem value="preparing">Preparando</SelectItem>
+                                <SelectItem value="ready">Listo</SelectItem>
+                                <SelectItem value="delivered">Entregado</SelectItem>
+                                <SelectItem value="cancelled">Cancelado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
                               <h4 className="font-semibold mb-2">Cliente</h4>

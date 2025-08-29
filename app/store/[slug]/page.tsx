@@ -15,6 +15,61 @@ export default async function StorePage({ params }: StorePageProps) {
   const { slug } = await params
   const supabase = await createClient()
 
+  if (!supabase) {
+    // Show demo data when Supabase is not available
+    const demoStore = {
+      id: "demo-store",
+      name: "Tienda Demo",
+      slug: slug,
+      description: "Tienda de demostración - Configura Supabase para datos reales",
+      logo_url: null,
+      banner_url: null,
+      primary_color: "#2D5016",
+      whatsapp_phone: null,
+      is_active: true,
+    }
+
+    const demoCategories = [
+      {
+        id: "demo-cat-1",
+        name: "Productos Demo",
+        description: "Categoría de demostración",
+        products: [
+          {
+            id: "demo-prod-1",
+            name: "Producto Demo",
+            description: "Este es un producto de demostración. Configura Supabase para ver datos reales.",
+            price: 1000,
+            image_url: "/producto-demo.png",
+            is_available: true,
+            product_options: [],
+          },
+        ],
+      },
+    ]
+
+    return (
+      <PWAProvider>
+        <CartProvider>
+          <div className="min-h-screen bg-background">
+            <StoreHeader store={demoStore} />
+            <main className="container mx-auto px-4 py-6">
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 mb-2">Modo Demostración</h3>
+                <p className="text-yellow-700 text-sm">
+                  Esta tienda está en modo demostración. Para ver datos reales, configura las variables de entorno de
+                  Supabase.
+                </p>
+              </div>
+              <ProductCatalog store={demoStore} categories={demoCategories} />
+            </main>
+            <InstallPrompt />
+          </div>
+        </CartProvider>
+      </PWAProvider>
+    )
+  }
+
   // Get store data
   const { data: store, error: storeError } = await supabase
     .from("stores")
@@ -65,6 +120,13 @@ export default async function StorePage({ params }: StorePageProps) {
 export async function generateMetadata({ params }: StorePageProps) {
   const { slug } = await params
   const supabase = await createClient()
+
+  if (!supabase) {
+    return {
+      title: "Tienda Demo",
+      description: "Tienda de demostración - Configura Supabase para datos reales",
+    }
+  }
 
   const { data: store } = await supabase.from("stores").select("name, description").eq("slug", slug).single()
 

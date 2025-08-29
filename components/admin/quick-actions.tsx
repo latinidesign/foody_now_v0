@@ -45,21 +45,27 @@ export function QuickActions({ store }: QuickActionsProps) {
       <CardContent className="space-y-3">
         {actions.map((action) => (
           <Link key={action.title} href={action.href}>
-            <Button variant="outline" className="w-full justify-start h-auto p-4 bg-transparent">
-              <action.icon className="mr-3 h-5 w-5" />
-              <div className="text-left">
-                <p className="font-medium">{action.title}</p>
-                <p className="text-sm text-muted-foreground">{action.description}</p>
+            <Button
+              variant="outline"
+              className="w-full justify-start h-auto p-4 bg-transparent hover:bg-accent/50 transition-colors"
+            >
+              <action.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+              <div className="text-left flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{action.title}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{action.description}</p>
               </div>
             </Button>
           </Link>
         ))}
 
         <div className="pt-2 border-t">
-          <Link href={`/store/${store.slug}`} target="_blank">
-            <Button className="w-full justify-start">
-              <ExternalLink className="mr-3 h-4 w-4" />
-              Ver Mi Tienda Online
+          <Link href={`/store/${store.slug}`} target="_blank" rel="noopener noreferrer">
+            <Button className="w-full justify-start h-auto p-4">
+              <ExternalLink className="mr-3 h-4 w-4 flex-shrink-0" />
+              <div className="text-left">
+                <p className="font-medium text-sm">Ver Mi Tienda Online</p>
+                <p className="text-xs opacity-90">Abrir en nueva pestaña</p>
+              </div>
             </Button>
           </Link>
         </div>

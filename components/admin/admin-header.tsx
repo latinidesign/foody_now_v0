@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogOut, UserIcon, Settings } from "lucide-react"
-import { useAuth } from "@/lib/hooks/use-auth"
+import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { MobileSidebar } from "./mobile-sidebar"
 
 interface AdminHeaderProps {
   user: User
@@ -22,19 +23,22 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ user, store }: AdminHeaderProps) {
-  const { signOut } = useAuth()
   const router = useRouter()
 
   const handleSignOut = async () => {
-    await signOut()
+    const supabase = createClient()
+    await supabase.auth.signOut()
     router.push("/auth/login")
   }
 
   return (
     <header className="bg-card border-b px-6 py-4">
       <div className="flex items-center justify-between">
-        <div className="lg:hidden">
-          <h1 className="text-xl font-semibold">Foody Now Admin</h1>
+        <div className="flex items-center gap-4">
+          <MobileSidebar store={store} />
+          <div className="lg:hidden">
+            <h1 className="text-xl font-semibold">Foody Now Admin</h1>
+          </div>
         </div>
 
         <div className="ml-auto">
