@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
         stores (
           name,
           whatsapp_number,
-          whatsapp_notifications
+          whatsapp_notifications,
+          store_settings (
+            whatsapp_number,
+            whatsapp_enabled
+          )
         )
       `)
       .eq("id", orderId)
@@ -30,6 +34,8 @@ export async function POST(request: NextRequest) {
     if (!order || !order.stores?.whatsapp_notifications) {
       return NextResponse.json({ error: "Order not found or notifications disabled" }, { status: 404 })
     }
+
+    const storeWhatsAppNumber = order.stores.store_settings?.whatsapp_number || order.stores.whatsapp_number
 
     const orderData = {
       orderId: order.id,
@@ -47,12 +53,13 @@ export async function POST(request: NextRequest) {
       storeName: order.stores.name,
     }
 
-    const storeNotification = await whatsappService.sendOrderNotification(orderData)
+    const storeNotification = await whatsappService.sendOrderNotification(orderData, storeWhatsAppNumber)
     const customerConfirmation = await whatsappService.sendCustomerConfirmation(
       orderData.customerPhone,
       orderId,
       orderData.storeName,
       "30-45 minutos",
+      storeWhatsAppNumber,
     )
 
     return NextResponse.json({

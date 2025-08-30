@@ -100,9 +100,17 @@ ${deliveryInfo}
     return `${this.baseUrl}?phone=${customerPhone}&text=${message}`
   }
 
-  async sendMessage(to: string, message: string): Promise<boolean> {
-    if (!this.twilioAccountSid || !this.twilioAuthToken || !this.twilioWhatsAppNumber) {
+  async sendMessage(to: string, message: string, fromNumber?: string): Promise<boolean> {
+    if (!this.twilioAccountSid || !this.twilioAuthToken) {
       console.log("[v0] Twilio not configured, falling back to WhatsApp links")
+      return false
+    }
+
+    // Use store-specific number or fallback to global Twilio number
+    const whatsappNumber = fromNumber || process.env.TWILIO_WHATSAPP_NUMBER
+
+    if (!whatsappNumber) {
+      console.log("[v0] No WhatsApp number available, falling back to WhatsApp links")
       return false
     }
 
@@ -116,7 +124,7 @@ ${deliveryInfo}
             "Content-Type": "application/x-www-form-urlencoded",
           },
           body: new URLSearchParams({
-            From: `whatsapp:${this.twilioWhatsAppNumber}`,
+            From: `whatsapp:${whatsappNumber}`,
             To: `whatsapp:${to}`,
             Body: message,
           }),
@@ -124,7 +132,7 @@ ${deliveryInfo}
       )
 
       if (response.ok) {
-        console.log("[v0] WhatsApp message sent successfully")
+        console.log("[v0] WhatsApp message sent successfully from", whatsappNumber)
         return true
       } else {
         const error = await response.text()
@@ -137,10 +145,13 @@ ${deliveryInfo}
     }
   }
 
-  async sendOrderNotification(order: OrderNotification): Promise<{ success: boolean; link?: string }> {
+  async sendOrderNotification(
+    order: OrderNotification,
+    storeWhatsAppNumber?: string,
+  ): Promise<{ success: boolean; link?: string }> {
     const message = decodeURIComponent(this.generateOrderNotification(order))
 
-    const sent = await this.sendMessage(order.storePhone, message)
+    const sent = await this.sendMessage(order.storePhone, message, storeWhatsAppNumber)
 
     if (sent) {
       return { success: true }
@@ -156,10 +167,11 @@ ${deliveryInfo}
     orderId: string,
     storeName: string,
     estimatedTime: string,
+    storeWhatsAppNumber?: string,
   ): Promise<{ success: boolean; link?: string }> {
     const message = decodeURIComponent(this.generateCustomerConfirmation(orderId, storeName, estimatedTime))
 
-    const sent = await this.sendMessage(customerPhone, message)
+    const sent = await this.sendMessage(customerPhone, message, storeWhatsAppNumber)
 
     if (sent) {
       return { success: true }

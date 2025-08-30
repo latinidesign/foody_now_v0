@@ -14,8 +14,8 @@ export function CartButton() {
   return (
     <>
       <Button variant="outline" size="sm" onClick={() => setIsOpen(true)} className="relative">
-        <ShoppingCart className="w-4 h-4 mr-2" />
-        Carrito
+        <ShoppingCart className="w-4 h-4 md:mr-2" />
+        <span className="hidden md:inline">Carrito</span>
         {state.itemCount > 0 && (
           <Badge
             variant="destructive"

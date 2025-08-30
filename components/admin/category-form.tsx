@@ -31,6 +31,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
     description: category?.description || "",
     image_url: category?.image_url || "",
   })
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,8 +64,36 @@ export function CategoryForm({ category }: CategoryFormProps) {
     }
   }
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validar tipo de archivo
+      if (!file.type.startsWith("image/")) {
+        toast.error("Por favor selecciona un archivo de imagen válido")
+        return
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("La imagen debe ser menor a 5MB")
+        return
+      }
+
+      setUploadedFile(file)
+
+      // Convertir a base64 para vista previa y almacenamiento
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string
+        setFormData({ ...formData, image_url: base64String })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const clearImage = () => {
     setFormData({ ...formData, image_url: "" })
+    setUploadedFile(null)
   }
 
   return (
@@ -128,11 +157,13 @@ export function CategoryForm({ category }: CategoryFormProps) {
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
+                  {uploadedFile && <p className="text-sm text-muted-foreground">Archivo: {uploadedFile.name}</p>}
                   <Input
                     id="image_url"
-                    value={formData.image_url}
+                    value={uploadedFile ? "" : formData.image_url}
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                     placeholder="URL de la imagen"
+                    disabled={!!uploadedFile}
                   />
                 </div>
               ) : (
@@ -142,17 +173,38 @@ export function CategoryForm({ category }: CategoryFormProps) {
                     <p className="text-sm text-muted-foreground mb-3">
                       Agrega una imagen para hacer más atractiva tu categoría
                     </p>
-                    <Input
-                      id="image_url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      placeholder="Pega la URL de la imagen aquí"
-                    />
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById("file-upload")?.click()}
+                          className="w-full"
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          Subir desde dispositivo
+                        </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground">o</div>
+                      <Input
+                        id="image_url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        placeholder="Pega la URL de la imagen aquí"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Recomendado: imagen en formato 16:9 (ej: 800x450px) para mejor visualización
+                Recomendado: imagen en formato 16:9 (ej: 800x450px) para mejor visualización. Máximo 5MB.
               </p>
             </div>
 

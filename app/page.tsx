@@ -53,7 +53,7 @@ export default function HomePage() {
               Transforma tu negocio con <span className="text-primary">FOODYNOW</span>
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto text-pretty">
-              La solución moderna para comercialización eficiente. Vende por WhatsApp, cobra con RapiPago y gestiona tu
+              La solución moderna para comercialización eficiente. Vende por WhatsApp, cobra con MercadoPago y gestiona tu
               negocio con herramientas profesionales de marketing digital.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

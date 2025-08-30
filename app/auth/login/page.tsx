@@ -20,19 +20,28 @@ export default function Page() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
+      const supabase = createClient()
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/admin`,
+        },
       })
       if (error) throw error
       router.push("/admin")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      console.error("[v0] Login error:", error)
+      if (error instanceof Error && error.message.includes("Supabase configuration")) {
+        setError("Authentication service is not configured. Please contact support.")
+      } else {
+        setError(error instanceof Error ? error.message : "An error occurred")
+      }
     } finally {
       setIsLoading(false)
     }

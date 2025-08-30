@@ -1,68 +1,81 @@
+"use client"
+
 import type { Store } from "@/lib/types/database"
-import { Phone, MapPin, Clock } from "lucide-react"
+import { Menu, ArrowLeft } from "lucide-react"
 import { CartButton } from "./cart-button"
+import { StoreDrawer } from "./store-drawer"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 interface StoreHeaderProps {
   store: Store
+  showBackButton?: boolean
 }
 
-export function StoreHeader({ store }: StoreHeaderProps) {
-  return (
-    <header className="bg-card border-b sticky top-0 z-40 backdrop-blur-sm bg-card/95">
-      {/* Hero Section */}
-      {store.header_image_url && (
-        <div className="relative h-48 md:h-64 overflow-hidden">
-          <img
-            src={store.header_image_url || "/placeholder.svg"}
-            alt={store.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute bottom-4 left-4 text-white">
-            <h1 className="text-2xl md:text-3xl font-bold">{store.name}</h1>
-            {store.description && <p className="text-sm md:text-base opacity-90 mt-1">{store.description}</p>}
-          </div>
-        </div>
-      )}
+export function StoreHeader({ store, showBackButton = false }: StoreHeaderProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const router = useRouter()
 
-      {/* Store Info Bar */}
-      <div className="bg-card px-4 py-3">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              {store.logo_url && (
+  return (
+    <>
+      <header className="bg-card border-b backdrop-blur-sm bg-card/95">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Left: Menu hamburguesa o botón volver */}
+            <div className="flex items-center">
+              {showBackButton ? (
+                <button
+                  onClick={() => router.back()}
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  aria-label="Volver"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  aria-label="Abrir menú"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Center: Logo o nombre de la tienda */}
+            <div className="flex items-center gap-2 flex-1 justify-center">
+              {store.logo_url ? (
                 <img
                   src={store.logo_url || "/placeholder.svg"}
                   alt={store.name}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
                 />
+              ) : (
+                <h1 className="text-lg md:text-xl font-bold text-foreground text-center">{store.name}</h1>
               )}
-              <h1 className="text-lg font-bold text-foreground">{store.name}</h1>
             </div>
 
-            {store.phone && (
-              <div className="flex items-center gap-1">
-                <Phone className="w-4 h-4" />
-                <span>{store.phone}</span>
-              </div>
-            )}
-
-            {store.address && (
-              <div className="hidden md:flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{store.address}</span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              <span className="text-primary font-medium">Abierto</span>
+            {/* Right: Carrito de compras */}
+            <div className="flex items-center">
+              <CartButton />
             </div>
           </div>
-
-          <CartButton />
         </div>
-      </div>
-    </header>
+
+        {/* Header image section (opcional) */}
+        {store.header_image_url && (
+          <div className="relative h-32 md:h-48 overflow-hidden">
+            <img
+              src={store.header_image_url || "/placeholder.svg"}
+              alt={store.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20" />
+          </div>
+        )}
+      </header>
+
+      <StoreDrawer store={store} open={drawerOpen} onOpenChange={setDrawerOpen} />
+    </>
   )
 }
