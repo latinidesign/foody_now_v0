@@ -1,47 +1,65 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { whatsappService } from "@/lib/whatsapp/client"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { orderId, storeSlug } = body
 
-    // Here you would typically:
-    // 1. Fetch order details from database
-    // 2. Fetch store configuration
-    // 3. Send notifications
+    const supabase = await createClient()
 
-    // For now, we'll return the WhatsApp links that can be used
-    // In a real implementation, you might use a WhatsApp Business API
+    const { data: order } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        order_items (
+          quantity,
+          price,
+          products (name)
+        ),
+        stores (
+          name,
+          whatsapp_number,
+          whatsapp_notifications
+        )
+      `)
+      .eq("id", orderId)
+      .single()
 
-    const mockOrder = {
-      orderId,
-      customerName: "Cliente Ejemplo",
-      customerPhone: "+5491123456789",
-      items: [
-        { name: "Hamburguesa Completa", quantity: 2, price: 1500 },
-        { name: "Papas Fritas", quantity: 1, price: 800 },
-      ],
-      total: 3800,
-      deliveryType: "delivery" as const,
-      deliveryAddress: "Av. Corrientes 1234, CABA",
-      storePhone: "+5491187654321",
-      storeName: "Burger House",
+    if (!order || !order.stores?.whatsapp_notifications) {
+      return NextResponse.json({ error: "Order not found or notifications disabled" }, { status: 404 })
     }
 
-    const storeNotificationLink = whatsappService.getOrderNotificationLink(mockOrder)
-    const customerConfirmationLink = whatsappService.getCustomerConfirmationLink(
-      mockOrder.customerPhone,
+    const orderData = {
+      orderId: order.id,
+      customerName: order.customer_name,
+      customerPhone: order.customer_phone,
+      items: order.order_items.map((item: any) => ({
+        name: item.products.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      total: order.total,
+      deliveryType: order.delivery_type,
+      deliveryAddress: order.delivery_address,
+      storePhone: order.stores.whatsapp_number,
+      storeName: order.stores.name,
+    }
+
+    const storeNotification = await whatsappService.sendOrderNotification(orderData)
+    const customerConfirmation = await whatsappService.sendCustomerConfirmation(
+      orderData.customerPhone,
       orderId,
-      mockOrder.storeName,
+      orderData.storeName,
       "30-45 minutos",
     )
 
     return NextResponse.json({
       success: true,
       notifications: {
-        storeNotification: storeNotificationLink,
-        customerConfirmation: customerConfirmationLink,
+        storeNotification: storeNotification.success ? "sent" : storeNotification.link,
+        customerConfirmation: customerConfirmation.success ? "sent" : customerConfirmation.link,
       },
     })
   } catch (error) {

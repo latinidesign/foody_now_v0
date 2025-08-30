@@ -29,14 +29,16 @@ export function StoreHeader({ store }: StoreHeaderProps) {
       <div className="bg-card px-4 py-3">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {!store.header_image_url && (
-              <div className="flex items-center gap-2">
-                {store.logo_url && (
-                  <img src={store.logo_url || "/placeholder.svg"} alt={store.name} className="w-8 h-8 rounded-full" />
-                )}
-                <h1 className="text-lg font-bold text-foreground">{store.name}</h1>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {store.logo_url && (
+                <img
+                  src={store.logo_url || "/placeholder.svg"}
+                  alt={store.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              )}
+              <h1 className="text-lg font-bold text-foreground">{store.name}</h1>
+            </div>
 
             {store.phone && (
               <div className="flex items-center gap-1">

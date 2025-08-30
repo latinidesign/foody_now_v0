@@ -6,7 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Eye, Phone, MapPin } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -148,6 +155,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>Pedido #{order.id.slice(-8)}</DialogTitle>
+                        <DialogDescription>
+                          Detalles completos del pedido y opciones para cambiar el estado
+                        </DialogDescription>
                       </DialogHeader>
                       {selectedOrder && (
                         <div className="space-y-4">

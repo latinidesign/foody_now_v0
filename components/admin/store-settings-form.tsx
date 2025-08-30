@@ -47,16 +47,22 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
 
   const handleLogoUpload = async (file: File) => {
     if (!file) return
-    // Create a simple file URL for preview (in production, upload to storage)
-    const fileUrl = URL.createObjectURL(file)
-    setStoreData({ ...storeData, logoUrl: fileUrl })
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string
+      setStoreData({ ...storeData, logoUrl: base64 })
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleHeaderUpload = async (file: File) => {
     if (!file) return
-    // Create a simple file URL for preview (in production, upload to storage)
-    const fileUrl = URL.createObjectURL(file)
-    setStoreData({ ...storeData, headerImageUrl: fileUrl })
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string
+      setStoreData({ ...storeData, headerImageUrl: base64 })
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleStoreUpdate = async (e: React.FormEvent) => {

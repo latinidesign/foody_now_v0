@@ -1,11 +1,21 @@
 import { WhatsAppSettings } from "@/components/admin/whatsapp-settings"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-export default function WhatsAppSettingsPage() {
-  // In a real app, you would fetch the store data from the database
-  const mockStore = {
-    slug: "burger-house",
-    name: "Burger House",
-    phone: "+5491187654321",
+export default async function WhatsAppSettingsPage() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    redirect("/auth/login")
+  }
+
+  const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
+
+  if (!store) {
+    redirect("/admin/setup")
   }
 
   return (
@@ -17,7 +27,13 @@ export default function WhatsAppSettingsPage() {
         </p>
       </div>
 
-      <WhatsAppSettings storeSlug={mockStore.slug} storeName={mockStore.name} currentPhone={mockStore.phone} />
+      <WhatsAppSettings
+        storeId={store.id}
+        storeSlug={store.slug}
+        storeName={store.name}
+        currentPhone={store.whatsapp_number}
+        autoNotifications={store.whatsapp_notifications}
+      />
     </div>
   )
 }

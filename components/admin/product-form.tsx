@@ -11,7 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Loader2, ArrowLeft, Plus, Package, Upload } from "lucide-react"
 import Link from "next/link"
 import type { Category } from "@/lib/types/database"
@@ -139,10 +146,12 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
 
   const handleImageUpload = async (file: File) => {
     if (!file) return
-
-    // Create a simple file URL for preview (in production, upload to storage)
-    const fileUrl = URL.createObjectURL(file)
-    setFormData({ ...formData, imageUrl: fileUrl })
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string
+      setFormData({ ...formData, imageUrl: base64 })
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -232,6 +241,9 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Crear Nueva Categoría</DialogTitle>
+                        <DialogDescription>
+                          Crea una nueva categoría para organizar mejor tus productos
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div className="space-y-2">

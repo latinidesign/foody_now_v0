@@ -22,6 +22,9 @@ interface OrderNotification {
 
 export class WhatsAppService {
   private baseUrl = "https://api.whatsapp.com/send"
+  private twilioAccountSid = process.env.TWILIO_ACCOUNT_SID
+  private twilioAuthToken = process.env.TWILIO_AUTH_TOKEN
+  private twilioWhatsAppNumber = process.env.TWILIO_WHATSAPP_NUMBER
 
   // Generate WhatsApp link for store access
   generateStoreLink(storeSlug: string, storePhone: string): string {
@@ -95,6 +98,76 @@ ${deliveryInfo}
   ): string {
     const message = this.generateCustomerConfirmation(orderId, storeName, estimatedTime)
     return `${this.baseUrl}?phone=${customerPhone}&text=${message}`
+  }
+
+  async sendMessage(to: string, message: string): Promise<boolean> {
+    if (!this.twilioAccountSid || !this.twilioAuthToken || !this.twilioWhatsAppNumber) {
+      console.log("[v0] Twilio not configured, falling back to WhatsApp links")
+      return false
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.twilio.com/2010-04-01/Accounts/${this.twilioAccountSid}/Messages.json`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${Buffer.from(`${this.twilioAccountSid}:${this.twilioAuthToken}`).toString("base64")}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            From: `whatsapp:${this.twilioWhatsAppNumber}`,
+            To: `whatsapp:${to}`,
+            Body: message,
+          }),
+        },
+      )
+
+      if (response.ok) {
+        console.log("[v0] WhatsApp message sent successfully")
+        return true
+      } else {
+        const error = await response.text()
+        console.error("[v0] Error sending WhatsApp message:", error)
+        return false
+      }
+    } catch (error) {
+      console.error("[v0] Error sending WhatsApp message:", error)
+      return false
+    }
+  }
+
+  async sendOrderNotification(order: OrderNotification): Promise<{ success: boolean; link?: string }> {
+    const message = decodeURIComponent(this.generateOrderNotification(order))
+
+    const sent = await this.sendMessage(order.storePhone, message)
+
+    if (sent) {
+      return { success: true }
+    } else {
+      // Fallback to WhatsApp link
+      const link = this.getOrderNotificationLink(order)
+      return { success: false, link }
+    }
+  }
+
+  async sendCustomerConfirmation(
+    customerPhone: string,
+    orderId: string,
+    storeName: string,
+    estimatedTime: string,
+  ): Promise<{ success: boolean; link?: string }> {
+    const message = decodeURIComponent(this.generateCustomerConfirmation(orderId, storeName, estimatedTime))
+
+    const sent = await this.sendMessage(customerPhone, message)
+
+    if (sent) {
+      return { success: true }
+    } else {
+      // Fallback to WhatsApp link
+      const link = this.getCustomerConfirmationLink(customerPhone, orderId, storeName, estimatedTime)
+      return { success: false, link }
+    }
   }
 }
 

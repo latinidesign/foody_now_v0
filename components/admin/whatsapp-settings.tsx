@@ -6,22 +6,35 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { MessageCircle, Copy, Check } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
+import { toast } from "sonner"
 
 interface WhatsAppSettingsProps {
+  storeId: string
   storeSlug: string
   storeName: string
   currentPhone?: string
+  autoNotifications?: boolean
 }
 
-export function WhatsAppSettings({ storeSlug, storeName, currentPhone }: WhatsAppSettingsProps) {
+export function WhatsAppSettings({
+  storeId,
+  storeSlug,
+  storeName,
+  currentPhone,
+  autoNotifications: initialAutoNotifications,
+}: WhatsAppSettingsProps) {
   const [phone, setPhone] = useState(currentPhone || "")
-  const [autoNotifications, setAutoNotifications] = useState(true)
+  const [autoNotifications, setAutoNotifications] = useState(initialAutoNotifications || true)
+  const [customMessage, setCustomMessage] = useState("")
   const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/store/${storeSlug}`
-  const responseMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
+  const storeUrl = `${window.location.origin}/store/${storeSlug}`
+  const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
+  const responseMessage = customMessage || defaultMessage
 
   const handleCopyMessage = async () => {
     try {
@@ -34,8 +47,31 @@ export function WhatsAppSettings({ storeSlug, storeName, currentPhone }: WhatsAp
   }
 
   const handleSave = async () => {
-    // Here you would save the WhatsApp settings to the database
-    console.log("Saving WhatsApp settings:", { phone, autoNotifications })
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/stores/${storeId}/whatsapp`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          whatsapp_number: phone,
+          whatsapp_notifications: autoNotifications,
+          whatsapp_message: customMessage,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al guardar configuración")
+      }
+
+      toast.success("Configuración de WhatsApp guardada correctamente")
+    } catch (error) {
+      console.error("Error saving WhatsApp settings:", error)
+      toast.error("Error al guardar la configuración")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -68,8 +104,8 @@ export function WhatsAppSettings({ storeSlug, storeName, currentPhone }: WhatsAp
             <Switch checked={autoNotifications} onCheckedChange={setAutoNotifications} />
           </div>
 
-          <Button onClick={handleSave} className="w-full">
-            Guardar configuración
+          <Button onClick={handleSave} className="w-full" disabled={saving}>
+            {saving ? "Guardando..." : "Guardar configuración"}
           </Button>
         </CardContent>
       </Card>
@@ -78,10 +114,21 @@ export function WhatsAppSettings({ storeSlug, storeName, currentPhone }: WhatsAp
         <CardHeader>
           <CardTitle>Mensaje automático para clientes</CardTitle>
           <CardDescription>
-            Copia este mensaje para responder cuando los clientes te pidan el link de tu tienda
+            Personaliza el mensaje que enviarás cuando los clientes te pidan el link de tu tienda
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="custom-message">Mensaje personalizado (opcional)</Label>
+            <Textarea
+              id="custom-message"
+              placeholder="Deja vacío para usar el mensaje automático"
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
+              rows={3}
+            />
+          </div>
+
           <div className="bg-muted p-4 rounded-lg">
             <p className="text-sm whitespace-pre-line">{decodeURIComponent(responseMessage)}</p>
           </div>
