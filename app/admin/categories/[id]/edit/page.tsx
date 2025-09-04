@@ -1,5 +1,5 @@
 import { CategoryForm } from "@/components/admin/category-form"
-import { createServerClient } from "@/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 
 interface EditCategoryPageProps {
@@ -9,7 +9,7 @@ interface EditCategoryPageProps {
 }
 
 export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const { data: category, error } = await supabase.from("categories").select("*").eq("id", params.id).single()
 

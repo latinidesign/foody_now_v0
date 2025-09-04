@@ -19,7 +19,7 @@ export function StoreHeader({ store, showBackButton = false }: StoreHeaderProps)
   return (
     <>
       <header className="bg-card border-b backdrop-blur-sm bg-card/95">
-        <div className="container mx-auto px-4 py-3">
+        <div className="container mx-auto px-4 py-3 leading-10">
           <div className="flex items-center justify-between">
             {/* Left: Menu hamburguesa o botón volver */}
             <div className="flex items-center">
@@ -48,7 +48,7 @@ export function StoreHeader({ store, showBackButton = false }: StoreHeaderProps)
                 <img
                   src={store.logo_url || "/placeholder.svg"}
                   alt={store.name}
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
+                  className="rounded-full object-cover leading-10 md:w-36 md:h-20 w-36 h-20"
                 />
               ) : (
                 <h1 className="text-lg md:text-xl font-bold text-foreground text-center">{store.name}</h1>

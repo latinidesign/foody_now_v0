@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Eye, EyeOff, Upload } from "lucide-react"
+import { Loader2, Eye, EyeOff, Upload, MapPin } from "lucide-react"
 import type { Store, StoreSettings } from "@/lib/types/database"
+import { LocationMap } from "@/components/store/location-map"
 
 interface StoreSettingsFormProps {
   store: Store
@@ -285,11 +286,22 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  value={storeData.address}
-                  onChange={(e) => setStoreData({ ...storeData, address: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="address"
+                    value={storeData.address}
+                    onChange={(e) => setStoreData({ ...storeData, address: e.target.value })}
+                    className="flex-1"
+                    placeholder="Ingresa la dirección completa de tu tienda"
+                  />
+                  <LocationMap address={storeData.address} storeName={storeData.name}>
+                    <Button type="button" variant="outline" disabled={!storeData.address.trim()}>
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Ver Mapa
+                    </Button>
+                  </LocationMap>
+                </div>
+                <p className="text-xs text-muted-foreground">Dirección completa donde se encuentra tu tienda</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
