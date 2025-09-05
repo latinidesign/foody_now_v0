@@ -1,10 +1,11 @@
 "use client"
 
 import type { Order } from "@/lib/types/database"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
@@ -14,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Eye, Phone, MapPin } from "lucide-react"
+import { Eye, Phone, MapPin, Search, Calendar, X } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -36,8 +37,47 @@ interface OrdersTableProps {
 export function OrdersTable({ orders }: OrdersTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [deliveryFilter, setDeliveryFilter] = useState<string>("all")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
   const router = useRouter()
   const supabase = createClient()
+
+  const filteredAndSortedOrders = useMemo(() => {
+    const filtered = orders.filter((order) => {
+      // Filtro de búsqueda por nombre de cliente o productos
+      const searchMatch =
+        searchTerm === "" ||
+        order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.order_items.some((item) => item.products.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+      // Filtro por estado
+      const statusMatch = statusFilter === "all" || order.status === statusFilter
+
+      // Filtro por tipo de entrega
+      const deliveryMatch = deliveryFilter === "all" || order.delivery_type === deliveryFilter
+
+      // Filtro por rango de fechas
+      const orderDate = new Date(order.created_at).toISOString().split("T")[0]
+      const dateFromMatch = !dateFrom || orderDate >= dateFrom
+      const dateToMatch = !dateTo || orderDate <= dateTo
+
+      return searchMatch && statusMatch && deliveryMatch && dateFromMatch && dateToMatch
+    })
+
+    // Ordenar por fecha y hora (más recientes primero)
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  }, [orders, searchTerm, statusFilter, deliveryFilter, dateFrom, dateTo])
+
+  const clearFilters = () => {
+    setSearchTerm("")
+    setStatusFilter("all")
+    setDeliveryFilter("all")
+    setDateFrom("")
+    setDateTo("")
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -98,20 +138,99 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     <Card>
       <CardHeader>
         <CardTitle>Lista de Pedidos</CardTitle>
+        <div className="space-y-4">
+          {/* Barra de búsqueda */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Buscar por cliente o producto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Filtros en chips */}
+          <div className="flex flex-wrap gap-2">
+            {/* Filtro de estado */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-auto min-w-32 bg-background">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg">
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="confirmed">Confirmado</SelectItem>
+                <SelectItem value="preparing">Preparando</SelectItem>
+                <SelectItem value="ready">Listo</SelectItem>
+                <SelectItem value="delivered">Entregado</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filtro de entrega */}
+            <Select value={deliveryFilter} onValueChange={setDeliveryFilter}>
+              <SelectTrigger className="w-auto min-w-32 bg-background">
+                <SelectValue placeholder="Entrega" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg">
+                <SelectItem value="all">Todas las entregas</SelectItem>
+                <SelectItem value="pickup">Retiro</SelectItem>
+                <SelectItem value="delivery">Delivery</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filtros de fecha */}
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-auto"
+                placeholder="Desde"
+              />
+              <span className="text-muted-foreground">-</span>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-auto"
+                placeholder="Hasta"
+              />
+            </div>
+
+            {/* Botón limpiar filtros */}
+            {(searchTerm || statusFilter !== "all" || deliveryFilter !== "all" || dateFrom || dateTo) && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-1" />
+                Limpiar
+              </Button>
+            )}
+          </div>
+
+          {/* Contador de resultados */}
+          <div className="text-sm text-muted-foreground">
+            Mostrando {filteredAndSortedOrders.length} de {orders.length} pedidos
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {orders.length === 0 ? (
+        {filteredAndSortedOrders.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No hay pedidos aún</p>
+            <p className="text-muted-foreground">
+              {orders.length === 0 ? "No hay pedidos aún" : "No se encontraron pedidos con los filtros aplicados"}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
+            {filteredAndSortedOrders.map((order) => (
               <div key={order.id} className="flex items-center gap-4 p-4 border rounded-lg">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold">#{order.id.slice(-8)}</h3>
                     <Badge variant={getStatusColor(order.status)}>{getStatusText(order.status)}</Badge>
+                    <Badge variant="outline">{order.delivery_type === "pickup" ? "Retiro" : "Delivery"}</Badge>
                   </div>
                   <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground">
                     <div>
@@ -119,8 +238,10 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                       <p>{order.customer_phone}</p>
                     </div>
                     <div>
-                      <p>{order.delivery_type === "pickup" ? "Retiro" : "Delivery"}</p>
                       <p>{new Date(order.created_at).toLocaleDateString("es-AR")}</p>
+                      <p>
+                        {new Date(order.created_at).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
+                      </p>
                     </div>
                     <div>
                       <p className="font-medium text-primary">${order.total}</p>
@@ -128,6 +249,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     </div>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <Select
                     value={order.status}
