@@ -15,10 +15,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Eye, Phone, MapPin, Search, Calendar, X } from "lucide-react"
+import { Eye, Phone, MapPin, Search, X } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
+import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
 
 interface OrderWithItems extends Order {
   order_items: Array<{
@@ -40,43 +41,39 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [deliveryFilter, setDeliveryFilter] = useState<string>("all")
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  const startDate = searchParams.get("startDate")
+  const endDate = searchParams.get("endDate")
 
   const filteredAndSortedOrders = useMemo(() => {
     const filtered = orders.filter((order) => {
-      // Filtro de búsqueda por nombre de cliente o productos
       const searchMatch =
         searchTerm === "" ||
         order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.order_items.some((item) => item.products.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-      // Filtro por estado
       const statusMatch = statusFilter === "all" || order.status === statusFilter
 
-      // Filtro por tipo de entrega
       const deliveryMatch = deliveryFilter === "all" || order.delivery_type === deliveryFilter
 
-      // Filtro por rango de fechas
       const orderDate = new Date(order.created_at).toISOString().split("T")[0]
-      const dateFromMatch = !dateFrom || orderDate >= dateFrom
-      const dateToMatch = !dateTo || orderDate <= dateTo
+      const dateFromMatch = !startDate || orderDate >= startDate
+      const dateToMatch = !endDate || orderDate <= endDate
 
       return searchMatch && statusMatch && deliveryMatch && dateFromMatch && dateToMatch
     })
 
-    // Ordenar por fecha y hora (más recientes primero)
     return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  }, [orders, searchTerm, statusFilter, deliveryFilter, dateFrom, dateTo])
+  }, [orders, searchTerm, statusFilter, deliveryFilter, startDate, endDate])
 
   const clearFilters = () => {
     setSearchTerm("")
     setStatusFilter("all")
     setDeliveryFilter("all")
-    setDateFrom("")
-    setDateTo("")
+    router.replace("/admin/orders")
   }
 
   const getStatusColor = (status: string) => {
@@ -139,7 +136,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       <CardHeader>
         <CardTitle>Lista de Pedidos</CardTitle>
         <div className="space-y-4">
-          {/* Barra de búsqueda */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
@@ -150,9 +146,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             />
           </div>
 
-          {/* Filtros en chips */}
           <div className="flex flex-wrap gap-2">
-            {/* Filtro de estado */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-auto min-w-32 bg-background">
                 <SelectValue placeholder="Estado" />
@@ -168,7 +162,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               </SelectContent>
             </Select>
 
-            {/* Filtro de entrega */}
             <Select value={deliveryFilter} onValueChange={setDeliveryFilter}>
               <SelectTrigger className="w-auto min-w-32 bg-background">
                 <SelectValue placeholder="Entrega" />
@@ -180,28 +173,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               </SelectContent>
             </Select>
 
-            {/* Filtros de fecha */}
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-auto"
-                placeholder="Desde"
-              />
-              <span className="text-muted-foreground">-</span>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-auto"
-                placeholder="Hasta"
-              />
-            </div>
+            <AnalyticsDateSelector />
 
-            {/* Botón limpiar filtros */}
-            {(searchTerm || statusFilter !== "all" || deliveryFilter !== "all" || dateFrom || dateTo) && (
+            {(searchTerm || statusFilter !== "all" || deliveryFilter !== "all" || startDate || endDate) && (
               <Button variant="outline" size="sm" onClick={clearFilters}>
                 <X className="w-4 h-4 mr-1" />
                 Limpiar
@@ -209,7 +183,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             )}
           </div>
 
-          {/* Contador de resultados */}
           <div className="text-sm text-muted-foreground">
             Mostrando {filteredAndSortedOrders.length} de {orders.length} pedidos
           </div>

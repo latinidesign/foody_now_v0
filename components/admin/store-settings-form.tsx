@@ -43,7 +43,6 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
   const [paymentSettings, setPaymentSettings] = useState({
     mercadopagoAccessToken: settings?.mercadopago_access_token || "",
     mercadopagoPublicKey: settings?.mercadopago_public_key || "",
-    whatsappNumber: settings?.whatsapp_number || "",
   })
 
   const handleLogoUpload = async (file: File) => {
@@ -132,7 +131,6 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
       <TabsList>
         <TabsTrigger value="store">Tienda</TabsTrigger>
         <TabsTrigger value="payments">Pagos</TabsTrigger>
-        <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
       </TabsList>
 
       {(error || success) && (
@@ -388,33 +386,6 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Guardar Configuración de Pagos
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="notifications">
-        <Card>
-          <CardHeader>
-            <CardTitle>Configuración de WhatsApp</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePaymentUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="whatsappNumber">Número de WhatsApp</Label>
-                <Input
-                  id="whatsappNumber"
-                  value={paymentSettings.whatsappNumber}
-                  onChange={(e) => setPaymentSettings({ ...paymentSettings, whatsappNumber: e.target.value })}
-                  placeholder="+54 11 1234-5678"
-                />
-                <p className="text-xs text-muted-foreground">Número donde recibirás las notificaciones de pedidos</p>
-              </div>
-
-              <Button type="submit" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Guardar Configuración
               </Button>
             </form>
           </CardContent>

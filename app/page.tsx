@@ -46,15 +46,15 @@ export default function HomePage() {
       <section className="py-20 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 bg-accent/10 text-accent border-accent/20">
+            <Badge className="mb-6 bg-accent text-accent-foreground border-accent">
               🚀 Revoluciona tu negocio alimentario
             </Badge>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 text-foreground text-balance">
               Transforma tu negocio con <span className="text-primary">FOODYNOW</span>
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto text-pretty">
-              La solución moderna para comercialización eficiente. Vende por WhatsApp, cobra con MercadoPago y gestiona tu
-              negocio con herramientas profesionales de marketing digital.
+              La solución moderna para comercialización eficiente. Vende por WhatsApp, cobra con MercadoPago y gestiona
+              tu negocio con herramientas profesionales de marketing digital.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/register">

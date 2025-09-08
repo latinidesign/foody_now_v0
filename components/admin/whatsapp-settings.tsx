@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageCircle, Copy, Check } from "lucide-react"
+import { MessageCircle, Copy, Check, Settings, Phone } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
 import { toast } from "sonner"
 
@@ -31,6 +31,12 @@ export function WhatsAppSettings({
   const [customMessage, setCustomMessage] = useState("")
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const [twilioConfig, setTwilioConfig] = useState({
+    accountSid: "",
+    authToken: "",
+    whatsappNumber: "",
+  })
 
   const storeUrl = `${window.location.origin}/store/${storeSlug}`
   const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
@@ -58,6 +64,9 @@ export function WhatsAppSettings({
           whatsapp_number: phone,
           whatsapp_notifications: autoNotifications,
           whatsapp_message: customMessage,
+          twilio_account_sid: twilioConfig.accountSid,
+          twilio_auth_token: twilioConfig.authToken,
+          twilio_whatsapp_number: twilioConfig.whatsappNumber,
         }),
       })
 
@@ -76,6 +85,89 @@ export function WhatsAppSettings({
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5 text-blue-500" />
+            Configuración de Twilio (Mensajes Automáticos)
+          </CardTitle>
+          <CardDescription>
+            Configura tu cuenta de Twilio para enviar mensajes automáticos de WhatsApp a tus clientes
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="twilio-account-sid">Account SID de Twilio</Label>
+            <Input
+              id="twilio-account-sid"
+              placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              value={twilioConfig.accountSid}
+              onChange={(e) => setTwilioConfig({ ...twilioConfig, accountSid: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="twilio-auth-token">Auth Token de Twilio</Label>
+            <Input
+              id="twilio-auth-token"
+              type="password"
+              placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              value={twilioConfig.authToken}
+              onChange={(e) => setTwilioConfig({ ...twilioConfig, authToken: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="twilio-whatsapp-number">Número de WhatsApp de Twilio</Label>
+            <Input
+              id="twilio-whatsapp-number"
+              placeholder="+14155238886"
+              value={twilioConfig.whatsappNumber}
+              onChange={(e) => setTwilioConfig({ ...twilioConfig, whatsappNumber: e.target.value })}
+            />
+            <p className="text-sm text-muted-foreground">
+              Número de WhatsApp Business proporcionado por Twilio para tu tienda
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Phone className="h-5 w-5 text-green-500" />
+            Número de Contacto de la Tienda
+          </CardTitle>
+          <CardDescription>Tu número personal de WhatsApp para recibir notificaciones</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp-phone">Número de WhatsApp Personal</Label>
+            <Input
+              id="whatsapp-phone"
+              placeholder="+54 9 11 1234-5678"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Tu número personal donde recibirás las notificaciones de pedidos
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Notificaciones automáticas</Label>
+              <p className="text-sm text-muted-foreground">Recibe notificaciones automáticas de nuevos pedidos</p>
+            </div>
+            <Switch checked={autoNotifications} onCheckedChange={setAutoNotifications} />
+          </div>
+
+          <Button onClick={handleSave} className="w-full" disabled={saving}>
+            {saving ? "Guardando..." : "Guardar configuración"}
+          </Button>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

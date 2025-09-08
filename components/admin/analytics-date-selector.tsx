@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -10,9 +10,14 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 
-export function AnalyticsDateSelector() {
+interface AnalyticsDateSelectorProps {
+  basePath?: string
+}
+
+export function AnalyticsDateSelector({ basePath }: AnalyticsDateSelectorProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
@@ -52,7 +57,8 @@ export function AnalyticsDateSelector() {
     const params = new URLSearchParams(searchParams.toString())
     params.set("startDate", startDate.toISOString().split("T")[0])
     params.set("endDate", endDate.toISOString().split("T")[0])
-    router.replace(`/admin/analytics?${params.toString()}`)
+    const targetPath = basePath || pathname
+    router.replace(`${targetPath}?${params.toString()}`)
   }
 
   const handleDateRangeSelect = (range: { from: Date | undefined; to: Date | undefined } | undefined) => {
