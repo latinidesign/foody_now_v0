@@ -1,9 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, ShoppingBag, TrendingUp, Users, Calendar, Package } from "lucide-react"
+import { DollarSign, ShoppingBag, TrendingUp, Users, Calendar, XCircle, Eye } from "lucide-react"
+import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
+import { TopProductsChart } from "@/components/admin/top-products-chart"
 
-export default async function AnalyticsPage() {
+interface SearchParams {
+  startDate?: string
+  endDate?: string
+  period?: string
+}
+
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
   const supabase = await createClient()
 
   const {
@@ -21,56 +33,87 @@ export default async function AnalyticsPage() {
     redirect("/admin/setup")
   }
 
+  const now = new Date()
+  let startDate: Date
+  let endDate: Date = now
+
+  if (searchParams.startDate && searchParams.endDate) {
+    startDate = new Date(searchParams.startDate)
+    endDate = new Date(searchParams.endDate)
+  } else {
+    // Default to current month
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+  }
+
+  // Get orders for selected period
+  const { data: periodOrders } = await supabase
+    .from("orders")
+    .select("total, status, created_at")
+    .eq("store_id", store.id)
+    .gte("created_at", startDate.toISOString())
+    .lte("created_at", endDate.toISOString())
+
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select(`
+      quantity,
+      orders!inner(store_id, created_at, status),
+      products!inner(name, id)
+    `)
+    .eq("orders.store_id", store.id)
+    .gte("orders.created_at", startDate.toISOString())
+    .lte("orders.created_at", endDate.toISOString())
+
+  const { data: uniqueCustomers } = await supabase
+    .from("orders")
+    .select("customer_email")
+    .eq("store_id", store.id)
+    .gte("created_at", startDate.toISOString())
+    .lte("created_at", endDate.toISOString())
+
   const { data: allOrders } = await supabase.from("orders").select("total, status, created_at").eq("store_id", store.id)
-
-  const { data: monthlyOrders } = await supabase
-    .from("orders")
-    .select("total, status, created_at")
-    .eq("store_id", store.id)
-    .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-
-  const { data: weeklyOrders } = await supabase
-    .from("orders")
-    .select("total, status, created_at")
-    .eq("store_id", store.id)
-    .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-
   const { data: products } = await supabase.from("products").select("*").eq("store_id", store.id)
 
   // Calculate statistics
   const totalRevenue = allOrders?.reduce((sum, order) => sum + order.total, 0) || 0
-  const monthlyRevenue = monthlyOrders?.reduce((sum, order) => sum + order.total, 0) || 0
-  const weeklyRevenue = weeklyOrders?.reduce((sum, order) => sum + order.total, 0) || 0
+  const periodRevenue = periodOrders?.reduce((sum, order) => sum + order.total, 0) || 0
 
   const totalOrders = allOrders?.length || 0
-  const monthlyOrdersCount = monthlyOrders?.length || 0
-  const weeklyOrdersCount = weeklyOrders?.length || 0
+  const periodOrdersCount = periodOrders?.length || 0
 
   const completedOrders = allOrders?.filter((order) => order.status === "delivered").length || 0
   const pendingOrders = allOrders?.filter((order) => order.status === "pending").length || 0
-  const totalProducts = products?.length || 0
+
+  const cancelledOrders = allOrders?.filter((order) => order.status === "cancelled").length || 0
+
+  const uniqueCustomersCount = new Set(uniqueCustomers?.map((order) => order.customer_email)).size || 0
+
+  const productSales = new Map()
+  orderItems?.forEach((item) => {
+    const productName = item.products.name
+    const currentQuantity = productSales.get(productName) || 0
+    productSales.set(productName, currentQuantity + item.quantity)
+  })
+
+  const topProducts = Array.from(productSales.entries())
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([name, quantity]) => ({ name, quantity }))
 
   const statsCards = [
     {
-      title: "Ingresos Totales",
+      title: "Ventas Totales",
       value: `$${totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       description: "Desde el inicio",
       period: "all-time",
     },
     {
-      title: "Ingresos del Mes",
-      value: `$${monthlyRevenue.toFixed(2)}`,
+      title: "Ventas del Período",
+      value: `$${periodRevenue.toFixed(2)}`,
       icon: Calendar,
-      description: "Últimos 30 días",
-      period: "monthly",
-    },
-    {
-      title: "Ingresos de la Semana",
-      value: `$${weeklyRevenue.toFixed(2)}`,
-      icon: TrendingUp,
-      description: "Últimos 7 días",
-      period: "weekly",
+      description: "Período seleccionado",
+      period: "period",
     },
     {
       title: "Total de Pedidos",
@@ -80,18 +123,11 @@ export default async function AnalyticsPage() {
       period: "all-time",
     },
     {
-      title: "Pedidos del Mes",
-      value: monthlyOrdersCount.toString(),
+      title: "Pedidos del Período",
+      value: periodOrdersCount.toString(),
       icon: ShoppingBag,
-      description: "Últimos 30 días",
-      period: "monthly",
-    },
-    {
-      title: "Pedidos de la Semana",
-      value: weeklyOrdersCount.toString(),
-      icon: ShoppingBag,
-      description: "Últimos 7 días",
-      period: "weekly",
+      description: "Período seleccionado",
+      period: "period",
     },
     {
       title: "Pedidos Completados",
@@ -108,23 +144,32 @@ export default async function AnalyticsPage() {
       period: "pending",
     },
     {
-      title: "Total de Productos",
-      value: totalProducts.toString(),
-      icon: Package,
-      description: "En catálogo",
-      period: "products",
+      title: "Productos Cancelados",
+      value: cancelledOrders.toString(),
+      icon: XCircle,
+      description: "Pedidos cancelados",
+      period: "cancelled",
+    },
+    {
+      title: "Clientes Únicos",
+      value: uniqueCustomersCount.toString(),
+      icon: Eye,
+      description: "Accedieron a la tienda",
+      period: "customers",
     },
   ]
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Estadísticas</h1>
-        <p className="text-muted-foreground">Análisis detallado de tu negocio</p>
+        <h1 className="text-3xl font-bold">Analytics - Nivel Básico</h1>
+        <p className="text-muted-foreground">Información operativa rápida para tu negocio</p>
       </div>
 
+      <AnalyticsDateSelector />
+
       {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -139,8 +184,17 @@ export default async function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Performance Summary */}
       <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Productos Más Vendidos</CardTitle>
+            <p className="text-sm text-muted-foreground">Top 5 del período seleccionado</p>
+          </CardHeader>
+          <CardContent>
+            <TopProductsChart products={topProducts} />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Resumen de Ventas</CardTitle>
@@ -157,34 +211,34 @@ export default async function AnalyticsPage() {
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Pedidos por semana</span>
-              <span className="font-medium">{weeklyOrdersCount}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Estado del Catálogo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Productos activos</span>
-              <span className="font-medium">{totalProducts}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Promedio por producto</span>
-              <span className="font-medium">
-                ${totalProducts > 0 ? (totalRevenue / totalProducts).toFixed(2) : "0.00"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Pedidos pendientes</span>
-              <span className="font-medium text-orange-600">{pendingOrders}</span>
+              <span className="text-sm text-muted-foreground">Pedidos del período</span>
+              <span className="font-medium">{periodOrdersCount}</span>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Estado del Catálogo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Productos activos</span>
+            <span className="font-medium">{products?.length || 0}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Promedio por producto</span>
+            <span className="font-medium">
+              ${products?.length ? (totalRevenue / products.length).toFixed(2) : "0.00"}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Pedidos pendientes</span>
+            <span className="font-medium text-orange-600">{pendingOrders}</span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
