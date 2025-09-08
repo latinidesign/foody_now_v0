@@ -9,6 +9,31 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      // Rewrite subdomain requests to store pages
+      {
+        source: '/',
+        destination: '/store/:subdomain',
+        has: [
+          {
+            type: 'host',
+            value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
+          },
+        ],
+      },
+      {
+        source: '/:path*',
+        destination: '/store/:subdomain/:path*',
+        has: [
+          {
+            type: 'host',
+            value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
+          },
+        ],
+      },
+    ]
+  },
   async headers() {
     return [
       {
