@@ -6,15 +6,38 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const settingsData = await request.json()
     const supabase = await createClient()
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("id", params.id)
+      .eq("owner_id", user.id)
+      .single()
+
+    if (!store) {
+      return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
+    }
+
     const { data: settings, error } = await supabase
       .from("store_settings")
-      .upsert({
-        store_id: params.id,
-        mercadopago_access_token: settingsData.mercadopagoAccessToken,
-        mercadopago_public_key: settingsData.mercadopagoPublicKey,
-        whatsapp_number: settingsData.whatsappNumber,
-        updated_at: new Date().toISOString(),
-      })
+      .upsert(
+        {
+          store_id: params.id,
+          mercadopago_access_token: settingsData.mercadopagoAccessToken,
+          mercadopago_public_key: settingsData.mercadopagoPublicKey,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "store_id",
+        },
+      )
       .select()
       .single()
 

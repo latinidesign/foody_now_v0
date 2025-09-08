@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageCircle, Copy, Check, Settings, Phone } from "lucide-react"
+import { Copy, Check, Settings, Phone } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
 import { toast } from "sonner"
 
@@ -152,40 +152,6 @@ export function WhatsAppSettings({
             <p className="text-sm text-muted-foreground">
               Tu número personal donde recibirás las notificaciones de pedidos
             </p>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Notificaciones automáticas</Label>
-              <p className="text-sm text-muted-foreground">Recibe notificaciones automáticas de nuevos pedidos</p>
-            </div>
-            <Switch checked={autoNotifications} onCheckedChange={setAutoNotifications} />
-          </div>
-
-          <Button onClick={handleSave} className="w-full" disabled={saving}>
-            {saving ? "Guardando..." : "Guardar configuración"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-green-500" />
-            Configuración de WhatsApp
-          </CardTitle>
-          <CardDescription>Configura tu número de WhatsApp para recibir notificaciones de pedidos</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="whatsapp-phone">Número de WhatsApp</Label>
-            <Input
-              id="whatsapp-phone"
-              placeholder="+54 9 11 1234-5678"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">Incluye el código de país (ej: +54 para Argentina)</p>
           </div>
 
           <div className="flex items-center justify-between">

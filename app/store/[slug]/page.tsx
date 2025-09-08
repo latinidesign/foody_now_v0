@@ -2,10 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { StoreHeader } from "@/components/store/store-header"
 import { ProductCatalog } from "@/components/store/product-catalog"
-import { CartProvider } from "@/components/store/cart-context"
-import { InstallPrompt } from "@/components/pwa/install-prompt"
-import { PWAProvider } from "@/components/pwa/pwa-provider"
 import { WhatsAppContact } from "@/components/store/whatsapp-contact"
+import { InstallPrompt } from "@/components/pwa/install-prompt"
 
 interface StorePageProps {
   params: Promise<{ slug: string }>
@@ -49,24 +47,20 @@ export default async function StorePage({ params }: StorePageProps) {
     ]
 
     return (
-      <PWAProvider>
-        <CartProvider>
-          <div className="min-h-screen bg-background">
-            <StoreHeader store={demoStore} />
-            <main className="container mx-auto px-4 py-6">
-              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 mb-2">Modo Demostración</h3>
-                <p className="text-yellow-700 text-sm">
-                  Esta tienda está en modo demostración. Para ver datos reales, configura las variables de entorno de
-                  Supabase.
-                </p>
-              </div>
-              <ProductCatalog store={demoStore} categories={demoCategories} />
-            </main>
-            <InstallPrompt />
+      <div className="min-h-screen bg-background">
+        <StoreHeader store={demoStore} />
+        <main className="container mx-auto px-4 py-6">
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h3 className="font-semibold text-yellow-800 mb-2">Modo Demostración</h3>
+            <p className="text-yellow-700 text-sm">
+              Esta tienda está en modo demostración. Para ver datos reales, configura las variables de entorno de
+              Supabase.
+            </p>
           </div>
-        </CartProvider>
-      </PWAProvider>
+          <ProductCatalog store={demoStore} categories={demoCategories} />
+        </main>
+        <InstallPrompt />
+      </div>
     )
   }
 
@@ -100,20 +94,16 @@ export default async function StorePage({ params }: StorePageProps) {
     .order("sort_order")
 
   return (
-    <PWAProvider>
-      <CartProvider>
-        <div className="min-h-screen bg-background">
-          <StoreHeader store={store} />
-          <main className="container mx-auto px-4 py-6">
-            <ProductCatalog store={store} categories={categories || []} />
-          </main>
-          <InstallPrompt />
-          {store.whatsapp_phone && (
-            <WhatsAppContact storeSlug={store.slug} storePhone={store.whatsapp_phone} storeName={store.name} />
-          )}
-        </div>
-      </CartProvider>
-    </PWAProvider>
+    <div className="min-h-screen bg-background">
+      <StoreHeader store={store} />
+      <main className="container mx-auto px-4 py-6">
+        <ProductCatalog store={store} categories={categories || []} />
+      </main>
+      <InstallPrompt />
+      {store.whatsapp_phone && (
+        <WhatsAppContact storeSlug={store.slug} storePhone={store.whatsapp_phone} storeName={store.name} />
+      )}
+    </div>
   )
 }
 

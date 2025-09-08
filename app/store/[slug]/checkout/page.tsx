@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound, redirect } from "next/navigation"
 import { CheckoutForm } from "@/components/store/checkout-form"
-import { CartProvider } from "@/components/store/cart-context"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -30,29 +29,27 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   }
 
   return (
-    <CartProvider>
-      <div className="min-h-screen bg-background">
-        <header className="bg-card border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-4">
-              <Link href={`/store/${slug}`}>
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Volver a la Tienda
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold">Finalizar Pedido</h1>
-                <p className="text-sm text-muted-foreground">{store.name}</p>
-              </div>
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
+            <Link href={`/store/${slug}`}>
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver a la Tienda
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold">Finalizar Pedido</h1>
+              <p className="text-sm text-muted-foreground">{store.name}</p>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="container mx-auto px-4 py-6 max-w-2xl">
-          <CheckoutForm store={store} onOrderComplete={handleOrderComplete} />
-        </main>
-      </div>
-    </CartProvider>
+      <main className="container mx-auto px-4 py-6 max-w-2xl">
+        <CheckoutForm store={store} onOrderComplete={handleOrderComplete} />
+      </main>
+    </div>
   )
 }

@@ -34,9 +34,6 @@ export default function HomePage() {
               <Link href="/auth/login">
                 <Button variant="outline">Iniciar Sesión</Button>
               </Link>
-              <Link href="/auth/register">
-                <Button className="bg-accent hover:bg-accent/90">Quiero mi tienda</Button>
-              </Link>
             </div>
           </div>
         </div>

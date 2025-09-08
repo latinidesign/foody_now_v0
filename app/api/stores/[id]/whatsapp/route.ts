@@ -13,7 +13,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const body = await request.json()
-    const { whatsapp_number, whatsapp_notifications, whatsapp_message } = body
+    const {
+      whatsapp_number,
+      whatsapp_notifications,
+      whatsapp_message,
+      twilio_account_sid,
+      twilio_auth_token,
+      twilio_whatsapp_number,
+    } = body
 
     // Verificar que la tienda pertenece al usuario
     const { data: store } = await supabase
@@ -27,16 +34,23 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
     }
 
-    // Actualizar configuración de WhatsApp
     const { data, error } = await supabase
-      .from("stores")
-      .update({
-        whatsapp_number,
-        whatsapp_notifications,
-        whatsapp_message,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", params.id)
+      .from("store_settings")
+      .upsert(
+        {
+          store_id: params.id,
+          whatsapp_number,
+          whatsapp_notifications_enabled: whatsapp_notifications,
+          whatsapp_message,
+          twilio_account_sid,
+          twilio_auth_token,
+          twilio_whatsapp_number,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "store_id",
+        },
+      )
       .select()
       .single()
 
