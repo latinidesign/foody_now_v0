@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
+    // Create the order
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({

@@ -51,10 +51,10 @@ export default function HomePage() {
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto text-pretty">
               La solución moderna para comercialización eficiente. Vende por WhatsApp, cobra con MercadoPago y gestiona
-              tu negocio con herramientas profesionales de marketing digital. --
+              tu negocio con herramientas profesionales de marketing digital.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/register">
+              <Link href="/auth/sign-up">
                 <Button size="lg" className="text-lg px-8 py-4 bg-accent hover:bg-accent/90 text-accent-foreground">
                   <Store className="w-5 h-5 mr-2" />
                   Quiero mi tienda
@@ -290,7 +290,7 @@ export default function HomePage() {
                   Únete a cientos de comercios que ya están modernizando su estrategia de comercialización con FOODYNOW
                   y aumentando sus ventas.
                 </p>
-                <Link href="/auth/register">
+                <Link href="/auth/sign-up">
                   <Button size="lg" className="bg-white text-primary hover:bg-white/90 w-full">
                     <Store className="w-5 h-5 mr-2" />
                     Quiero mi tienda ahora
@@ -312,7 +312,7 @@ export default function HomePage() {
               WhatsApp y las herramientas de marketing digital.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/register">
+              <Link href="/auth/sign-up">
                 <Button size="lg" className="text-lg px-8 py-4 bg-white text-primary hover:bg-white/90">
                   <Store className="w-5 h-5 mr-2" />
                   Quiero mi tienda
