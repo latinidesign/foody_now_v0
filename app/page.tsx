@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
-  Store,
+  BeefIcon,Store,
   MessageCircle,
   CreditCard,
   TrendingUp,
@@ -26,7 +26,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <Store className="w-6 h-6 text-primary-foreground" />
+                <BeefIcon className="w-6 h-6 text-primary-foreground" />
               </div>
               <h1 className="text-2xl font-bold text-primary">FOODYNOW</h1>
             </div>

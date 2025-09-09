@@ -6,16 +6,16 @@ import { Toaster } from "sonner"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Foody Now - Tiendas Online para Restaurantes",
+  title: "FOODYNOW - Tiendas Online para Restaurantes",
   description:
     "Plataforma de ecommerce para restaurantes y comercios alimentarios. Crea tu tienda online y recibe pedidos fácilmente.",
-  generator: "Foody Now",
-  applicationName: "Foody Now",
+  generator: "FOODYNOW",
+  applicationName: "FOODYNOW",
   referrer: "origin-when-cross-origin",
   keywords: ["restaurante", "delivery", "comida", "pedidos online", "ecommerce", "tienda online"],
-  authors: [{ name: "Foody Now" }],
-  creator: "Foody Now",
-  publisher: "Foody Now",
+  authors: [{ name: "FOODYNOW" }],
+  creator: "FOODYNOW",
+  publisher: "FOODYNOW",
   formatDetection: {
     email: false,
     address: false,
@@ -27,21 +27,21 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    siteName: "Foody Now",
-    title: "Foody Now - Tiendas Online para Restaurantes",
+    siteName: "FOODYNOW",
+    title: "FOODYNOW - Tiendas Online para Restaurantes",
     description: "Plataforma de ecommerce para restaurantes y comercios alimentarios",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Foody Now",
+        alt: "FOODYNOW",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Foody Now - Tiendas Online para Restaurantes",
+    title: "FOODYNOW - Tiendas Online para Restaurantes",
     description: "Plataforma de ecommerce para restaurantes y comercios alimentarios",
     images: ["/og-image.png"],
   },
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Foody Now",
+    title: "FOODYNOW",
   },
 }
 
@@ -82,7 +82,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Foody Now" />
+        <meta name="apple-mobile-web-app-title" content="FOODYNOW" />
         <meta name="msapplication-TileColor" content="#2D5016" />
         <meta name="msapplication-tap-highlight" content="no" />
         <link rel="shortcut icon" href="/favicon.ico" />

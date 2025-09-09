@@ -34,8 +34,8 @@ export function ProductCatalog({ store, categories }: ProductCatalogProps) {
     <div className="space-y-6">
       {/* Welcome Message */}
       {store.description && (
-        <div className="text-center py-6 border-0 rounded-lg bg-orange-200">
-          <p className="text-muted-foreground max-w-2xl mx-auto text-xl">{store.description}</p>
+        <div className="text-center py-6 border-0 rounded-lg bg-[rgba(230,218,197,1)]">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-2xl">{store.description}</p>
         </div>
       )}
 
