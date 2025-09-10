@@ -8,13 +8,55 @@ import { useState } from "react"
 import Link from "next/link"
 
 interface StoreDrawerProps {
-  store: Store
+  store: Store & { business_hours?: any; is_open?: boolean }
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
+function formatBusinessHours(businessHours: any) {
+  if (!businessHours) return "Horarios no configurados"
+
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+  return days
+    .map((day, index) => {
+      const daySchedule = businessHours[day]
+      if (!daySchedule || !daySchedule.enabled) {
+        return `${dayNames[index]}: Cerrado`
+      }
+
+      let schedule = `${dayNames[index]}: ${daySchedule.open1} - ${daySchedule.close1}`
+      if (daySchedule.open2 && daySchedule.close2) {
+        schedule += ` y ${daySchedule.open2} - ${daySchedule.close2}`
+      }
+      return schedule
+    })
+    .join("\n")
+}
+
+function isStoreOpen(businessHours: any, isOpen = true) {
+  if (!isOpen || !businessHours) return false
+
+  const now = new Date()
+  const currentDay = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][now.getDay()]
+  const currentTime = now.toTimeString().slice(0, 5) // HH:MM format
+
+  const daySchedule = businessHours[currentDay]
+  if (!daySchedule || !daySchedule.enabled) return false
+
+  const isInFirstPeriod = currentTime >= daySchedule.open1 && currentTime <= daySchedule.close1
+  const isInSecondPeriod =
+    daySchedule.open2 && daySchedule.close2 && currentTime >= daySchedule.open2 && currentTime <= daySchedule.close2
+
+  return isInFirstPeriod || isInSecondPeriod
+}
+
 export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
   const [showMap, setShowMap] = useState(false)
+
+  const storeIsOpen = isStoreOpen(store.business_hours, store.is_open)
+  const formattedHours = formatBusinessHours(store.business_hours)
 
   return (
     <>
@@ -75,11 +117,14 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                 </div>
               )}
 
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Clock className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium">Estado</p>
-                  <p className="text-sm text-primary font-medium">Abierto ahora</p>
+              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                <Clock className="w-5 h-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium">Horarios de Atención</p>
+                  <p className={`text-sm font-medium mb-2 ${storeIsOpen ? "text-green-600" : "text-red-600"}`}>
+                    {storeIsOpen ? "Abierto ahora" : "Cerrado"}
+                  </p>
+                  <div className="text-xs text-muted-foreground whitespace-pre-line">{formattedHours}</div>
                 </div>
               </div>
             </div>

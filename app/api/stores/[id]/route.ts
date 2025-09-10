@@ -11,6 +11,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .update({
         name: storeData.name,
         description: storeData.description,
+        extended_description: storeData.extended_description,
+        gallery_images: storeData.gallery_images,
         phone: storeData.phone,
         email: storeData.email,
         address: storeData.address,

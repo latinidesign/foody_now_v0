@@ -76,6 +76,18 @@ export default async function StorePage({ params }: StorePageProps) {
     notFound()
   }
 
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("business_hours, is_open")
+    .eq("store_id", store.id)
+    .single()
+
+  const storeWithSettings = {
+    ...store,
+    business_hours: storeSettings?.business_hours || null,
+    is_open: storeSettings?.is_open ?? true,
+  }
+
   // Get categories with products
   const { data: categories } = await supabase
     .from("categories")
@@ -95,9 +107,9 @@ export default async function StorePage({ params }: StorePageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <StoreHeader store={store} />
+      <StoreHeader store={storeWithSettings} />
       <main className="container mx-auto px-4 py-6">
-        <ProductCatalog store={store} categories={categories || []} />
+        <ProductCatalog store={storeWithSettings} categories={categories || []} />
       </main>
       <InstallPrompt />
       {store.whatsapp_phone && (

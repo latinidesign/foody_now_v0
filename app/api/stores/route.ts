@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
         name: storeData.name,
         slug: storeData.slug,
         description: storeData.description || null,
+        extended_description: storeData.extended_description || null,
+        gallery_images: storeData.gallery_images || [],
         phone: storeData.phone || null,
         email: storeData.email || null,
         address: storeData.address || null,

@@ -18,6 +18,10 @@ export interface Store {
   delivery_fee: number
   min_order_amount: number
   is_active: boolean
+  extended_description?: string
+  gallery_images?: string[]
+  website?: string
+  whatsapp_phone?: string
   created_at: string
   updated_at: string
 }
