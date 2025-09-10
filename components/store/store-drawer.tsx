@@ -52,11 +52,54 @@ function isStoreOpen(businessHours: any, isOpen = true) {
   return isInFirstPeriod || isInSecondPeriod
 }
 
+function getNextScheduleInfo(businessHours: any, isOpen = true) {
+  if (!isOpen || !businessHours) return null
+
+  const now = new Date()
+  const currentDay = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][now.getDay()]
+  const currentTime = now.toTimeString().slice(0, 5) // HH:MM format
+
+  const daySchedule = businessHours[currentDay]
+
+  if (!daySchedule || !daySchedule.enabled) {
+    // Buscar próximo día abierto
+    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+
+    for (let i = 1; i <= 7; i++) {
+      const nextDayIndex = (now.getDay() + i) % 7
+      const nextDay = days[nextDayIndex]
+      const nextDaySchedule = businessHours[nextDay]
+
+      if (nextDaySchedule && nextDaySchedule.enabled) {
+        return `Abre ${dayNames[nextDayIndex]} a las ${nextDaySchedule.open1}`
+      }
+    }
+    return null
+  }
+
+  // Si está abierto, mostrar cuándo cierra
+  const isInFirstPeriod = currentTime >= daySchedule.open1 && currentTime <= daySchedule.close1
+  const isInSecondPeriod =
+    daySchedule.open2 && daySchedule.close2 && currentTime >= daySchedule.open2 && currentTime <= daySchedule.close2
+
+  if (isInFirstPeriod) {
+    return `Cierra a las ${daySchedule.close1}`
+  } else if (isInSecondPeriod) {
+    return `Cierra a las ${daySchedule.close2}`
+  } else if (daySchedule.open2 && currentTime < daySchedule.open2) {
+    return `Abre a las ${daySchedule.open2}`
+  }
+
+  return null
+}
+
 export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
   const [showMap, setShowMap] = useState(false)
 
   const storeIsOpen = isStoreOpen(store.business_hours, store.is_open)
   const formattedHours = formatBusinessHours(store.business_hours)
+  const nextScheduleInfo = getNextScheduleInfo(store.business_hours, store.is_open)
 
   return (
     <>
@@ -121,9 +164,10 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                 <Clock className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium">Horarios de Atención</p>
-                  <p className={`text-sm font-medium mb-2 ${storeIsOpen ? "text-green-600" : "text-red-600"}`}>
+                  <p className={`text-sm font-medium mb-1 ${storeIsOpen ? "text-green-600" : "text-red-600"}`}>
                     {storeIsOpen ? "Abierto ahora" : "Cerrado"}
                   </p>
+                  {nextScheduleInfo && <p className="text-xs text-muted-foreground mb-2">{nextScheduleInfo}</p>}
                   <div className="text-xs text-muted-foreground whitespace-pre-line">{formattedHours}</div>
                 </div>
               </div>

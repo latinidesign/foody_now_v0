@@ -1,20 +1,80 @@
+"use client"
+
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { StoreHeader } from "@/components/store/store-header"
 import { ArrowLeft, MapPin, Clock, Phone } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { BusinessHoursSection } from "./about-client"
+import { BusinessHoursModal } from "@/components/store/business-hours-modal"
+import { useState } from "react"
 
 interface AboutPageProps {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }
 
-export default async function AboutPage({ params }: AboutPageProps) {
-  const { slug } = await params
-  const supabase = await createClient()
+export default function AboutPageClient({ params }: AboutPageProps) {
+  const { slug } = params
+  const [supabase, setSupabase] = useState<any>(null)
+  const [storeWithHours, setStoreWithHours] = useState<any>(null)
+  const [demoMode, setDemoMode] = useState<boolean>(false)
 
-  if (!supabase) {
+  useState(() => {
+    const fetchData = async () => {
+      const supabaseInstance = await createClient()
+      if (!supabaseInstance) {
+        setDemoMode(true)
+        return
+      }
+      setSupabase(supabaseInstance)
+
+      const { data: store, error: storeError } = await supabaseInstance
+        .from("stores")
+        .select(`
+          *,
+          store_settings!inner(business_hours)
+        `)
+        .eq("slug", slug)
+        .eq("is_active", true)
+        .single()
+
+      if (storeError || !store) {
+        notFound()
+      }
+
+      const storeWithHours = {
+        ...store,
+        business_hours: store.store_settings?.[0]?.business_hours,
+      }
+      setStoreWithHours(storeWithHours)
+    }
+
+    fetchData()
+  }, [slug])
+
+  const BusinessHoursSection = ({ store }: { store: any }) => {
+    const [showHours, setShowHours] = useState(false)
+
+    return (
+      <>
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-primary" />
+          <button onClick={() => setShowHours(true)} className="text-primary hover:underline">
+            Consultar horarios de atención
+          </button>
+        </div>
+
+        <BusinessHoursModal
+          businessHours={store.business_hours}
+          storeName={store.name}
+          open={showHours}
+          onOpenChange={setShowHours}
+        />
+      </>
+    )
+  }
+
+  if (demoMode) {
     const demoStore = {
       id: "demo-store",
       name: "Tienda Demo",
@@ -99,23 +159,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
     )
   }
 
-  const { data: store, error: storeError } = await supabase
-    .from("stores")
-    .select(`
-      *,
-      store_settings!inner(business_hours)
-    `)
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .single()
-
-  if (storeError || !store) {
-    notFound()
-  }
-
-  const storeWithHours = {
-    ...store,
-    business_hours: store.store_settings?.[0]?.business_hours,
+  if (!storeWithHours) {
+    return <div>Loading...</div>
   }
 
   return (
@@ -188,23 +233,4 @@ export default async function AboutPage({ params }: AboutPageProps) {
       </main>
     </div>
   )
-}
-
-export async function generateMetadata({ params }: AboutPageProps) {
-  const { slug } = await params
-  const supabase = await createClient()
-
-  if (!supabase) {
-    return {
-      title: "Quiénes Somos - Tienda Demo",
-      description: "Conoce más sobre nuestra tienda",
-    }
-  }
-
-  const { data: store } = await supabase.from("stores").select("name").eq("slug", slug).single()
-
-  return {
-    title: `Quiénes Somos - ${store?.name || "Tienda"}`,
-    description: `Conoce más sobre ${store?.name || "nuestra tienda"}`,
-  }
 }

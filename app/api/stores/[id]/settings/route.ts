@@ -25,19 +25,29 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
     }
 
+    const updateData: any = {
+      store_id: params.id,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Agregar campos de MercadoPago si están presentes
+    if (settingsData.mercadopagoAccessToken !== undefined) {
+      updateData.mercadopago_access_token = settingsData.mercadopagoAccessToken
+    }
+    if (settingsData.mercadopagoPublicKey !== undefined) {
+      updateData.mercadopago_public_key = settingsData.mercadopagoPublicKey
+    }
+
+    // Agregar horarios de negocio si están presentes
+    if (settingsData.business_hours !== undefined) {
+      updateData.business_hours = settingsData.business_hours
+    }
+
     const { data: settings, error } = await supabase
       .from("store_settings")
-      .upsert(
-        {
-          store_id: params.id,
-          mercadopago_access_token: settingsData.mercadopagoAccessToken,
-          mercadopago_public_key: settingsData.mercadopagoPublicKey,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: "store_id",
-        },
-      )
+      .upsert(updateData, {
+        onConflict: "store_id",
+      })
       .select()
       .single()
 
