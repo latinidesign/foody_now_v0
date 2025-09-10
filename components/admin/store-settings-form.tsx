@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Eye, EyeOff, Upload, MapPin } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Loader2, Eye, EyeOff, Upload, MapPin, X, Plus } from "lucide-react"
 import type { Store, StoreSettings } from "@/lib/types/database"
 import { LocationMap } from "@/components/store/location-map"
 
@@ -19,6 +20,27 @@ interface StoreSettingsFormProps {
   settings: StoreSettings | null
 }
 
+interface BusinessHours {
+  [key: string]: {
+    isOpen: boolean
+    openTime: string
+    closeTime: string
+    hasBreak: boolean
+    breakStart?: string
+    breakEnd?: string
+  }
+}
+
+const DAYS = [
+  { key: "monday", label: "Lunes" },
+  { key: "tuesday", label: "Martes" },
+  { key: "wednesday", label: "Miércoles" },
+  { key: "thursday", label: "Jueves" },
+  { key: "friday", label: "Viernes" },
+  { key: "saturday", label: "Sábado" },
+  { key: "sunday", label: "Domingo" },
+]
+
 export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -26,10 +48,13 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
   const [showToken, setShowToken] = useState(false)
   const logoFileRef = useRef<HTMLInputElement>(null)
   const headerFileRef = useRef<HTMLInputElement>(null)
+  const galleryFileRef = useRef<HTMLInputElement>(null)
 
   const [storeData, setStoreData] = useState({
     name: store.name,
     description: store.description || "",
+    extendedDescription: (store as any).extended_description || "",
+    galleryImages: (store as any).gallery_images || [],
     phone: store.phone || "",
     email: store.email || "",
     address: store.address || "",
@@ -43,6 +68,25 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
   const [paymentSettings, setPaymentSettings] = useState({
     mercadopagoAccessToken: settings?.mercadopago_access_token || "",
     mercadopagoPublicKey: settings?.mercadopago_public_key || "",
+  })
+
+  const [businessHours, setBusinessHours] = useState<BusinessHours>(() => {
+    const defaultHours = DAYS.reduce(
+      (acc, day) => ({
+        ...acc,
+        [day.key]: {
+          isOpen: true,
+          openTime: "09:00",
+          closeTime: "22:00",
+          hasBreak: false,
+          breakStart: "13:00",
+          breakEnd: "16:00",
+        },
+      }),
+      {},
+    )
+
+    return settings?.business_hours ? { ...defaultHours, ...settings.business_hours } : defaultHours
   })
 
   const handleLogoUpload = async (file: File) => {
@@ -65,6 +109,40 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
     reader.readAsDataURL(file)
   }
 
+  const handleGalleryUpload = async (files: FileList) => {
+    const newImages = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string
+        newImages.push(base64)
+        if (newImages.length === files.length) {
+          setStoreData({
+            ...storeData,
+            galleryImages: [...storeData.galleryImages, ...newImages],
+          })
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeGalleryImage = (index: number) => {
+    const newImages = storeData.galleryImages.filter((_, i) => i !== index)
+    setStoreData({ ...storeData, galleryImages: newImages })
+  }
+
+  const updateBusinessHours = (day: string, field: string, value: any) => {
+    setBusinessHours((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [field]: value,
+      },
+    }))
+  }
+
   const handleStoreUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -79,6 +157,8 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
         },
         body: JSON.stringify({
           ...storeData,
+          extended_description: storeData.extendedDescription,
+          gallery_images: storeData.galleryImages,
           logo_url: storeData.logoUrl,
           header_image_url: storeData.headerImageUrl,
           delivery_radius: Number.parseInt(storeData.deliveryRadius),
@@ -92,6 +172,35 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
       }
 
       setSuccess("Configuración actualizada correctamente")
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleBusinessHoursUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setSuccess("")
+
+    try {
+      const response = await fetch(`/api/stores/${store.id}/settings`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          business_hours: businessHours,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar horarios")
+      }
+
+      setSuccess("Horarios actualizados correctamente")
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -130,6 +239,8 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
     <Tabs defaultValue="store" className="space-y-6">
       <TabsList>
         <TabsTrigger value="store">Tienda</TabsTrigger>
+        <TabsTrigger value="extended">Información Ampliada</TabsTrigger>
+        <TabsTrigger value="hours">Horarios</TabsTrigger>
         <TabsTrigger value="payments">Pagos</TabsTrigger>
       </TabsList>
 
@@ -167,11 +278,13 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
+                <Label htmlFor="description">Descripción Breve</Label>
                 <Textarea
                   id="description"
                   value={storeData.description}
                   onChange={(e) => setStoreData({ ...storeData, description: e.target.value })}
+                  placeholder="Descripción corta que aparecerá en el header de tu tienda"
+                  rows={2}
                 />
               </div>
 
@@ -337,6 +450,170 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Guardar Cambios
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="extended">
+        <Card>
+          <CardHeader>
+            <CardTitle>Información Ampliada</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleStoreUpdate} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="extendedDescription">Descripción Ampliada</Label>
+                <Textarea
+                  id="extendedDescription"
+                  value={storeData.extendedDescription}
+                  onChange={(e) => setStoreData({ ...storeData, extendedDescription: e.target.value })}
+                  placeholder="Cuéntanos más sobre tu negocio, su historia, visión, especialidades, etc."
+                  rows={6}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Esta descripción aparecerá en una sección especial de tu tienda para que los clientes conozcan más
+                  sobre tu negocio
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Galería de Fotos del Local</Label>
+                  <Button type="button" variant="outline" onClick={() => galleryFileRef.current?.click()}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Agregar Fotos
+                  </Button>
+                </div>
+
+                <input
+                  ref={galleryFileRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = e.target.files
+                    if (files) handleGalleryUpload(files)
+                  }}
+                />
+
+                {storeData.galleryImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {storeData.galleryImages.map((image: string, index: number) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image || "/placeholder.svg"}
+                          alt={`Foto del local ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeGalleryImage(index)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Sube fotos de tu local, ambiente, productos destacados, etc. Estas fotos ayudarán a los clientes a
+                  conocer mejor tu negocio
+                </p>
+              </div>
+
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Información Ampliada
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="hours">
+        <Card>
+          <CardHeader>
+            <CardTitle>Horarios de Atención</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleBusinessHoursUpdate} className="space-y-6">
+              {DAYS.map((day) => (
+                <div key={day.key} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">{day.label}</Label>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={businessHours[day.key]?.isOpen}
+                        onCheckedChange={(checked) => updateBusinessHours(day.key, "isOpen", checked)}
+                      />
+                      <Label className="text-sm">Abierto</Label>
+                    </div>
+                  </div>
+
+                  {businessHours[day.key]?.isOpen && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm">Hora de Apertura</Label>
+                          <Input
+                            type="time"
+                            value={businessHours[day.key]?.openTime || "09:00"}
+                            onChange={(e) => updateBusinessHours(day.key, "openTime", e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm">Hora de Cierre</Label>
+                          <Input
+                            type="time"
+                            value={businessHours[day.key]?.closeTime || "22:00"}
+                            onChange={(e) => updateBusinessHours(day.key, "closeTime", e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={businessHours[day.key]?.hasBreak}
+                          onCheckedChange={(checked) => updateBusinessHours(day.key, "hasBreak", checked)}
+                        />
+                        <Label className="text-sm">Horario cortado (descanso al mediodía)</Label>
+                      </div>
+
+                      {businessHours[day.key]?.hasBreak && (
+                        <div className="grid grid-cols-2 gap-4 ml-6">
+                          <div className="space-y-2">
+                            <Label className="text-sm">Inicio del Descanso</Label>
+                            <Input
+                              type="time"
+                              value={businessHours[day.key]?.breakStart || "13:00"}
+                              onChange={(e) => updateBusinessHours(day.key, "breakStart", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Fin del Descanso</Label>
+                            <Input
+                              type="time"
+                              value={businessHours[day.key]?.breakEnd || "16:00"}
+                              onChange={(e) => updateBusinessHours(day.key, "breakEnd", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Horarios
               </Button>
             </form>
           </CardContent>

@@ -2,9 +2,10 @@
 
 import type { Store } from "@/lib/types/database"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Phone, MapPin, Clock, Globe, Map } from "lucide-react"
+import { Phone, MapPin, Clock, Globe, Map, Info } from "lucide-react"
 import { LocationMap } from "./location-map"
 import { useState } from "react"
+import Link from "next/link"
 
 interface StoreDrawerProps {
   store: Store
@@ -100,6 +101,21 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                 </a>
               </div>
             )}
+
+            {/* Agregando enlace a página Quiénes Somos */}
+            <div className="space-y-3">
+              <Link
+                href={`/store/${store.slug}/about`}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+              >
+                <Info className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium">Quiénes Somos</p>
+                  <p className="text-sm text-muted-foreground">Conoce más sobre nosotros</p>
+                </div>
+              </Link>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
