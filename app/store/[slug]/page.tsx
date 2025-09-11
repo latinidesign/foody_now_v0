@@ -78,7 +78,7 @@ export default async function StorePage({ params }: StorePageProps) {
 
   const { data: storeSettings } = await supabase
     .from("store_settings")
-    .select("business_hours, is_open")
+    .select("business_hours, is_open, extended_description, gallery_images")
     .eq("store_id", store.id)
     .single()
 
@@ -86,6 +86,8 @@ export default async function StorePage({ params }: StorePageProps) {
     ...store,
     business_hours: storeSettings?.business_hours || null,
     is_open: storeSettings?.is_open ?? true,
+    extended_description: storeSettings?.extended_description || null,
+    gallery_images: storeSettings?.gallery_images || null,
   }
 
   // Get categories with products

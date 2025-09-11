@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { StoreHeader } from "@/components/store/store-header"
-import { ArrowLeft, MapPin, Clock, Phone } from "lucide-react"
+import { ArrowLeft, MapPin, Phone } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { BusinessHoursSection } from "./about-client"
@@ -29,6 +29,15 @@ export default async function AboutPage({ params }: AboutPageProps) {
       phone: "+54 11 1234-5678",
       primary_color: "#2D5016",
       is_active: true,
+      business_hours: {
+        monday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        tuesday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        wednesday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        thursday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        friday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        saturday: { enabled: true, open1: "19:00", close1: "23:00" },
+        sunday: { enabled: false },
+      },
     }
 
     return (
@@ -71,10 +80,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     <Phone className="w-5 h-5 text-primary" />
                     <span>{demoStore.phone}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-primary" />
-                    <span>Lun - Dom: 11:00 - 23:00</span>
-                  </div>
+                  <BusinessHoursSection store={demoStore} />
                 </div>
               </div>
             </div>
@@ -101,10 +107,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   const { data: store, error: storeError } = await supabase
     .from("stores")
-    .select(`
-      *,
-      store_settings!inner(business_hours)
-    `)
+    .select("*")
     .eq("slug", slug)
     .eq("is_active", true)
     .single()
@@ -113,9 +116,17 @@ export default async function AboutPage({ params }: AboutPageProps) {
     notFound()
   }
 
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("business_hours, extended_description, gallery_images")
+    .eq("store_id", store.id)
+    .single()
+
   const storeWithHours = {
     ...store,
-    business_hours: store.store_settings?.[0]?.business_hours,
+    business_hours: storeSettings?.business_hours || null,
+    extended_description: storeSettings?.extended_description || null,
+    gallery_images: storeSettings?.gallery_images || null,
   }
 
   return (

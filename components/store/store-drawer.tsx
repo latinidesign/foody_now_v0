@@ -72,7 +72,8 @@ function getNextScheduleInfo(businessHours: any, isOpen = true) {
       const nextDaySchedule = businessHours[nextDay]
 
       if (nextDaySchedule && nextDaySchedule.enabled) {
-        return `Abre ${dayNames[nextDayIndex]} a las ${nextDaySchedule.open1}`
+        const dayName = i === 1 ? "mañana" : dayNames[nextDayIndex]
+        return `Abre ${dayName} a las ${nextDaySchedule.open1}`
       }
     }
     return null
@@ -87,8 +88,10 @@ function getNextScheduleInfo(businessHours: any, isOpen = true) {
     return `Cierra a las ${daySchedule.close1}`
   } else if (isInSecondPeriod) {
     return `Cierra a las ${daySchedule.close2}`
-  } else if (daySchedule.open2 && currentTime < daySchedule.open2) {
+  } else if (daySchedule.open2 && currentTime < daySchedule.open2 && currentTime > daySchedule.close1) {
     return `Abre a las ${daySchedule.open2}`
+  } else if (currentTime < daySchedule.open1) {
+    return `Abre a las ${daySchedule.open1}`
   }
 
   return null
@@ -121,7 +124,7 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
             </div>
           </SheetHeader>
 
-          <div className="space-y-4 mt-6">
+          <div className="space-y-4 mt-4 px-4 py-4">
             {/* Información de contacto */}
             <div className="space-y-3">
               <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
@@ -168,7 +171,6 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                     {storeIsOpen ? "Abierto ahora" : "Cerrado"}
                   </p>
                   {nextScheduleInfo && <p className="text-xs text-muted-foreground mb-2">{nextScheduleInfo}</p>}
-                  <div className="text-xs text-muted-foreground whitespace-pre-line">{formattedHours}</div>
                 </div>
               </div>
             </div>
