@@ -23,11 +23,10 @@ interface StoreSettingsFormProps {
 interface BusinessHours {
   [key: string]: {
     isOpen: boolean
-    openTime: string
-    closeTime: string
-    hasBreak: boolean
-    breakStart?: string
-    breakEnd?: string
+    open1: string
+    close1: string
+    open2?: string
+    close2?: string
   }
 }
 
@@ -76,11 +75,10 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
         ...acc,
         [day.key]: {
           isOpen: true,
-          openTime: "09:00",
-          closeTime: "22:00",
-          hasBreak: false,
-          breakStart: "13:00",
-          breakEnd: "16:00",
+          open1: "09:00",
+          close1: "22:00",
+          open2: "",
+          close2: "",
         },
       }),
       {},
@@ -544,72 +542,79 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleBusinessHoursUpdate} className="space-y-6">
-              {DAYS.map((day) => (
-                <div key={day.key} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">{day.label}</Label>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={businessHours[day.key]?.isOpen}
-                        onCheckedChange={(checked) => updateBusinessHours(day.key, "isOpen", checked)}
-                      />
-                      <Label className="text-sm">Abierto</Label>
-                    </div>
-                  </div>
-
-                  {businessHours[day.key]?.isOpen && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm">Hora de Apertura</Label>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="border border-gray-300 p-3 text-left font-medium">Día</th>
+                      <th className="border border-gray-300 p-3 text-center font-medium">Abierto</th>
+                      <th className="border border-gray-300 p-3 text-center font-medium">Abre</th>
+                      <th className="border border-gray-300 p-3 text-center font-medium">Cierra</th>
+                      <th className="border border-gray-300 p-3 text-center font-medium">Opcional - Abre</th>
+                      <th className="border border-gray-300 p-3 text-center font-medium">Opcional - Cierra</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DAYS.map((day) => (
+                      <tr key={day.key} className="hover:bg-muted/50">
+                        <td className="border border-gray-300 p-3 font-medium">{day.label}</td>
+                        <td className="border border-gray-300 p-3 text-center">
+                          <Checkbox
+                            checked={businessHours[day.key]?.isOpen}
+                            onCheckedChange={(checked) => updateBusinessHours(day.key, "isOpen", checked)}
+                          />
+                        </td>
+                        <td className="border border-gray-300 p-3">
                           <Input
                             type="time"
-                            value={businessHours[day.key]?.openTime || "09:00"}
-                            onChange={(e) => updateBusinessHours(day.key, "openTime", e.target.value)}
+                            value={businessHours[day.key]?.open1 || "09:00"}
+                            onChange={(e) => updateBusinessHours(day.key, "open1", e.target.value)}
+                            disabled={!businessHours[day.key]?.isOpen}
+                            className="w-full"
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm">Hora de Cierre</Label>
+                        </td>
+                        <td className="border border-gray-300 p-3">
                           <Input
                             type="time"
-                            value={businessHours[day.key]?.closeTime || "22:00"}
-                            onChange={(e) => updateBusinessHours(day.key, "closeTime", e.target.value)}
+                            value={businessHours[day.key]?.close1 || "22:00"}
+                            onChange={(e) => updateBusinessHours(day.key, "close1", e.target.value)}
+                            disabled={!businessHours[day.key]?.isOpen}
+                            className="w-full"
                           />
-                        </div>
-                      </div>
+                        </td>
+                        <td className="border border-gray-300 p-3">
+                          <Input
+                            type="time"
+                            value={businessHours[day.key]?.open2 || ""}
+                            onChange={(e) => updateBusinessHours(day.key, "open2", e.target.value)}
+                            disabled={!businessHours[day.key]?.isOpen}
+                            className="w-full"
+                            placeholder="Opcional"
+                          />
+                        </td>
+                        <td className="border border-gray-300 p-3">
+                          <Input
+                            type="time"
+                            value={businessHours[day.key]?.close2 || ""}
+                            onChange={(e) => updateBusinessHours(day.key, "close2", e.target.value)}
+                            disabled={!businessHours[day.key]?.isOpen}
+                            className="w-full"
+                            placeholder="Opcional"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={businessHours[day.key]?.hasBreak}
-                          onCheckedChange={(checked) => updateBusinessHours(day.key, "hasBreak", checked)}
-                        />
-                        <Label className="text-sm">Horario cortado (descanso al mediodía)</Label>
-                      </div>
-
-                      {businessHours[day.key]?.hasBreak && (
-                        <div className="grid grid-cols-2 gap-4 ml-6">
-                          <div className="space-y-2">
-                            <Label className="text-sm">Inicio del Descanso</Label>
-                            <Input
-                              type="time"
-                              value={businessHours[day.key]?.breakStart || "13:00"}
-                              onChange={(e) => updateBusinessHours(day.key, "breakStart", e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm">Fin del Descanso</Label>
-                            <Input
-                              type="time"
-                              value={businessHours[day.key]?.breakEnd || "16:00"}
-                              onChange={(e) => updateBusinessHours(day.key, "breakEnd", e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>• Los horarios opcionales permiten configurar dos turnos en el mismo día (ej: mañana y noche)</p>
+                <p>
+                  • Para horarios que pasan de medianoche, usa formato 24h+ (ej: 01:00 para la 1:00 AM del día
+                  siguiente)
+                </p>
+              </div>
 
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

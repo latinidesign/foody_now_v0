@@ -45,7 +45,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto py-4">
+              <div className="flex-1 overflow-y-auto py-4 px-4">
                 <div className="space-y-4">
                   {state.items.map((item) => (
                     <div key={item.id} className="flex gap-3">
@@ -96,7 +96,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </div>
               </div>
 
-              <div className="border-t pt-4 space-y-4">
+              <div className="border-t space-y-4 px-4 py-4">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Total:</span>
                   <span className="font-bold text-lg text-primary">${state.total.toFixed(2)}</span>

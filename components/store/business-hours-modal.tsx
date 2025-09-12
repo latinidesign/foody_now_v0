@@ -18,7 +18,7 @@ function formatBusinessHours(businessHours: any) {
 
   return days.map((day, index) => {
     const daySchedule = businessHours[day]
-    if (!daySchedule || !daySchedule.enabled) {
+    if (!daySchedule || !daySchedule.isOpen) {
       return {
         day: dayNames[index],
         schedule: "Cerrado",
@@ -26,10 +26,11 @@ function formatBusinessHours(businessHours: any) {
       }
     }
 
-    let schedule = `${daySchedule.open1} - ${daySchedule.close1}`
+    let schedule = `de ${daySchedule.open1} a ${daySchedule.close1}`
     if (daySchedule.open2 && daySchedule.close2) {
-      schedule += ` y ${daySchedule.open2} - ${daySchedule.close2}`
+      schedule += ` y de ${daySchedule.open2} a ${daySchedule.close2}`
     }
+    schedule += " hs"
 
     return {
       day: dayNames[index],
@@ -54,15 +55,25 @@ export function BusinessHoursModal({ businessHours, storeName, open, onOpenChang
         </DialogHeader>
 
         <div className="space-y-3">
-          <div className="space-y-2">
-            {formattedHours.map((item, index) => (
-              <div key={index} className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/50">
-                <span className="font-medium">{item.day}</span>
-                <span className={`text-sm ${item.isOpen ? "text-foreground" : "text-muted-foreground"}`}>
-                  {item.schedule}
-                </span>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-3 font-medium">Día</th>
+                  <th className="text-left py-2 px-3 font-medium">Horarios</th>
+                </tr>
+              </thead>
+              <tbody>
+                {formattedHours.map((item, index) => (
+                  <tr key={index} className="border-b last:border-b-0">
+                    <td className="py-2 px-3 font-medium">{item.day}</td>
+                    <td className={`py-2 px-3 ${item.isOpen ? "text-foreground" : "text-muted-foreground"}`}>
+                      {item.schedule}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </DialogContent>
