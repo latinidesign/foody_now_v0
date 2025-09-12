@@ -118,15 +118,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   const { data: storeSettings } = await supabase
     .from("store_settings")
-    .select("business_hours, extended_description, gallery_images")
+    .select("business_hours")
     .eq("store_id", store.id)
     .single()
 
   const storeWithHours = {
     ...store,
     business_hours: storeSettings?.business_hours || null,
-    extended_description: storeSettings?.extended_description || null,
-    gallery_images: storeSettings?.gallery_images || null,
   }
 
   return (

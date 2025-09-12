@@ -131,6 +131,21 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                 Información de Contacto
               </h3>
 
+            {/* Agregando enlace a página Quiénes Somos */}
+            <div className="space-y-3">
+              <Link
+                href={`/store/${store.slug}/about`}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+              >
+                <Info className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium">Quiénes Somos</p>
+                  <p className="text-sm text-muted-foreground">Conoce más sobre nosotros</p>
+                </div>
+              </Link>
+            </div>
+            
               {store.phone && (
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                   <Phone className="w-5 h-5 text-primary" />
@@ -193,20 +208,7 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
               </div>
             )}
 
-            {/* Agregando enlace a página Quiénes Somos */}
-            <div className="space-y-3">
-              <Link
-                href={`/store/${store.slug}/about`}
-                onClick={() => onOpenChange(false)}
-                className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
-              >
-                <Info className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium">Quiénes Somos</p>
-                  <p className="text-sm text-muted-foreground">Conoce más sobre nosotros</p>
-                </div>
-              </Link>
-            </div>
+
           </div>
         </SheetContent>
       </Sheet>

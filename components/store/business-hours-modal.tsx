@@ -1,6 +1,6 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Clock } from "lucide-react"
 
 interface BusinessHoursModalProps {
@@ -50,11 +50,10 @@ export function BusinessHoursModal({ businessHours, storeName, open, onOpenChang
             <Clock className="w-5 h-5" />
             Horarios de Atención
           </DialogTitle>
+          <DialogDescription>Consulta los horarios de atención de {storeName}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground mb-4">Horarios de atención de {storeName}</p>
-
           <div className="space-y-2">
             {formattedHours.map((item, index) => (
               <div key={index} className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/50">
