@@ -4,9 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2, Plus, Package, ImageIcon } from "lucide-react"
+import { Edit, Trash2, Plus, Package } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 import type { Category } from "@/lib/types/database"
 
 interface CategoryWithCount extends Category {
@@ -86,21 +85,6 @@ export function CategoriesTable() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => (
             <Card key={category.id} className="overflow-hidden">
-              <div className="aspect-video relative bg-muted">
-                {category.image_url ? (
-                  <Image
-                    src={category.image_url || "/placeholder.svg"}
-                    alt={category.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
-                  </div>
-                )}
-              </div>
-
               <CardContent className="p-4">
                 <div className="space-y-3">
                   <div>

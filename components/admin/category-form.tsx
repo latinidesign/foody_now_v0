@@ -9,17 +9,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Save, Upload, X } from "lucide-react"
+import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import Image from "next/image"
 
 interface CategoryFormProps {
   category?: {
     id: string
     name: string
     description?: string
-    image_url?: string
   }
 }
 
@@ -29,9 +27,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
   const [formData, setFormData] = useState({
     name: category?.name || "",
     description: category?.description || "",
-    image_url: category?.image_url || "",
   })
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,38 +58,6 @@ export function CategoryForm({ category }: CategoryFormProps) {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // Validar tipo de archivo
-      if (!file.type.startsWith("image/")) {
-        toast.error("Por favor selecciona un archivo de imagen válido")
-        return
-      }
-
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("La imagen debe ser menor a 5MB")
-        return
-      }
-
-      setUploadedFile(file)
-
-      // Convertir a base64 para vista previa y almacenamiento
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const base64String = event.target?.result as string
-        setFormData({ ...formData, image_url: base64String })
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const clearImage = () => {
-    setFormData({ ...formData, image_url: "" })
-    setUploadedFile(null)
   }
 
   return (
@@ -133,79 +97,6 @@ export function CategoryForm({ category }: CategoryFormProps) {
                 placeholder="Descripción opcional de la categoría"
                 rows={3}
               />
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="image_url">Imagen Destacada</Label>
-
-              {formData.image_url ? (
-                <div className="space-y-3">
-                  <div className="relative aspect-video w-full max-w-md rounded-lg overflow-hidden border">
-                    <Image
-                      src={formData.image_url || "/placeholder.svg"}
-                      alt="Vista previa"
-                      fill
-                      className="object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={clearImage}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {uploadedFile && <p className="text-sm text-muted-foreground">Archivo: {uploadedFile.name}</p>}
-                  <Input
-                    id="image_url"
-                    value={uploadedFile ? "" : formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="URL de la imagen"
-                    disabled={!!uploadedFile}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Agrega una imagen para hacer más atractiva tu categoría
-                    </p>
-                    <div className="flex flex-col gap-3">
-                      <div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                          id="file-upload"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => document.getElementById("file-upload")?.click()}
-                          className="w-full"
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Subir desde dispositivo
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">o</div>
-                      <Input
-                        id="image_url"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        placeholder="Pega la URL de la imagen aquí"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Recomendado: imagen en formato 16:9 (ej: 800x450px) para mejor visualización. Máximo 5MB.
-              </p>
             </div>
 
             <div className="flex gap-3 pt-4">

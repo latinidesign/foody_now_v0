@@ -90,15 +90,6 @@ export function ProductCatalog({ store, categories }: ProductCatalogProps) {
             <h2 className="text-2xl font-bold text-foreground">{currentCategory.name}</h2>
             {currentCategory.description && <p className="text-muted-foreground mt-2">{currentCategory.description}</p>}
           </div>
-          {currentCategory.image_url && (
-            <div className="relative aspect-video w-full max-w-2xl mx-auto rounded-lg overflow-hidden">
-              <img
-                src={currentCategory.image_url || "/placeholder.svg"}
-                alt={currentCategory.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
         </div>
       )}
 
