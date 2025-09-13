@@ -30,13 +30,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
       primary_color: "#2D5016",
       is_active: true,
       business_hours: {
-        monday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
-        tuesday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
-        wednesday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
-        thursday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
-        friday: { enabled: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
-        saturday: { enabled: true, open1: "19:00", close1: "23:00" },
-        sunday: { enabled: false },
+        monday: { isOpen: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        tuesday: { isOpen: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        wednesday: { isOpen: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        thursday: { isOpen: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        friday: { isOpen: true, open1: "10:00", close1: "13:00", open2: "19:00", close2: "23:30" },
+        saturday: { isOpen: true, open1: "19:00", close1: "23:00" },
+        sunday: { isOpen: false },
       },
     }
 
