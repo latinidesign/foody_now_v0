@@ -156,3 +156,105 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                   className="rounded-full object-cover w-40 h-24 items-start"
                 />
               )}
+              <div>
+                <SheetTitle className="text-xl">{store.name}</SheetTitle>
+                {store.description && <p className="text-sm text-muted-foreground mt-1">{store.description}</p>}
+              </div>
+            </div>
+          </SheetHeader>
+
+          <div className="space-y-4 mt-4 px-4 py-4">
+            {/* Información de contacto */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                Información de Contacto
+              </h3>
+
+              {/* Agregando enlace a página Quiénes Somos */}
+              <div className="space-y-3">
+                <Link
+                  href={`/store/${store.slug}/about`}
+                  onClick={() => onOpenChange(false)}
+                  className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <Info className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Quiénes Somos</p>
+                    <p className="text-sm text-muted-foreground">Conoce más sobre nosotros</p>
+                  </div>
+                </Link>
+              </div>
+
+              {store.phone && (
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Phone className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Teléfono</p>
+                    <a
+                      href={`tel:${store.phone}`}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {store.phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {store.address && (
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <MapPin className="w-5 h-5 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium">Dirección</p>
+                    <p className="text-sm text-muted-foreground">{store.address}</p>
+                  </div>
+                  <button
+                    onClick={() => setShowMap(true)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+                  >
+                    <Map className="w-3 h-3" />
+                    Ver Mapa
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                <Clock className="w-5 h-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium">Horarios de Atención</p>
+                  <div className={`text-sm font-medium mb-1 ${storeIsOpen ? "text-green-600" : "text-red-600"}`}>
+                    {storeIsOpen ? <span>Abierto {nextScheduleInfo && nextScheduleInfo}</span> : "Cerrado"}
+                  </div>
+                  {!storeIsOpen && nextScheduleInfo && (
+                    <p className="text-xs text-muted-foreground mb-2">{nextScheduleInfo}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Información adicional */}
+            {store.website && (
+              <div className="pt-4 border-t">
+                <a
+                  href={store.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <Globe className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Sitio Web</p>
+                    <p className="text-sm text-muted-foreground">Visitar página oficial</p>
+                  </div>
+                </a>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {store.address && (
+        <LocationMap address={store.address} storeName={store.name} open={showMap} onOpenChange={setShowMap} />
+      )}
+    </>
+  )
+}
