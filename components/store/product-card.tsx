@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Minus } from "lucide-react"
 import { useCart } from "./cart-context"
 import { useState } from "react"
+import Link from "next/link"
 
 interface ProductCardProps {
   product: Product
@@ -17,6 +18,7 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart()
   const [isAdding, setIsAdding] = useState(false)
   const quantity = getItemQuantity(product.id)
+  const productLink = `/store/${window.location.pathname.split("/")[2]}/product/${product.id}`
 
   const handleAddToCart = async () => {
     setIsAdding(true)
@@ -44,15 +46,19 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
         <CardContent className="p-4">
           <div className="flex gap-4">
             {product.image_url && (
-              <img
-                src={product.image_url || "/placeholder.svg"}
-                alt={product.name}
-                className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-              />
+              <Link href={productLink}>
+                <img
+                  src={product.image_url || "/placeholder.svg"}
+                  alt={product.name}
+                  className="w-20 h-20 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </Link>
             )}
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg truncate">{product.name}</h3>
+                <Link href={productLink}>
+                  <h3 className="font-semibold text-lg truncate hover:text-primary cursor-pointer">{product.name}</h3>
+                </Link>
                 <div className="text-right flex-shrink-0 ml-4">
                   {product.sale_price && product.sale_price < product.price ? (
                     <div>
@@ -99,27 +105,31 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow group">
-      <div className="aspect-square relative overflow-hidden">
-        {product.image_url ? (
-          <img
-            src={product.image_url || "/placeholder.svg"}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <span className="text-muted-foreground text-sm">Sin imagen</span>
-          </div>
-        )}
-        {product.sale_price && product.sale_price < product.price && (
-          <Badge variant="destructive" className="absolute top-2 left-2">
-            Oferta
-          </Badge>
-        )}
-      </div>
+      <Link href={productLink}>
+        <div className="aspect-square relative overflow-hidden">
+          {product.image_url ? (
+            <img
+              src={product.image_url || "/placeholder.svg"}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center cursor-pointer">
+              <span className="text-muted-foreground text-sm">Sin imagen</span>
+            </div>
+          )}
+          {product.sale_price && product.sale_price < product.price && (
+            <Badge variant="destructive" className="absolute top-2 left-2">
+              Oferta
+            </Badge>
+          )}
+        </div>
+      </Link>
 
       <CardContent className="p-4">
-        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{product.name}</h3>
+        <Link href={productLink}>
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2 hover:text-primary cursor-pointer">{product.name}</h3>
+        </Link>
         {product.description && (
           <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{product.description}</p>
         )}

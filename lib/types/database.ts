@@ -46,6 +46,7 @@ export interface Product {
   price: number
   sale_price?: number
   image_url?: string
+  gallery_images?: string[]
   is_available: boolean
   sort_order: number
   created_at: string
