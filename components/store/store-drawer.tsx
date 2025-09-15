@@ -2,10 +2,11 @@
 
 import type { Store } from "@/lib/types/database"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Phone, MapPin, Clock, Globe, Map } from "lucide-react"
+import { Phone, MapPin, Clock, Globe, Map, Info } from "lucide-react"
 import { LocationMap } from "./location-map"
 import { BusinessHoursModal } from "./business-hours-modal"
 import { useState } from "react"
+import Link from "next/link"
 
 interface StoreDrawerProps {
   store: Store & { business_hours?: any; is_open?: boolean }
@@ -126,7 +127,7 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="left" className="w-80">
+        <SheetContent side="left" className="w-80 bg-white">
           <SheetHeader className="text-left">
             <div className="flex gap-3 mb-4 flex-col items-center">
               {store.logo_url && (
@@ -143,9 +144,25 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
             </div>
           </SheetHeader>
 
-          <div className="space-y-4 mt-4 px-4 py-4">
+          <div className="space-y-4 mt-4 px-4 py-4 bg-slate-100">
             {/* Información de contacto */}
             <div className="space-y-3">
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                Información de Contacto
+              </h3>
+
+              <Link
+                href={`/store/${store.slug}/about`}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/20 transition-colors bg-neutral-200"
+              >
+                <Info className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium">Quiénes Somos</p>
+                  <p className="text-sm text-muted-foreground">Conoce más sobre nosotros</p>
+                </div>
+              </Link>
+
               {store.phone && (
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                   <Phone className="w-5 h-5 text-primary" />
