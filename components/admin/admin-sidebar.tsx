@@ -22,7 +22,7 @@ interface AdminSidebarProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Info General", href: "/admin", icon: LayoutDashboard },
   { name: "Productos", href: "/admin/products", icon: Package },
   { name: "Categorías", href: "/admin/categories", icon: Tags },
   { name: "Pedidos", href: "/admin/orders", icon: ShoppingBag },

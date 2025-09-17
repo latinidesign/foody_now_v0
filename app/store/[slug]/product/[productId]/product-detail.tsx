@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Plus, Minus, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { useCart } from "@/components/store/cart-context"
+import { CartButton } from "@/components/store/cart-button"
 import { ProductGallery } from "./components/product-gallery"
 import { ProductOptions } from "./components/product-options"
 import { RelatedProducts } from "./components/related-products"
@@ -105,8 +106,8 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-4 flex-row justify-between">
+          <div className="flex items-center gap-4 justify-between">
             <Link href={`/store/${store.slug}`}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -120,6 +121,11 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                 {product.name}
               </p>
             </div>
+            {/* Right: Carrito de compras */}
+            <div className="flex items-center">
+              <CartButton />
+            </div>   
+         
           </div>
         </div>
       </div>
