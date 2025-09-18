@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Plus, Minus, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { useCart } from "@/components/store/cart-context"
-import { CartButton } from "@/components/store/cart-button"
 import { ProductGallery } from "./components/product-gallery"
 import { ProductOptions } from "./components/product-options"
 import { RelatedProducts } from "./components/related-products"
@@ -21,8 +20,6 @@ interface ProductDetailProps {
   }
   relatedProducts: Product[]
 }
-
-const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
 
 export function ProductDetail({ store, product, relatedProducts }: ProductDetailProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart()
@@ -38,13 +35,12 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
 
     return product.product_options.reduce((total, option) => {
       const selectedValue = selectedOptions[option.id]
-      const optionValues = getOptionValues(option)
 
       if (option.type === "quantity" && selectedValue) {
         return (
           total +
           Object.entries(selectedValue).reduce((optionTotal, [valueId, qty]) => {
-            const value = optionValues.find((v: any) => v.id === valueId)
+            const value = option.values?.find((v: any) => v.id === valueId)
             return optionTotal + (value?.price_modifier || 0) * (qty as number)
           }, 0)
         )
@@ -54,14 +50,14 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
         return (
           total +
           selectedValue.reduce((optionTotal, valueId) => {
-            const value = optionValues.find((v: any) => v.id === valueId)
+            const value = option.values?.find((v: any) => v.id === valueId)
             return optionTotal + (value?.price_modifier || 0)
           }, 0)
         )
       }
 
       if (option.type === "single" && selectedValue) {
-        const value = optionValues.find((v: any) => v.id === selectedValue)
+        const value = option.values?.find((v: any) => v.id === selectedValue)
         return total + (value?.price_modifier || 0)
       }
 
@@ -109,8 +105,8 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex-row justify-between">
-          <div className="flex items-center gap-4 justify-between">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
             <Link href={`/store/${store.slug}`}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -124,11 +120,6 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                 {product.name}
               </p>
             </div>
-            {/* Right: Carrito de compras */}
-            <div className="flex items-center">
-              <CartButton />
-            </div>   
-         
           </div>
         </div>
       </div>

@@ -107,7 +107,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             <img
               src={galleryImages[currentImageIndex] || "/placeholder.svg"}
               alt={`${productName} - Imagen ${currentImageIndex + 1}`}
-              className="w-full h-full object-contain text-[rgba(255,255,255,0.22282608695652173)]"
+              className="w-full h-full object-contain"
             />
 
             {/* Close Button */}

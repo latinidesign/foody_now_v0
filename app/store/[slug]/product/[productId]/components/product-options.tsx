@@ -9,13 +9,14 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, DollarSign } from "lucide-react"
 import { useState } from "react"
 
+import { getOptionValues } from "../lib/get-option-values"
+
 interface ProductOptionsProps {
   options: any[]
   selectedOptions: Record<string, any>
   onOptionsChange: (options: Record<string, any>) => void
 }
 
-const getOptionValues = (option) => option.values ?? option.product_option_values ?? []
 export function ProductOptions({ options, selectedOptions, onOptionsChange }: ProductOptionsProps) {
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 
@@ -73,9 +74,12 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
     return Object.values(optionQuantities).reduce((sum: number, qty: number) => sum + qty, 0)
   }
 
-  const calculateOptionPrice = (option: any, selectedValue?: any, selectedQuantities?: Record<string, number>) => {
-      const optionValues = getOptionValues(option)
-  
+  const calculateOptionPrice = (
+    option: any,
+    optionValues: any[],
+    selectedValue?: any,
+    selectedQuantities?: Record<string, number>
+  ) => {  
     if (option.type === "quantity" && selectedQuantities) {
       return Object.entries(selectedQuantities).reduce((total, [valueId, qty]) => {
         const value = optionValues.find((v: any) => v.id === valueId)
@@ -100,9 +104,10 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
 
   const getTotalAdditionalPrice = () => {
     return options.reduce((total, option) => {
+      const optionValues = getOptionValues(option)
       const selectedValue = selectedOptions[option.id]
-      const selectedQuantities = option.type === "quantity" ? selectedValue : null
-      return total + calculateOptionPrice(option, selectedValue, selectedQuantities)
+      const selectedQuantities = option.type === "quantity" ? selectedValue : undefined
+      return total + calculateOptionPrice(option, optionValues, selectedValue, selectedQuantities)
     }, 0)
   }
 
@@ -121,8 +126,10 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
       </div>
 
       {options.map((option) => {
+        const optionValues = getOptionValues(option)
         const selectedValue = selectedOptions[option.id]
-        const optionPrice = calculateOptionPrice(option, selectedValue, selectedValue)
+        const selectedQuantities = option.type === "quantity" ? selectedValue : undefined
+        const optionPrice = calculateOptionPrice(option, optionValues, selectedValue, selectedQuantities)
 
         return (
           <Card key={option.id}>
