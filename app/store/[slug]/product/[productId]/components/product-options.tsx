@@ -15,6 +15,7 @@ interface ProductOptionsProps {
   onOptionsChange: (options: Record<string, any>) => void
 }
 
+const getOptionValues = (option) => option.values ?? option.product_option_values ?? []
 export function ProductOptions({ options, selectedOptions, onOptionsChange }: ProductOptionsProps) {
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 
@@ -73,22 +74,24 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
   }
 
   const calculateOptionPrice = (option: any, selectedValue?: any, selectedQuantities?: Record<string, number>) => {
+      const optionValues = getOptionValues(option)
+  
     if (option.type === "quantity" && selectedQuantities) {
       return Object.entries(selectedQuantities).reduce((total, [valueId, qty]) => {
-        const value = option.values?.find((v: any) => v.id === valueId)
+        const value = optionValues.find((v: any) => v.id === valueId)
         return total + (value?.price_modifier || 0) * qty
       }, 0)
     }
 
     if (option.type === "multiple" && Array.isArray(selectedValue)) {
       return selectedValue.reduce((total, valueId) => {
-        const value = option.values?.find((v: any) => v.id === valueId)
+        const value = optionValues.find((v: any) => v.id === valueId)
         return total + (value?.price_modifier || 0)
       }, 0)
     }
 
     if (option.type === "single" && selectedValue) {
-      const value = option.values?.find((v: any) => v.id === selectedValue)
+      const value = optionValues.find((v: any) => v.id === selectedValue)
       return value?.price_modifier || 0
     }
 
@@ -135,12 +138,12 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                       Por cantidad
                     </Badge>
                   )}
-                  {option.values?.some((v: any) => v.price_modifier === 0) && (
+                  {optionValues.some((v: any) => v.price_modifier === 0) && (
                     <Badge variant="secondary" className="text-xs">
                       Opciones gratis
                     </Badge>
                   )}
-                  {option.values?.some((v: any) => v.price_modifier > 0) && (
+                  {optionValues.some((v: any) => v.price_modifier > 0) && (
                     <Badge variant="default" className="text-xs">
                       Con costo extra
                     </Badge>
@@ -165,7 +168,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                   value={selectedOptions[option.id] || ""}
                   onValueChange={(value) => handleOptionChange(option.id, value)}
                 >
-                  {option.values?.map((value: any) => (
+                  {optionValues.map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value={value.id} id={value.id} />
@@ -188,7 +191,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                 </RadioGroup>
               ) : option.type === "multiple" ? (
                 <div className="space-y-2">
-                  {option.values?.map((value: any) => (
+                  {optionValues.map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -217,7 +220,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {option.values?.map((value: any) => (
+                  {optionValues.map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{value.name}</span>
