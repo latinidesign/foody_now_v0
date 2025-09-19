@@ -75,8 +75,10 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-open-sans);
+  --font-heading: var(--font-museo-moderno);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -121,9 +123,29 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+    font-weight: 400;
     /* Added smooth font rendering for better readability */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1,
+  h2 {
+    font-family: var(--font-heading), "MuseoModerno", system-ui, sans-serif;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-family: var(--font-heading), "MuseoModerno", system-ui, sans-serif;
+    font-weight: 300;
+  }
+
+  h4 {
+    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+    font-weight: 600;
   }
 
   /* Added custom scrollbar styling for food industry aesthetic */

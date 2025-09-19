@@ -9,14 +9,13 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, DollarSign } from "lucide-react"
 import { useState } from "react"
 
-import { getOptionValues } from "../lib/get-option-values"
-
 interface ProductOptionsProps {
   options: any[]
   selectedOptions: Record<string, any>
   onOptionsChange: (options: Record<string, any>) => void
 }
 
+const getOptionValues = (option) => option.values ?? option.product_option_values ?? []
 export function ProductOptions({ options, selectedOptions, onOptionsChange }: ProductOptionsProps) {
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 
@@ -74,12 +73,9 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
     return Object.values(optionQuantities).reduce((sum: number, qty: number) => sum + qty, 0)
   }
 
-  const calculateOptionPrice = (
-    option: any,
-    optionValues: any[],
-    selectedValue?: any,
-    selectedQuantities?: Record<string, number>
-  ) => {  
+  const calculateOptionPrice = (option: any, selectedValue?: any, selectedQuantities?: Record<string, number>) => {
+    const optionValues = getOptionValues(option)
+
     if (option.type === "quantity" && selectedQuantities) {
       return Object.entries(selectedQuantities).reduce((total, [valueId, qty]) => {
         const value = optionValues.find((v: any) => v.id === valueId)
@@ -104,10 +100,9 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
 
   const getTotalAdditionalPrice = () => {
     return options.reduce((total, option) => {
-      const optionValues = getOptionValues(option)
       const selectedValue = selectedOptions[option.id]
-      const selectedQuantities = option.type === "quantity" ? selectedValue : undefined
-      return total + calculateOptionPrice(option, optionValues, selectedValue, selectedQuantities)
+      const selectedQuantities = option.type === "quantity" ? selectedValue : null
+      return total + calculateOptionPrice(option, selectedValue, selectedQuantities)
     }, 0)
   }
 
@@ -126,10 +121,8 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
       </div>
 
       {options.map((option) => {
-        const optionValues = getOptionValues(option)
         const selectedValue = selectedOptions[option.id]
-        const selectedQuantities = option.type === "quantity" ? selectedValue : undefined
-        const optionPrice = calculateOptionPrice(option, optionValues, selectedValue, selectedQuantities)
+        const optionPrice = calculateOptionPrice(option, selectedValue, selectedValue)
 
         return (
           <Card key={option.id}>
@@ -145,12 +138,12 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                       Por cantidad
                     </Badge>
                   )}
-                  {optionValues.some((v: any) => v.price_modifier === 0) && (
+                  {getOptionValues(option).some((v: any) => v.price_modifier === 0) && (
                     <Badge variant="secondary" className="text-xs">
                       Opciones gratis
                     </Badge>
                   )}
-                  {optionValues.some((v: any) => v.price_modifier > 0) && (
+                  {getOptionValues(option).some((v: any) => v.price_modifier > 0) && (
                     <Badge variant="default" className="text-xs">
                       Con costo extra
                     </Badge>
@@ -175,7 +168,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                   value={selectedOptions[option.id] || ""}
                   onValueChange={(value) => handleOptionChange(option.id, value)}
                 >
-                  {optionValues.map((value: any) => (
+                  {getOptionValues(option).map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value={value.id} id={value.id} />
@@ -198,7 +191,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                 </RadioGroup>
               ) : option.type === "multiple" ? (
                 <div className="space-y-2">
-                  {optionValues.map((value: any) => (
+                  {getOptionValues(option).map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -227,7 +220,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {optionValues.map((value: any) => (
+                  {getOptionValues(option).map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{value.name}</span>
