@@ -305,7 +305,7 @@ export function CheckoutForm({ store, onOrderComplete }: CheckoutFormProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
-            <img src="/mercadopago-logo.png" alt="MercadoPago" className="h-8" />
+            <img src="/mp_handshake.png" alt="MercadoPago" className="h-8" />
             <div className="flex-1">
               <p className="font-medium">Pago seguro con MercadoPago</p>
               <p className="text-sm text-muted-foreground">Tarjetas de crédito, débito y más</p>

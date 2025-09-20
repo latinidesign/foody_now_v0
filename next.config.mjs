@@ -9,6 +9,21 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      // Reescribir subdominios a rutas internas
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
+          },
+        ],
+        destination: '/store/:subdomain/:path*',
+      },
+    ]
+  },
   async headers() {
     return [
       {
