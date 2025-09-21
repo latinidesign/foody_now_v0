@@ -11,16 +11,17 @@ const nextConfig = {
   },
   async rewrites() {
     return [
-      // Reescribir subdominios a rutas internas
+      // Reescribir subdominios a rutas internas evitando recursos estáticos
       {
-        source: '/:path*',
+        source:
+          '/:path((?!_next/|favicon\\.ico|robots\\.txt|.*\\.[^/]+).*)',
         has: [
           {
             type: 'host',
             value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
           },
         ],
-        destination: '/store/:subdomain/:path*',
+        destination: '/store/:subdomain/:path',
       },
     ]
   },
@@ -46,14 +47,3 @@ const nextConfig = {
       {
         source: '/manifest.json',
         headers: [
-          {
-            key: 'Content-Type',
-            value: 'application/manifest+json',
-          },
-        ],
-      },
-    ]
-  },
-}
-
-export default nextConfig
