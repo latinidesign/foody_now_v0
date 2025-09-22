@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, ShoppingBag, TrendingUp, Users, Calendar, XCircle, Eye } from "lucide-react"
 import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
 import { TopProductsChart } from "@/components/admin/top-products-chart"
+import { SalesTrendChart } from "@/components/admin/sales-trend-chart"
+import { OrdersTrendChart } from "@/components/admin/orders-trend-chart"
+import { CustomersTrendChart } from "@/components/admin/customers-trend-chart"
 
 interface SearchParams {
   startDate?: string
@@ -48,7 +51,7 @@ export default async function AnalyticsPage({
   // Get orders for selected period
   const { data: periodOrders } = await supabase
     .from("orders")
-    .select("total, status, created_at")
+    .select("total, status, created_at, customer_email")
     .eq("store_id", store.id)
     .gte("created_at", startDate.toISOString())
     .lte("created_at", endDate.toISOString())
@@ -63,13 +66,6 @@ export default async function AnalyticsPage({
     .eq("orders.store_id", store.id)
     .gte("orders.created_at", startDate.toISOString())
     .lte("orders.created_at", endDate.toISOString())
-
-  const { data: uniqueCustomers } = await supabase
-    .from("orders")
-    .select("customer_email")
-    .eq("store_id", store.id)
-    .gte("created_at", startDate.toISOString())
-    .lte("created_at", endDate.toISOString())
 
   const { data: allOrders } = await supabase.from("orders").select("total, status, created_at").eq("store_id", store.id)
   const { data: products } = await supabase.from("products").select("*").eq("store_id", store.id)
@@ -86,7 +82,7 @@ export default async function AnalyticsPage({
 
   const cancelledOrders = allOrders?.filter((order) => order.status === "cancelled").length || 0
 
-  const uniqueCustomersCount = new Set(uniqueCustomers?.map((order) => order.customer_email)).size || 0
+  const uniqueCustomersCount = new Set(periodOrders?.map((order) => order.customer_email)).size || 0
 
   const productSales = new Map()
   orderItems?.forEach((item) => {
@@ -99,6 +95,40 @@ export default async function AnalyticsPage({
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([name, quantity]) => ({ name, quantity }))
+
+  // Process daily data for trend charts
+  const dailyData = new Map()
+
+  periodOrders?.forEach((order) => {
+    const date = new Date(order.created_at).toISOString().split("T")[0]
+
+    if (!dailyData.has(date)) {
+      dailyData.set(date, {
+        date,
+        sales: 0,
+        orders: 0,
+        customers: new Set(),
+      })
+    }
+
+    const dayData = dailyData.get(date)
+    dayData.sales += order.total
+    dayData.orders += 1
+
+    // Get customer email from order to count unique customers
+    const customerEmail = order.customer_email || `anonymous-${Math.random()}`
+    dayData.customers.add(customerEmail)
+  })
+
+  // Convert to array and format for charts
+  const trendData = Array.from(dailyData.values())
+    .map((day) => ({
+      date: day.date,
+      sales: day.sales,
+      orders: day.orders,
+      customers: day.customers.size,
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   const statsCards = [
     {
@@ -182,6 +212,39 @@ export default async function AnalyticsPage({
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Trend Charts */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Tendencia de Ventas</CardTitle>
+            <p className="text-sm text-muted-foreground">Ventas diarias en el período</p>
+          </CardHeader>
+          <CardContent>
+            <SalesTrendChart data={trendData} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Tendencia de Pedidos</CardTitle>
+            <p className="text-sm text-muted-foreground">Cantidad de pedidos por día</p>
+          </CardHeader>
+          <CardContent>
+            <OrdersTrendChart data={trendData} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Tendencia de Clientes</CardTitle>
+            <p className="text-sm text-muted-foreground">Clientes únicos por día</p>
+          </CardHeader>
+          <CardContent>
+            <CustomersTrendChart data={trendData} />
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
