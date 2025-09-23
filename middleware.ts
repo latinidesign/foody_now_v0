@@ -3,8 +3,12 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 export async function middleware(request: NextRequest) {
+  console.log("[v0] Middleware ejecutándose para:", request.nextUrl.href)
+
   const url = request.nextUrl.clone()
   const hostname = request.headers.get("host") || ""
+
+  console.log("[v0] Hostname detectado:", hostname)
 
   // Lista de dominios principales que no son tiendas
   const mainDomains = [
@@ -16,40 +20,53 @@ export async function middleware(request: NextRequest) {
   ]
 
   // Verificar si es un subdominio de tienda
-  const isMainDomain = mainDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+  const isMainDomain = mainDomains.some((domain) => hostname === domain)
 
-  if (!isMainDomain && (hostname.endsWith(".foodynow.com.ar") || hostname.includes("vercel.app"))) {
-    // Extraer el slug de la tienda del subdominio
+  console.log("[v0] Es dominio principal:", isMainDomain)
+
+  // Detectar subdominios de tienda
+  if (!isMainDomain) {
     let storeSlug = ""
 
     if (hostname.endsWith(".foodynow.com.ar")) {
       storeSlug = hostname.replace(".foodynow.com.ar", "")
     } else if (hostname.includes("vercel.app")) {
-      // Para dominios de Vercel, extraer el slug del subdominio
+      // Para dominios de Vercel con subdominios
       const parts = hostname.split(".")
-      if (parts.length > 2) {
+      if (parts.length > 2 && !mainDomains.includes(hostname)) {
         storeSlug = parts[0]
       }
     }
 
+    console.log("[v0] Store slug detectado:", storeSlug)
+
     if (storeSlug && storeSlug !== "www") {
-      // Reescribir la URL internamente a /store/[slug]
-      if (url.pathname === "/") {
+      const originalPath = url.pathname
+
+      if (originalPath === "/") {
         url.pathname = `/store/${storeSlug}`
       } else {
-        url.pathname = `/store/${storeSlug}${url.pathname}`
+        url.pathname = `/store/${storeSlug}${originalPath}`
       }
 
-      // Reescribir la request internamente
-      const rewriteResponse = NextResponse.rewrite(url)
+      console.log("[v0] Reescribiendo a:", url.pathname)
 
-      // Aplicar la lógica de autenticación de Supabase
-      const supabaseResponse = await updateSession(request)
+      const response = NextResponse.rewrite(url)
 
-      // Combinar las cookies de Supabase con la respuesta de rewrite
-      rewriteResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+      try {
+        const supabaseResponse = await updateSession(request)
 
-      return rewriteResponse
+        if (supabaseResponse.cookies) {
+          supabaseResponse.cookies.getAll().forEach((cookie) => {
+            response.cookies.set(cookie.name, cookie.value, cookie)
+          })
+        }
+
+        return response
+      } catch (error) {
+        console.log("[v0] Error en updateSession:", error)
+        return response
+      }
     }
   }
 
@@ -59,11 +76,13 @@ export async function middleware(request: NextRequest) {
       const storeSlug = pathParts[2]
       const remainingPath = pathParts.slice(3).join("/")
 
-      // Construir la nueva URL con subdominio
+      console.log("[v0] Redirigiendo store slug:", storeSlug, "path:", remainingPath)
+
       let newHostname = ""
       if (hostname.includes("foodynow.com.ar")) {
         newHostname = `${storeSlug}.foodynow.com.ar`
       } else if (hostname.includes("vercel.app")) {
+        // Para Vercel, mantener el formato original pero con subdominio
         newHostname = `${storeSlug}-${hostname}`
       } else {
         newHostname = `${storeSlug}.${hostname}`
@@ -73,12 +92,18 @@ export async function middleware(request: NextRequest) {
       redirectUrl.hostname = newHostname
       redirectUrl.pathname = remainingPath ? `/${remainingPath}` : "/"
 
+      console.log("[v0] Redirigiendo a:", redirectUrl.href)
+
       return NextResponse.redirect(redirectUrl, 301)
     }
   }
 
-  // Aplicar la lógica normal de autenticación de Supabase
-  return await updateSession(request)
+  try {
+    return await updateSession(request)
+  } catch (error) {
+    console.log("[v0] Error en updateSession para dominio principal:", error)
+    return NextResponse.next()
+  }
 }
 
 export const config = {
