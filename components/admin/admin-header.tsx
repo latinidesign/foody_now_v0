@@ -38,7 +38,8 @@ export function AdminHeader({ user, store }: AdminHeaderProps) {
         <div className="flex items-center gap-4">
           <MobileSidebar store={store} />
           <div className="lg:hidden">
-            <h1 className="text-xl font-semibold">Foody Now Admin</h1>
+            <h1 className="text-xl font-semibold">Admin</h1>
+            <p className="text-sm font-medium leading-none">{store?.name}</p>
           </div>
         </div>
 

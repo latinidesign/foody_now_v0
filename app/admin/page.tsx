@@ -43,8 +43,6 @@ export default async function AdminDashboard() {
         <p className="text-muted-foreground">Bienvenido de vuelta, {store.name}</p>
       </div>
 
-      <DashboardStats stats={stats || []} />
-
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <RecentOrders orders={orders || []} />
@@ -53,6 +51,9 @@ export default async function AdminDashboard() {
           <QuickActions store={store} />
         </div>
       </div>
+
+      <DashboardStats stats={stats || []} />
+
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -26,10 +27,16 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <BeefIcon className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h1 className="text-2xl font-bold text-primary">FOODYNOW</h1>
+        <div className="flex shrink-0 items-center">
+            <Image
+              src="/foodynow_logo_360.svg"
+              alt="FOODYNOW"
+              width={120}
+              height={22}
+              className="h-10 w-auto"
+              priority
+            />
+        </div>
             </div>
             <div className="flex gap-2">
               <Link href="/auth/login">
@@ -48,7 +55,7 @@ export default function HomePage() {
               🚀 Revoluciona tu negocio alimentario
             </Badge>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 text-foreground text-balance">
-              Transforma tu negocio con <span className="text-primary">FOODYNOW</span>
+              Transforma tu negocio con <span className="text-primary">FOODY</span>
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto text-pretty">
               La solución moderna para comercialización eficiente. Hacé el seguimiento de la compra por WhatsApp, cobra

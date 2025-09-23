@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://foody-now.vercel.app"),
+  metadataBase: new URL("https://foodynow.com.ar"),
   alternates: {
     canonical: "/",
   },
