@@ -9,6 +9,33 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        // Rewrite para subdominios de tiendas
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
+            },
+          ],
+          destination: '/store/:subdomain/:path*',
+        },
+        {
+          source: '/',
+          has: [
+            {
+              type: 'host',
+              value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
+            },
+          ],
+          destination: '/store/:subdomain',
+        },
+      ],
+    }
+  },
   async headers() {
     return [
       {
