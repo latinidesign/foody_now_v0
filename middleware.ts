@@ -43,6 +43,38 @@ export async function middleware(request: NextRequest) {
     if (storeSlug && storeSlug !== "www") {
       const originalPath = url.pathname
 
+
+      const staticAssetPaths = new Set([
+        "/manifest.json",
+        "/sw.js",
+        "/robots.txt",
+        "/favicon.ico",
+      ])
+
+      const staticExtensions = [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".svg",
+        ".gif",
+        ".webp",
+        ".webmanifest",
+        ".json",
+        ".ico",
+        ".txt",
+        ".js",
+        ".css",
+      ]
+
+      const isStaticAsset =
+        staticAssetPaths.has(originalPath) ||
+        staticExtensions.some((extension) => originalPath.endsWith(extension))
+
+      if (isStaticAsset) {
+        return NextResponse.next()
+      }
+
+
       if (originalPath === "/") {
         url.pathname = `/store/${storeSlug}`
       } else {
@@ -116,6 +148,6 @@ export const config = {
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|manifest\\.json|sw\\.js|robots\\.txt|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|ico|txt|js|css)$).*)",
   ],
 }
