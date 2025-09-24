@@ -14,14 +14,14 @@ const nextConfig = {
       beforeFiles: [
         // Rewrite para subdominios de tiendas
         {
-          source: '/:path*',
+          source: '/:path((?!(?:_next|manifest\\.json|api)(?:/|$)).*)',
           has: [
             {
               type: 'host',
               value: '(?<subdomain>.*)\\.foodynow\\.com\\.ar',
             },
           ],
-          destination: '/store/:subdomain/:path*',
+          destination: '/store/:subdomain/:path',
         },
         {
           source: '/',

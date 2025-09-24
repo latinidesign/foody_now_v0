@@ -101,7 +101,12 @@ export function ProductCatalog({ store, categories }: ProductCatalogProps) {
           }
         >
           {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} viewMode={viewMode} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              viewMode={viewMode}
+              storeSlug={store.slug}
+            />
           ))}
         </div>
       ) : (

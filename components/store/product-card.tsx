@@ -8,17 +8,22 @@ import { Plus, Minus } from "lucide-react"
 import { useCart } from "./cart-context"
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 interface ProductCardProps {
   product: Product
   viewMode: "grid" | "list"
+  storeSlug: string
 }
 
-export function ProductCard({ product, viewMode }: ProductCardProps) {
+export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart()
   const [isAdding, setIsAdding] = useState(false)
   const quantity = getItemQuantity(product.id)
-  const productLink = `/store/${window.location.pathname.split("/")[2]}/product/${product.id}`
+  const pathname = usePathname()
+  const isStoreSubdomain = pathname ? !pathname.startsWith(`/store/${storeSlug}`) : false
+  const productLinkBase = isStoreSubdomain ? "" : `/store/${storeSlug}`
+  const productLink = `${productLinkBase}/product/${product.id}`
 
   const handleAddToCart = async () => {
     setIsAdding(true)
