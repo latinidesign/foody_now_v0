@@ -98,7 +98,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="FOODYNOW" />
         <meta name="msapplication-TileColor" content="#2D5016" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/icon-192.png" type="image/png" />
         <link rel="mask-icon" href="/mask-icon.svg" color="#2D5016" />
       </head>
       <body className={`font-sans ${openSans.variable} ${museoModerno.variable}`}>
