@@ -14,7 +14,7 @@ const nextConfig = {
       beforeFiles: [
         // Rewrite para subdominios de tiendas
         {
-          source: '/:path((?!(?:_next|manifest\\.json|api)(?:/|$)).*)',
+          source: '/:path((?!(?:_next|manifest\\.json|sw\\.js|api)(?:/|$)|.*\\.(?:png|jpe?g|gif|webp|avif|ico|svg|webmanifest)$).*)',
           has: [
             {
               type: 'host',
