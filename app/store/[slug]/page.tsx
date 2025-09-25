@@ -9,7 +9,7 @@ interface StorePageProps {
 }
 
 export const dynamic = "force-dynamic" // evita SSG 404 por slugs no pre-generados
-export const revalidate = process.env.NODE_ENV === "development" ? 0 : 60 // Sin cache en dev, 1 min en prod
+export const revalidate = 0 // Sin cache para evitar problemas de subdominios
 
 export default async function StorePage({ params }: StorePageProps) {
   const { slug } = await params
