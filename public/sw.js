@@ -3,12 +3,14 @@ const STATIC_CACHE = "foody-now-static-v1"
 const DYNAMIC_CACHE = "foody-now-dynamic-v1"
 
 // Assets to cache on install
+const OFFLINE_URL = "/offline"
+
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
   "/icon-192.png",
   "/icon-512.png",
-  "/offline.html",
+  OFFLINE_URL,
   // Add other critical assets
 ]
 
@@ -116,7 +118,13 @@ self.addEventListener("fetch", (event) => {
         .catch(() => {
           // Return offline page for navigation requests
           if (request.mode === "navigate") {
-            return caches.match("/offline.html")
+            return caches.match(OFFLINE_URL).then((cachedOffline) => {
+              if (cachedOffline) {
+                return cachedOffline
+              }
+
+              return fetch(OFFLINE_URL)
+            })
           }
 
           // Return a basic offline response for other requests

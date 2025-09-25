@@ -9,13 +9,13 @@
   --foreground: oklch(0.2 0.02 120); /* Dark green text */
   --card: oklch(1 0 0); /* Pure white cards */
   --card-foreground: oklch(0.2 0.02 120);
-  --primary: oklch(0.35 0.08 135); /* Deep forest green #2D5016 */
+  --primary: rgb(147, 194, 64); /* Deep forest green #2D5016 */
   --primary-foreground: oklch(0.98 0.01 85);
   --secondary: oklch(0.55 0.06 140); /* Medium green #4A7C59 */
   --secondary-foreground: oklch(0.98 0.01 85);
   --muted: oklch(0.95 0.01 85); /* Light cream */
   --muted-foreground: oklch(0.45 0.02 120);
-  --accent: oklch(0.65 0.15 45); /* Warm orange #FF6B35 */
+  --accent: rgb(231, 32, 126); /* Warm orange #FF6B35 */
   --accent-foreground: oklch(0.98 0.01 85);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.98 0.01 85);
