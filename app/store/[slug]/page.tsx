@@ -8,6 +8,8 @@ import { InstallPrompt } from "@/components/pwa/install-prompt"
 interface StorePageProps {
   params: Promise<{ slug: string }>
 }
+export const dynamic = 'force-dynamic'     // evita SSG 404 por slugs no pre-generados
+export const revalidate = 0                // sin cache mientras desarrollás
 
 export default async function StorePage({ params }: StorePageProps) {
   const { slug } = await params
