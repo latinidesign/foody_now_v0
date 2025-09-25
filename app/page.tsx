@@ -55,17 +55,16 @@ export default function HomePage() {
               🚀 Revoluciona tu negocio alimentario
             </Badge>
             <h2 className="text-5xl md:text-6xl font-light mb-6 text-foreground text-balance font-heading">
-              <span className="text-primary font-bold">FOODYNOW</span><sup>®</sup>, la solución moderna para una comercialización más eficiente.
+              <span className="text-primary font-bold">FOODYNOW</span><sup>®</sup> la solución moderna para una comercialización más eficiente.
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto text-pretty">
-              La solución moderna para comercialización eficiente. Hacé el seguimiento de la compra por WhatsApp, cobra
-              con MercadoPago y gestiona tu negocio con herramientas profesionales de marketing digital.
+              TU TIENDA ONLINE conversacional. Con pagos garantizados por MercadoPago, la prestigiosa comunicación de WhatsApp, con carrito inteligente y notificaciones automáticas.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/sign-up">
                 <Button size="lg" className="text-lg px-8 py-4 bg-accent hover:bg-accent/90 text-accent-foreground">
                   <Store className="w-5 h-5 mr-2" />
-                  Quiero mi tienda
+                  Comenzá ahora
                 </Button>
               </Link>
               <Link href="#beneficios">
@@ -83,7 +82,7 @@ export default function HomePage() {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <h3 className="text-3xl font-bold mb-6">¿Tu negocio necesita adaptarse al mundo digital?</h3>
+            <h3 className="text-3xl font-bold mb-6 font-heading text-light">¿Por qué elegir FOODYNOW?</h3>
             <p className="text-lg text-muted-foreground text-pretty">
               En el dinámico entorno comercial actual, la eficiencia y adaptabilidad son clave para el éxito. Los
               negocios modernos necesitan herramientas que les permitan competir y crecer.

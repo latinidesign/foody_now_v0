@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
         "/sw.js",
         "/robots.txt",
         "/favicon.ico",
+        "/offline",
       ])
 
       const staticExtensions = [
