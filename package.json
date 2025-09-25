@@ -5,6 +5,8 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "diagnose": "node scripts/diagnose.js",
+    "diagnose:subdomain": "node scripts/diagnose.js",
     "lint": "next lint",
     "start": "next start"
   },
@@ -46,6 +48,8 @@
     "cmdk": "1.0.4",
     "date-fns": "latest",
     "embla-carousel-react": "8.5.1",
+    "http": "latest",
+    "https": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",

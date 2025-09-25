@@ -19,6 +19,8 @@ import {
   BarChart3,
 } from "lucide-react"
 
+export const revalidate = 0                // sin cache mientras desarrollás
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">

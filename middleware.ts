@@ -3,12 +3,8 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  console.log("[v0] Middleware ejecutándose para:", request.nextUrl.href)
-
   const url = request.nextUrl.clone()
   const hostname = request.headers.get("host") || ""
-
-  console.log("[v0] Hostname detectado:", hostname)
 
   // Lista de dominios principales que no son tiendas
   const mainDomains = [
@@ -19,12 +15,20 @@ export async function middleware(request: NextRequest) {
     "localhost:3000",
   ]
 
+  // Rutas que nunca deben ser reescritas
+  const excludedPaths = ["/_next", "/api", "/manifest.json", "/sw.js", "/robots.txt", "/favicon.ico", "/offline"]
+
+  if (excludedPaths.some((path) => url.pathname.startsWith(path))) {
+    try {
+      return await updateSession(request)
+    } catch (error) {
+      return NextResponse.next()
+    }
+  }
+
   // Verificar si es un subdominio de tienda
   const isMainDomain = mainDomains.some((domain) => hostname === domain)
 
-  console.log("[v0] Es dominio principal:", isMainDomain)
-
-  // Detectar subdominios de tienda
   if (!isMainDomain) {
     let storeSlug = ""
 
@@ -38,19 +42,10 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    console.log("[v0] Store slug detectado:", storeSlug)
-
-    if (storeSlug && storeSlug !== "www") {
+    if (storeSlug && storeSlug !== "www" && storeSlug !== "api") {
       const originalPath = url.pathname
 
-
-      const staticAssetPaths = new Set([
-        "/manifest.json",
-        "/sw.js",
-        "/robots.txt",
-        "/favicon.ico",
-        "/offline",
-      ])
+      const staticAssetPaths = new Set(["/manifest.json", "/sw.js", "/robots.txt", "/favicon.ico", "/offline"])
 
       const staticExtensions = [
         ".png",
@@ -65,24 +60,24 @@ export async function middleware(request: NextRequest) {
         ".txt",
         ".js",
         ".css",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".eot",
       ]
 
       const isStaticAsset =
-        staticAssetPaths.has(originalPath) ||
-        staticExtensions.some((extension) => originalPath.endsWith(extension))
+        staticAssetPaths.has(originalPath) || staticExtensions.some((extension) => originalPath.endsWith(extension))
 
       if (isStaticAsset) {
         return NextResponse.next()
       }
-
 
       if (originalPath === "/") {
         url.pathname = `/store/${storeSlug}`
       } else {
         url.pathname = `/store/${storeSlug}${originalPath}`
       }
-
-      console.log("[v0] Reescribiendo a:", url.pathname)
 
       const response = NextResponse.rewrite(url)
 
@@ -97,7 +92,7 @@ export async function middleware(request: NextRequest) {
 
         return response
       } catch (error) {
-        console.log("[v0] Error en updateSession:", error)
+        // Si Supabase falla, continuar con el rewrite sin autenticación
         return response
       }
     }
@@ -109,14 +104,13 @@ export async function middleware(request: NextRequest) {
       const storeSlug = pathParts[2]
       const remainingPath = pathParts.slice(3).join("/")
 
-      console.log("[v0] Redirigiendo store slug:", storeSlug, "path:", remainingPath)
-
       let newHostname = ""
       if (hostname.includes("foodynow.com.ar")) {
         newHostname = `${storeSlug}.foodynow.com.ar`
       } else if (hostname.includes("vercel.app")) {
         // Para Vercel, mantener el formato original pero con subdominio
-        newHostname = `${storeSlug}-${hostname}`
+        const baseDomain = hostname.replace(/^[^.]+\./, "")
+        newHostname = `${storeSlug}.${baseDomain}`
       } else {
         newHostname = `${storeSlug}.${hostname}`
       }
@@ -125,8 +119,6 @@ export async function middleware(request: NextRequest) {
       redirectUrl.hostname = newHostname
       redirectUrl.pathname = remainingPath ? `/${remainingPath}` : "/"
 
-      console.log("[v0] Redirigiendo a:", redirectUrl.href)
-
       return NextResponse.redirect(redirectUrl, 301)
     }
   }
@@ -134,7 +126,7 @@ export async function middleware(request: NextRequest) {
   try {
     return await updateSession(request)
   } catch (error) {
-    console.log("[v0] Error en updateSession para dominio principal:", error)
+    // Si updateSession falla, continuar sin autenticación
     return NextResponse.next()
   }
 }
@@ -149,6 +141,6 @@ export const config = {
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|manifest\\.json|sw\\.js|robots\\.txt|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|ico|txt|js|css)$).*)",
+    "/((?!_next/static|_next/image|manifest\\.json|sw\\.js|robots\\.txt|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|ico|txt|js|css|woff|woff2|ttf|eot)$).*)",
   ],
 }

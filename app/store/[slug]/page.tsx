@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
 import { StoreHeader } from "@/components/store/store-header"
 import { ProductCatalog } from "@/components/store/product-catalog"
 import { WhatsAppContact } from "@/components/store/whatsapp-contact"
@@ -8,8 +7,9 @@ import { InstallPrompt } from "@/components/pwa/install-prompt"
 interface StorePageProps {
   params: Promise<{ slug: string }>
 }
-export const dynamic = 'force-dynamic'     // evita SSG 404 por slugs no pre-generados
-export const revalidate = 0                // sin cache mientras desarrollás
+
+export const dynamic = "force-dynamic" // evita SSG 404 por slugs no pre-generados
+export const revalidate = process.env.NODE_ENV === "development" ? 0 : 60 // Sin cache en dev, 1 min en prod
 
 export default async function StorePage({ params }: StorePageProps) {
   const { slug } = await params
@@ -66,7 +66,6 @@ export default async function StorePage({ params }: StorePageProps) {
     )
   }
 
-  // Get store data
   const { data: store, error: storeError } = await supabase
     .from("stores")
     .select("*")
@@ -75,7 +74,37 @@ export default async function StorePage({ params }: StorePageProps) {
     .single()
 
   if (storeError || !store) {
-    notFound()
+    console.log(`[DEBUG] Store not found for slug: ${slug}`, storeError)
+
+    // TODO: Restaurar notFound() cuando los datos estén garantizados
+    // notFound()
+
+    const placeholderStore = {
+      id: "placeholder",
+      name: `Tienda ${slug}`,
+      slug: slug,
+      description: "Esta tienda está siendo configurada. Vuelve pronto.",
+      logo_url: null,
+      banner_url: null,
+      primary_color: "#2D5016",
+      whatsapp_phone: null,
+      is_active: true,
+    }
+
+    return (
+      <div className="min-h-screen bg-background">
+        <StoreHeader store={placeholderStore} />
+        <main className="container mx-auto px-4 py-6">
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="font-semibold text-blue-800 mb-2">Tienda en Configuración</h3>
+            <p className="text-blue-700 text-sm">
+              Esta tienda está siendo configurada. Por favor, vuelve pronto para ver nuestros productos.
+            </p>
+          </div>
+        </main>
+        <InstallPrompt />
+      </div>
+    )
   }
 
   const { data: storeSettings } = await supabase
@@ -90,7 +119,6 @@ export default async function StorePage({ params }: StorePageProps) {
     is_open: storeSettings?.is_open ?? true,
   }
 
-  // Get categories with products
   const { data: categories } = await supabase
     .from("categories")
     .select(`
@@ -135,7 +163,7 @@ export async function generateMetadata({ params }: StorePageProps) {
   const { data: store } = await supabase.from("stores").select("name, description").eq("slug", slug).single()
 
   return {
-    title: store?.name || "Tienda",
+    title: store?.name || `Tienda ${slug}`,
     description: store?.description || "Tienda online",
   }
 }
