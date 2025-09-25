@@ -71,6 +71,14 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "FOODYNOW",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "FOODYNOW",
+    "msapplication-TileColor": "#2D5016",
+    "msapplication-tap-highlight": "no",
+  },
 }
 
 export const viewport: Viewport = {
@@ -91,16 +99,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <head>
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="FOODYNOW" />
-        <meta name="msapplication-TileColor" content="#2D5016" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <link rel="shortcut icon" href="/icon-192.png" type="image/png" />
-        <link rel="mask-icon" href="/mask-icon.svg" color="#2D5016" />
-      </head>
       <body className={`font-sans ${openSans.variable} ${museoModerno.variable}`}>
         {children}
         <Toaster />
