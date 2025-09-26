@@ -15,7 +15,7 @@ const nextConfig = {
         // Rewrite para subdominios de tiendas
         {
           source:
-            '/:path((?!(?:_next|api|offline|manifest\\.json|sw\\.js|robots\\.txt|favicon\\.ico)(?:/|$)|.*\\.(?:png|jpe?g|gif|webp|avif|ico|svg|webmanifest|txt|json|js|css|html)$).*)',
+            '/:path((?!store(?:/|$))(?!(?:_next|api|offline|manifest\\.json|sw\\.js|robots\\.txt|favicon\\.ico)(?:/|$)|.*\\.(?:png|jpe?g|gif|webp|avif|ico|svg|webmanifest|txt|json|js|css|html)$).*)',
           has: [
             {
               type: 'host',
