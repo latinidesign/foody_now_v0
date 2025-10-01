@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Clock, MapPin, Store, Phone } from "lucide-react"
 import Link from "next/link"
+import { combineStorePath } from "@/lib/store/path"
+import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface OrderPageProps {
   params: Promise<{ slug: string; orderId: string }>
@@ -13,6 +15,8 @@ interface OrderPageProps {
 export default async function OrderPage({ params }: OrderPageProps) {
   const { slug, orderId } = await params
   const supabase = await createClient()
+  const storeBasePath = getStoreBasePathFromHeaders(slug)
+  const storeHomeHref = combineStorePath(storeBasePath)
 
   // Get order with store and items
   const { data: order, error } = await supabase
@@ -212,7 +216,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
         {/* Actions */}
         <div className="flex gap-4">
-          <Link href={`/store/${slug}`} className="flex-1">
+          <Link href={storeHomeHref} className="flex-1">
             <Button variant="outline" className="w-full bg-transparent">
               Volver a la Tienda
             </Button>

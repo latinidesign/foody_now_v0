@@ -5,6 +5,8 @@ import { ArrowLeft, MapPin, Phone } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { BusinessHoursSection } from "./about-client"
+import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
+import { combineStorePath } from "@/lib/store/path"
 
 interface AboutPageProps {
   params: Promise<{ slug: string }>
@@ -13,6 +15,8 @@ interface AboutPageProps {
 export default async function AboutPage({ params }: AboutPageProps) {
   const { slug } = await params
   const supabase = await createClient()
+  const storeBasePath = getStoreBasePathFromHeaders(slug)
+  const storeHomeHref = combineStorePath(storeBasePath)
 
   if (!supabase) {
     const demoStore = {
@@ -45,7 +49,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
         <StoreHeader store={demoStore} />
         <main className="container mx-auto px-4 py-6">
           <div className="mb-6">
-            <Link href={`/store/${slug}`}>
+            <Link href={storeHomeHref}>
               <Button variant="ghost" className="mb-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Volver a la tienda
@@ -132,7 +136,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
       <StoreHeader store={storeWithHours} />
       <main className="container mx-auto px-4 py-6">
         <div className="mb-6">
-          <Link href={`/store/${slug}`}>
+          <Link href={storeHomeHref}>
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver a la tienda

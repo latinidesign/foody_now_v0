@@ -8,6 +8,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { BusinessHoursModal } from "@/components/store/business-hours-modal"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
+import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
 
 interface AboutPageProps {
   params: { slug: string }
@@ -18,6 +20,9 @@ export default function AboutPageClient({ params }: AboutPageProps) {
   const [supabase, setSupabase] = useState<any>(null)
   const [storeWithHours, setStoreWithHours] = useState<any>(null)
   const [demoMode, setDemoMode] = useState<boolean>(false)
+  const pathname = usePathname()
+  const storeBasePath = deriveStoreBasePathFromPathname(pathname, slug)
+  const storeHomeHref = combineStorePath(storeBasePath)  
 
   useState(() => {
     const fetchData = async () => {
@@ -96,7 +101,7 @@ export default function AboutPageClient({ params }: AboutPageProps) {
         <StoreHeader store={demoStore} />
         <main className="container mx-auto px-4 py-6">
           <div className="mb-6">
-            <Link href={`/store/${slug}`}>
+            <Link href={storeHomeHref}>
               <Button variant="ghost" className="mb-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Volver a la tienda
@@ -168,7 +173,7 @@ export default function AboutPageClient({ params }: AboutPageProps) {
       <StoreHeader store={storeWithHours} />
       <main className="container mx-auto px-4 py-6">
         <div className="mb-6">
-          <Link href={`/store/${slug}`}>
+          <Link href={storeHomeHref}>
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver a la tienda

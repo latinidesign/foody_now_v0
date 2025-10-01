@@ -4,19 +4,23 @@ import type { Product } from "@/lib/types/database"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { combineStorePath } from "@/lib/store/path"
 
 interface RelatedProductsProps {
   products: Product[]
   storeSlug: string
+  basePath?: string
 }
 
-export function RelatedProducts({ products, storeSlug }: RelatedProductsProps) {
+export function RelatedProducts({ products, storeSlug, basePath }: RelatedProductsProps) {
+  const resolvedBasePath = basePath ?? `/store/${storeSlug}`
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Productos Relacionados</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {products.map((product) => (
-          <Link key={product.id} href={`/store/${storeSlug}/product/${product.id}`}>
+          <Link key={product.id} href={combineStorePath(resolvedBasePath, `/product/${product.id}`)}>
             <Card className="overflow-hidden hover:shadow-md transition-shadow">
               <div className="aspect-square relative overflow-hidden">
                 {product.image_url ? (

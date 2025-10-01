@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { XCircle, ArrowLeft, RefreshCw } from "lucide-react"
 import Link from "next/link"
+import { combineStorePath } from "@/lib/store/path"
+import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface PaymentFailurePageProps {
   searchParams: Promise<{ order_id?: string }>
@@ -30,6 +32,9 @@ export default async function PaymentFailurePage({ searchParams }: PaymentFailur
   if (error || !order) {
     notFound()
   }
+  const storeBasePath = getStoreBasePathFromHeaders(order.stores.slug)
+  const storeHomeHref = combineStorePath(storeBasePath)
+
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -58,7 +63,7 @@ export default async function PaymentFailurePage({ searchParams }: PaymentFailur
               <RefreshCw className="mr-2 w-4 h-4" />
               Intentar Pagar Nuevamente
             </Button>
-            <Link href={`/store/${order.stores.slug}`}>
+            <Link href={storeHomeHref}>
               <Button variant="outline" className="w-full bg-transparent">
                 <ArrowLeft className="mr-2 w-4 h-4" />
                 Volver a la Tienda

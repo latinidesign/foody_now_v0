@@ -12,6 +12,8 @@ import { CartButton } from "@/components/store/cart-button"
 import { ProductGallery } from "./components/product-gallery"
 import { ProductOptions } from "./components/product-options"
 import { RelatedProducts } from "./components/related-products"
+import { usePathname } from "next/navigation"
+import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
 
 interface ProductDetailProps {
   store: Store
@@ -29,6 +31,9 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const [selectedOptions, setSelectedOptions] = useState<Record<string, any>>({})
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
+  const pathname = usePathname()
+  const storeBasePath = deriveStoreBasePathFromPathname(pathname, store.slug)
+  const storeHomeHref = combineStorePath(storeBasePath)
 
   const cartQuantity = getItemQuantity(product.id)
   const basePrice = product.sale_price || product.price
@@ -111,7 +116,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
       <div className="border-b bg-white sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex-row justify-between">
           <div className="flex items-center gap-4 justify-between">
-            <Link href={`/store/${store.slug}`}>
+            <Link href={storeHomeHref}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Volver
@@ -260,7 +265,11 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-12">
-            <RelatedProducts products={relatedProducts} storeSlug={store.slug} />
+            <RelatedProducts
+              products={relatedProducts}
+              storeSlug={store.slug}
+              basePath={storeBasePath}
+            />
           </div>
         )}
       </div>

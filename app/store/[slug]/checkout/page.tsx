@@ -4,6 +4,8 @@ import { CheckoutForm } from "@/components/store/checkout-form"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { combineStorePath } from "@/lib/store/path"
+import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface CheckoutPageProps {
   params: Promise<{ slug: string }>
@@ -12,6 +14,8 @@ interface CheckoutPageProps {
 export default async function CheckoutPage({ params }: CheckoutPageProps) {
   const { slug } = await params
   const supabase = await createClient()
+  const storeBasePath = getStoreBasePathFromHeaders(slug)
+  const storeHomeHref = combineStorePath(storeBasePath)
 
   const { data: store, error } = await supabase
     .from("stores")
@@ -25,7 +29,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   }
 
   const handleOrderComplete = (orderId: string) => {
-    redirect(`/store/${slug}/order/${orderId}`)
+    redirect(combineStorePath(storeBasePath, `/order/${orderId}`))
   }
 
   return (
@@ -33,7 +37,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       <header className="bg-card border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href={`/store/${slug}`}>
+           <Link href={storeHomeHref}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Volver a la Tienda

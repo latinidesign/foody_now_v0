@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { combineStorePath } from "@/lib/store/path"
+import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface PaymentSuccessPageProps {
   searchParams: Promise<{ order_id?: string }>
@@ -30,6 +32,9 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
   if (error || !order) {
     notFound()
   }
+  const storeBasePath = getStoreBasePathFromHeaders(order.stores.slug)
+  const orderDetailsHref = combineStorePath(storeBasePath, `/order/${order.id}`)
+  const storeHomeHref = combineStorePath(storeBasePath)
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -54,13 +59,13 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
           </div>
 
           <div className="space-y-2">
-            <Link href={`/store/${order.stores.slug}/order/${order.id}`}>
+            <Link href={orderDetailsHref}>
               <Button className="w-full">
                 Ver Detalles del Pedido
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
-            <Link href={`/store/${order.stores.slug}`}>
+            <Link href={storeHomeHref}>
               <Button variant="outline" className="w-full bg-transparent">
                 Volver a la Tienda
               </Button>
