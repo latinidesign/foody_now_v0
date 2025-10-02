@@ -4,7 +4,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Button } from "@/components/ui/button"
 import { useCart } from "./cart-context"
 import { Minus, Plus, Trash2 } from "lucide-react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, usePathname } from "next/navigation"
+import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -15,11 +16,17 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { state, updateQuantity, removeItem, clearCart } = useCart()
   const router = useRouter()
   const params = useParams()
+  const pathname = usePathname()
+  const slugParam = params.slug
+  const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam
+  const storeBasePath = slug
+    ? deriveStoreBasePathFromPathname(pathname, slug)
+    : "/"
 
   const handleCheckout = () => {
-    if (state.items.length === 0) return
+    if (state.items.length === 0 || !slug) return
 
-    router.push(`/store/${params.slug}/checkout`)
+    router.push(combineStorePath(storeBasePath, "/checkout"))
     onClose()
   }
 

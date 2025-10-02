@@ -7,6 +7,8 @@ import { LocationMap } from "./location-map"
 import { BusinessHoursModal } from "./business-hours-modal"
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
 
 interface StoreDrawerProps {
   store: Store & { business_hours?: any; is_open?: boolean }
@@ -120,6 +122,7 @@ function getNextScheduleInfo(businessHours: any, isOpen = true) {
 export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
   const [showMap, setShowMap] = useState(false)
   const [showBusinessHours, setShowBusinessHours] = useState(false)
+  const storeBasePath = deriveStoreBasePathFromPathname(usePathname(), store.slug)
 
   const storeIsOpen = isStoreOpen(store.business_hours, store.is_open)
   const nextScheduleInfo = getNextScheduleInfo(store.business_hours, store.is_open)
@@ -152,7 +155,7 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
               </h3>
 
               <Link
-                href={`/store/${store.slug}/about`}
+                href={combineStorePath(storeBasePath, "/about")}
                 onClick={() => onOpenChange(false)}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/20 transition-colors bg-neutral-200"
               >

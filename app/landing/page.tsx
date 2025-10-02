@@ -30,10 +30,10 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <div className="flex shrink-0 items-center">
                 <Image
-                  src="/foodynow_logo_360.svg"
+                  src="/foodynow_logo-wt.svg"
                   alt="FOODYNOW"
-                  width={120}
-                  height={22}
+                  width={100}
+                  height={45}
                   className="h-10 w-auto"
                   priority
                 />
@@ -61,8 +61,7 @@ export default function HomePage() {
                 <sup>®</sup> la solución moderna para una comercialización más eficiente.
               </h2>
               <p className="text-xl text-muted-foreground mb-8 text-pretty">
-                TU TIENDA ONLINE conversacional. Con pagos garantizados por MercadoPago, la prestigiosa comunicación de
-                WhatsApp, con carrito inteligente y notificaciones automáticas.
+                {"TU TIENDA ONLINE conversacional. \nCon pagos garantizados por MercadoPago, la prestigiosa comunicación de WhatsApp, con carrito inteligente y notificaciones automáticas."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/auth/sign-up">
@@ -100,8 +99,7 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h3 className="text-3xl mb-6 font-heading text-light font-normal">¿Por qué elegir FOODYNOW?</h3>
             <p className="text-lg text-muted-foreground text-pretty">
-              En el dinámico entorno comercial actual, la eficiencia y adaptabilidad son clave para el éxito. Los
-              negocios modernos necesitan herramientas que les permitan competir y crecer.
+              En un entorno comercial dinámico, la eficiencia y la adaptabilidad son clave para el éxito, es por ello que, FOODYNOW surge como una solución innovadora y profesional para negocios que buscan optimizar su estrategia de comercialización aprovechando las últimas tecnologías digitales. Esto permite:
             </p>
           </div>
 
@@ -110,7 +108,7 @@ export default function HomePage() {
               <TrendingUp className="w-12 h-12 text-accent mx-auto mb-4" />
               <h4 className="font-semibold mb-2">Optimizar la experiencia del cliente</h4>
               <p className="text-sm text-muted-foreground">
-                Mejora la satisfacción del usuario final con una experiencia de compra fluida y moderna
+                ofrecer una experiencia de compra personalizada y eficiente aumenta la satisfacción y la fidelidad.
               </p>
             </Card>
 
@@ -118,7 +116,7 @@ export default function HomePage() {
               <Users className="w-12 h-12 text-primary mx-auto mb-4" />
               <h4 className="font-semibold mb-2">Aumentar la eficiencia operativa</h4>
               <p className="text-sm text-muted-foreground">
-                Automatiza procesos y gestiona tu comercio de manera más eficiente
+                Automatizar procesos de venta y gestión de clientes, libera tiempo para enfocarte en hacer crecer tu negocio y disponer de las herramientas de marketing digital.
               </p>
             </Card>
 
@@ -134,13 +132,12 @@ export default function HomePage() {
       </section>
 
       {/* Solución Section */}
-      <section id="beneficios" className="py-20">
+      <section id="beneficios" className="py-20 bg-lime-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <h3 className="text-4xl font-bold mb-6">FOODYNOW: Tu tienda online en WhatsApp</h3>
+            <h3 className="text-4xl font-bold mb-6">FOODYNOW está diseñado para atender a Pymes, Micro Pymes, artesanos y profesionales de la gastronomía con sus especialidades y exquisiteces.</h3>
             <p className="text-lg text-muted-foreground text-pretty">
-              Aprovecha la plataforma de mensajería más utilizada del mundo para vender de manera eficiente y
-              personalizada, con herramientas profesionales integradas.
+              Todo el proceso de compra se realiza de forma automática, sin intervención humana: desde el primer contacto telefónico, el sistema permite que el usuario recorra todas las categorías, vea todos los productos y sus especificaciones con sus precios, vea ofertas del día y reciba sugerencias de productos más vendidos de la última semana. Luego el usuario decide si quiere que su pedido sea entregado a domicilio o retirado en el local. Al cerrar el pedido, se emite automáticamente enlace de pago de MercadoPago; se confirma el pago y, finalmente, se envía al usuario la confirmación de la recepción del pedido pagado, junto con el tiempo estimado de entrega.
             </p>
           </div>
 
@@ -163,9 +160,9 @@ export default function HomePage() {
                   <CreditCard className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">Pagos seguros con RapiPago</h4>
+                  <h4 className="font-semibold mb-2">Pagos seguros con MercadoPago</h4>
                   <p className="text-muted-foreground">
-                    Facilita a tus clientes realizar pagos de manera segura directamente en WhatsApp
+                    Facilita a tus clientes realizar pagos de manera segura sin salir de la aplicación.
                   </p>
                 </div>
               </div>
@@ -187,7 +184,7 @@ export default function HomePage() {
               <div className="bg-card rounded-xl p-6 shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Smartphone className="w-8 h-8 text-primary" />
-                  <span className="font-semibold">Tu tienda móvil</span>
+                  <h3 className="font-semibold">Tu tienda móvil</h3>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">

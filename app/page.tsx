@@ -31,10 +31,10 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
         <div className="flex shrink-0 items-center">
             <Image
-              src="/foodynow_logo_360.svg"
+              src="/foodynow_logo-wt.svg"
               alt="FOODYNOW"
-              width={120}
-              height={22}
+              width={100}
+              height={45}
               className="h-10 w-auto"
               priority
             />

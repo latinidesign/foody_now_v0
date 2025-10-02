@@ -7,35 +7,35 @@
   /* Updated color palette for Foody Now - food industry colors */
   --background: oklch(0.98 0.01 85); /* Warm cream background */
   --foreground: oklch(0.2 0.02 120); /* Dark green text */
-  --card: oklch(1 0 0); /* Pure white cards */
+  --card: rgb(255, 255, 255); /* Pure white cards */
   --card-foreground: oklch(0.2 0.02 120);
-  --primary: rgb(147, 194, 64); /* Deep forest green #2D5016 */
+  --primary: rgb(144, 203, 34); /* Deep forest green #2D5016 */
   --primary-foreground: oklch(0.98 0.01 85);
-  --secondary: oklch(0.55 0.06 140); /* Medium green #4A7C59 */
+  --secondary: rgb(86, 123, 24); /* Medium green #4A7C59 */
   --secondary-foreground: oklch(0.98 0.01 85);
   --muted: oklch(0.95 0.01 85); /* Light cream */
   --muted-foreground: oklch(0.45 0.02 120);
-  --accent: rgb(231, 32, 126); /* Warm orange #FF6B35 */
-  --accent-foreground: oklch(0.98 0.01 85);
+  --accent: rgb(183, 40, 215); /* Warm orange #FF6B35 */
+  --accent-foreground: rgb(255, 252, 252);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.98 0.01 85);
   --border: oklch(0.9 0.01 85);
   --input: oklch(0.95 0.01 85);
-  --ring: oklch(0.35 0.08 135);
-  --chart-1: oklch(0.35 0.08 135); /* Primary green */
-  --chart-2: oklch(0.55 0.06 140); /* Secondary green */
+  --ring: rgb(86, 123, 24);
+  --chart-1: oklch(0.34 0.08 135); /* Primary green */
+  --chart-2: oklch(0.55 0.05 140); /* Secondary green */
   --chart-3: oklch(0.65 0.15 45); /* Orange accent */
   --chart-4: oklch(0.7 0.1 85); /* Light warm */
   --chart-5: oklch(0.4 0.04 160); /* Dark green variant */
-  --radius: 0.75rem; /* Slightly more rounded for food industry */
+  --radius: 12px; /* Slightly more rounded for food industry */
   --sidebar: oklch(0.98 0.01 85);
   --sidebar-foreground: oklch(0.2 0.02 120);
-  --sidebar-primary: oklch(0.35 0.08 135);
+  --sidebar-primary: rgb(86, 123, 24);
   --sidebar-primary-foreground: oklch(0.98 0.01 85);
   --sidebar-accent: oklch(0.95 0.01 85);
   --sidebar-accent-foreground: oklch(0.2 0.02 120);
   --sidebar-border: oklch(0.9 0.01 85);
-  --sidebar-ring: oklch(0.35 0.08 135);
+  --sidebar-ring: rgb(86, 123, 24);
 }
 
 .dark {
