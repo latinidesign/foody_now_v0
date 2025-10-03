@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
     const { orderId, storeId, items, total, customer } = await request.json()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Get store settings for MercadoPago credentials
     const { data: storeSettings } = await supabase

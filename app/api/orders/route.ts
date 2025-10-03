@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
     const { storeId, items, orderData, subtotal, deliveryFee, total } = await request.json()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Create the order
     const { data: order, error: orderError } = await supabase
