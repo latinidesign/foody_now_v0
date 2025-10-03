@@ -49,6 +49,12 @@ Asegúrate de tener configuradas las siguientes variables en todos los entornos 
 
 Sin estas variables, `createAdminClient()` lanzará una excepción.
 
+> 💡 **Importante**
+>
+> - `SUPABASE_SERVICE_ROLE_KEY` se obtiene desde **Supabase → Project Settings → API → service_role** y debe almacenarse sólo en variables privadas del servidor (Vercel, Render, `.env.local`, etc.).
+> - No utilices `createAdminClient()` ni esta variable en componentes ejecutados en el navegador; está pensada exclusivamente para rutas y acciones del servidor.
+> - Verifica que `NEXT_PUBLIC_SUPABASE_URL` siga apuntando al mismo proyecto que utiliza el resto de la aplicación.
+
 ## 5. Pruebas recomendadas
 
 1. Crear una orden desde el checkout y confirmar que se inserta la orden junto con sus ítems.

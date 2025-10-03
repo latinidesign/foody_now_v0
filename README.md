@@ -64,6 +64,10 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 REVALIDATE_SECRET=your-secret-key
 \`\`\`
 
+- `SUPABASE_SERVICE_ROLE_KEY` debe copiarse desde **Supabase → Project Settings → API → service_role**.
+- Define esta variable únicamente en el entorno del servidor (`.env.local`, variables privadas de Vercel/Render, etc.). No la expongas como variable pública ni la utilices en componentes del navegador.
+- Asegúrate de que `NEXT_PUBLIC_SUPABASE_URL` continúe apuntando al proyecto correcto de Supabase.
+
 ## 🛠️ Desarrollo Local
 
 ### Instalación
