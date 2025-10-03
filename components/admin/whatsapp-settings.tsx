@@ -17,6 +17,12 @@ interface WhatsAppSettingsProps {
   storeName: string
   currentPhone?: string
   autoNotifications?: boolean
+  initialMessage?: string
+  waPhoneNumberId?: string
+  waBusinessAccountId?: string
+  waAccessToken?: string
+  waDefaultWelcomeTemplate?: string
+  waDefaultOrderTemplate?: string
 }
 
 export function WhatsAppSettings({
@@ -25,20 +31,25 @@ export function WhatsAppSettings({
   storeName,
   currentPhone,
   autoNotifications: initialAutoNotifications,
+  initialMessage,
+  waPhoneNumberId,
+  waBusinessAccountId,
+  waAccessToken,
+  waDefaultWelcomeTemplate,
+  waDefaultOrderTemplate,
 }: WhatsAppSettingsProps) {
   const [phone, setPhone] = useState(currentPhone || "")
-  const [autoNotifications, setAutoNotifications] = useState(initialAutoNotifications || true)
-  const [customMessage, setCustomMessage] = useState("")
+  const [autoNotifications, setAutoNotifications] = useState(initialAutoNotifications ?? true)
+  const [customMessage, setCustomMessage] = useState(initialMessage || "")
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [phoneNumberId, setPhoneNumberId] = useState(waPhoneNumberId || "")
+  const [businessAccountId, setBusinessAccountId] = useState(waBusinessAccountId || "")
+  const [accessToken, setAccessToken] = useState(waAccessToken || "")
+  const [welcomeTemplate, setWelcomeTemplate] = useState(waDefaultWelcomeTemplate || "")
+  const [orderTemplate, setOrderTemplate] = useState(waDefaultOrderTemplate || "")
 
-  const [twilioConfig, setTwilioConfig] = useState({
-    accountSid: "",
-    authToken: "",
-    whatsappNumber: "",
-  })
-
-  const storeUrl = `${window.location.origin}/store/${storeSlug}`
+  const storeUrl = typeof window !== "undefined" ? `${window.location.origin}/store/${storeSlug}` : ""
   const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
   const responseMessage = customMessage || defaultMessage
 
@@ -64,9 +75,11 @@ export function WhatsAppSettings({
           whatsapp_number: phone,
           whatsapp_notifications: autoNotifications,
           whatsapp_message: customMessage,
-          twilio_account_sid: twilioConfig.accountSid,
-          twilio_auth_token: twilioConfig.authToken,
-          twilio_whatsapp_number: twilioConfig.whatsappNumber,
+          wa_phone_number_id: phoneNumberId,
+          wa_business_account_id: businessAccountId,
+          wa_access_token: accessToken,
+          wa_default_welcome_template: welcomeTemplate,
+          wa_default_order_template: orderTemplate,
         }),
       })
 
@@ -89,45 +102,69 @@ export function WhatsAppSettings({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-blue-500" />
-            Configuración de Twilio (Mensajes Automáticos)
+            Configuración de WhatsApp Cloud API
           </CardTitle>
           <CardDescription>
-            Configura tu cuenta de Twilio para enviar mensajes automáticos de WhatsApp a tus clientes
+            Ingresa los datos de tu aplicación de Meta para enviar mensajes automáticos desde la Cloud API
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="twilio-account-sid">Account SID de Twilio</Label>
+            <Label htmlFor="wa-phone-number-id">Phone Number ID</Label>
             <Input
-              id="twilio-account-sid"
-              placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              value={twilioConfig.accountSid}
-              onChange={(e) => setTwilioConfig({ ...twilioConfig, accountSid: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="twilio-auth-token">Auth Token de Twilio</Label>
-            <Input
-              id="twilio-auth-token"
-              type="password"
-              placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              value={twilioConfig.authToken}
-              onChange={(e) => setTwilioConfig({ ...twilioConfig, authToken: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="twilio-whatsapp-number">Número de WhatsApp de Twilio</Label>
-            <Input
-              id="twilio-whatsapp-number"
-              placeholder="+14155238886"
-              value={twilioConfig.whatsappNumber}
-              onChange={(e) => setTwilioConfig({ ...twilioConfig, whatsappNumber: e.target.value })}
+              id="wa-phone-number-id"
+              placeholder="123456789012345"
+              value={phoneNumberId}
+              onChange={(e) => setPhoneNumberId(e.target.value)}
             />
             <p className="text-sm text-muted-foreground">
-              Número de WhatsApp Business proporcionado por Twilio para tu tienda
+              Identificador del número de teléfono habilitado en tu cuenta de WhatsApp Business
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="wa-business-account-id">Business Account ID</Label>
+            <Input
+              id="wa-business-account-id"
+              placeholder="123456789012345"
+              value={businessAccountId}
+              onChange={(e) => setBusinessAccountId(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">Identificador de tu cuenta de WhatsApp Business en Meta</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="wa-access-token">Access Token</Label>
+            <Input
+              id="wa-access-token"
+              type="password"
+              placeholder="EAAG..."
+              value={accessToken}
+              onChange={(e) => setAccessToken(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Token de acceso con permisos para enviar mensajes en nombre de tu aplicación
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="wa-welcome-template">Plantilla de bienvenida por defecto</Label>
+            <Input
+              id="wa-welcome-template"
+              placeholder="store_welcome"
+              value={welcomeTemplate}
+              onChange={(e) => setWelcomeTemplate(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="wa-order-template">Plantilla de confirmación de pedido</Label>
+            <Input
+              id="wa-order-template"
+              placeholder="order_confirmation"
+              value={orderTemplate}
+              onChange={(e) => setOrderTemplate(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -215,8 +252,13 @@ export function WhatsAppSettings({
           <div className="bg-muted p-4 rounded-lg">
             <p className="text-sm font-mono break-all">{storeUrl}</p>
           </div>
-          <Button onClick={() => navigator.clipboard.writeText(storeUrl)} variant="outline" className="mt-3 w-full">
-            <Copy className="h-4 w-4 mr-2" />
+          <Button
+            onClick={() => storeUrl && navigator.clipboard.writeText(storeUrl)}
+            variant="outline"
+            className="mt-3 w-full"
+            disabled={!storeUrl}
+          >
+          <Copy className="h-4 w-4 mr-2" />
             Copiar link
           </Button>
         </CardContent>

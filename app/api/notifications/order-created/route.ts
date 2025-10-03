@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
           name,
           whatsapp_number,
           whatsapp_notifications,
-          store_settings (
-            whatsapp_number,
-            whatsapp_enabled
-          )
+          store_settings (*)
         )
       `)
       .eq("id", orderId)
@@ -35,13 +32,77 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Order not found or notifications disabled" }, { status: 404 })
     }
 
-    const storeWhatsAppNumber = order.stores.store_settings?.whatsapp_number || order.stores.whatsapp_number
+    const storeSettings = order.stores.store_settings || {}
+    const waPhoneNumberId = storeSettings.wa_phone_number_id as string | undefined
+    const waAccessToken = storeSettings.wa_access_token as string | undefined
+    const waApiVersion = storeSettings.wa_api_version as string | undefined
+
+    const normalizeComponents = (value: unknown) => {
+      if (Array.isArray(value)) {
+        return value as Array<Record<string, unknown>>
+      }
+
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value)
+          return Array.isArray(parsed) ? (parsed as Array<Record<string, unknown>>) : undefined
+        } catch (error) {
+          console.warn("[v0] Unable to parse WhatsApp template components:", error)
+        }
+      }
+
+      return undefined
+    }
+
+    const resolveStrategy = (
+      strategyValue: unknown,
+      templateName?: unknown,
+      templateLanguage?: unknown,
+      templateComponents?: unknown,
+    ) => {
+      const strategy = typeof strategyValue === "string" ? strategyValue.toLowerCase() : undefined
+
+      if (strategy === "template") {
+        const name = typeof templateName === "string" ? templateName : undefined
+        const language = typeof templateLanguage === "string" ? templateLanguage : "es"
+        const components = normalizeComponents(templateComponents)
+
+        if (name) {
+          return {
+            type: "template" as const,
+            name,
+            languageCode: language,
+            components,
+          }
+        }
+      }
+
+      return { type: "text" as const }
+    }
+
+    const orderStrategy = resolveStrategy(
+      storeSettings.wa_order_strategy ?? storeSettings.wa_strategy ?? storeSettings.whatsapp_strategy,
+      storeSettings.wa_order_template_name ?? storeSettings.wa_template_name,
+      storeSettings.wa_order_template_language ?? storeSettings.wa_template_language,
+      storeSettings.wa_order_template_components ?? storeSettings.wa_template_components,
+    )
+
+    const customerStrategy = resolveStrategy(
+      storeSettings.wa_customer_strategy ?? storeSettings.wa_strategy ?? storeSettings.whatsapp_strategy,
+      storeSettings.wa_customer_template_name ?? storeSettings.wa_template_name,
+      storeSettings.wa_customer_template_language ?? storeSettings.wa_template_language,
+      storeSettings.wa_customer_template_components ?? storeSettings.wa_template_components,
+    )
+
+    const targetStorePhone = storeSettings.whatsapp_number || order.stores.whatsapp_number
+
+    const orderItems = Array.isArray(order.order_items) ? order.order_items : []
 
     const orderData = {
       orderId: order.id,
       customerName: order.customer_name,
       customerPhone: order.customer_phone,
-      items: order.order_items.map((item: any) => ({
+      items: orderItems.map((item: any) => ({
         name: item.products.name,
         quantity: item.quantity,
         price: item.price,
@@ -49,24 +110,39 @@ export async function POST(request: NextRequest) {
       total: order.total,
       deliveryType: order.delivery_type,
       deliveryAddress: order.delivery_address,
-      storePhone: order.stores.whatsapp_number,
+      storePhone: targetStorePhone,
       storeName: order.stores.name,
     }
 
-    const storeNotification = await whatsappService.sendOrderNotification(orderData, storeWhatsAppNumber)
+    const credentials =
+      waPhoneNumberId && waAccessToken ? { waPhoneNumberId, waAccessToken, apiVersion: waApiVersion } : undefined
+
+    if (!credentials) {
+      console.warn(
+        `[v0] Missing WhatsApp Cloud API credentials for store ${storeSlug ?? order.stores?.name ?? order.stores?.id}, using fallback links`,
+      )
+    }
+
+    const storeNotification = await whatsappService.sendOrderNotification(orderData, {
+      credentials,
+      strategy: orderStrategy,
+    })
     const customerConfirmation = await whatsappService.sendCustomerConfirmation(
       orderData.customerPhone,
       orderId,
       orderData.storeName,
       "30-45 minutos",
-      storeWhatsAppNumber,
+      {
+        credentials,
+        strategy: customerStrategy,
+      },
     )
 
     return NextResponse.json({
       success: true,
       notifications: {
-        storeNotification: storeNotification.success ? "sent" : storeNotification.link,
-        customerConfirmation: customerConfirmation.success ? "sent" : customerConfirmation.link,
+        storeNotification,
+        customerConfirmation,
       },
     })
   } catch (error) {

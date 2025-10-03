@@ -110,6 +110,12 @@ export interface StoreSettings {
   id: string
   store_id: string
   whatsapp_number?: string
+  whatsapp_notifications_enabled?: boolean
+  whatsapp_message?: string
+  wa_phone_number_id?: string
+  wa_business_account_id?: string
+  wa_access_token?: string
+  wa_metadata?: Record<string, any>
   mercadopago_access_token?: string
   mercadopago_public_key?: string
   business_hours?: Record<string, any>

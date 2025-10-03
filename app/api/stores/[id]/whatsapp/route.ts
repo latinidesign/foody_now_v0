@@ -17,9 +17,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       whatsapp_number,
       whatsapp_notifications,
       whatsapp_message,
-      twilio_account_sid,
-      twilio_auth_token,
-      twilio_whatsapp_number,
+      wa_phone_number_id,
+      wa_business_account_id,
+      wa_access_token,
+      wa_metadata,
     } = body
 
     // Verificar que la tienda pertenece al usuario
@@ -42,9 +43,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           whatsapp_number,
           whatsapp_notifications_enabled: whatsapp_notifications,
           whatsapp_message,
-          twilio_account_sid,
-          twilio_auth_token,
-          twilio_whatsapp_number,
+          wa_phone_number_id,
+          wa_business_account_id,
+          wa_access_token,
+          ...(wa_metadata !== undefined ? { wa_metadata } : {}),
           updated_at: new Date().toISOString(),
         },
         {

@@ -12,11 +12,18 @@ export default async function WhatsAppSettingsPage() {
     redirect("/auth/login")
   }
 
-  const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
+  const { data: store } = await supabase
+    .from("stores")
+    .select("*, store_settings(*)")
+    .eq("owner_id", user.id)
+    .single()
 
   if (!store) {
     redirect("/admin/setup")
   }
+  const storeSettings = Array.isArray(store.store_settings)
+    ? store.store_settings[0]
+    : store.store_settings || undefined
 
   return (
     <div className="space-y-6">
@@ -31,8 +38,14 @@ export default async function WhatsAppSettingsPage() {
         storeId={store.id}
         storeSlug={store.slug}
         storeName={store.name}
-        currentPhone={store.whatsapp_number}
-        autoNotifications={store.whatsapp_notifications}
+        currentPhone={storeSettings?.whatsapp_number || store.whatsapp_number || undefined}
+        autoNotifications={storeSettings?.whatsapp_notifications_enabled ?? undefined}
+        initialMessage={storeSettings?.whatsapp_message ?? undefined}
+        waPhoneNumberId={storeSettings?.wa_phone_number_id ?? undefined}
+        waBusinessAccountId={storeSettings?.wa_business_account_id ?? undefined}
+        waAccessToken={storeSettings?.wa_access_token ?? undefined}
+        waDefaultWelcomeTemplate={storeSettings?.wa_default_welcome_template ?? undefined}
+        waDefaultOrderTemplate={storeSettings?.wa_default_order_template ?? undefined}
       />
     </div>
   )
