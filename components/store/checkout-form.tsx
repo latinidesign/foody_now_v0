@@ -16,7 +16,6 @@ import type { Store } from "@/lib/types/database"
 
 interface CheckoutFormProps {
   store: Store
-  onOrderComplete: (orderId: string) => void
 }
 
 interface OrderData {
@@ -28,7 +27,7 @@ interface OrderData {
   deliveryNotes: string
 }
 
-export function CheckoutForm({ store, onOrderComplete }: CheckoutFormProps) {
+export function CheckoutForm({ store }: CheckoutFormProps) {
   const { state, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -61,8 +60,8 @@ export function CheckoutForm({ store, onOrderComplete }: CheckoutFormProps) {
     }
 
     try {
-      // Create order in database
-      const response = await fetch("/api/orders", {
+      const paymentResponse = await fetch("/api/payments/create-preference", {
+
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,51 +76,19 @@ export function CheckoutForm({ store, onOrderComplete }: CheckoutFormProps) {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error("Error al crear el pedido")
-      }
-
-      const { orderId } = await response.json()
-
-      try {
-        await fetch("/api/notifications/order-created", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            orderId,
-            storeSlug: store.slug,
-          }),
-        })
-      } catch (notificationError) {
-        console.error("Error sending notifications:", notificationError)
-        // Don't fail the order if notifications fail
-      }
-
-      const paymentResponse = await fetch("/api/payments/create-preference", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId,
-          storeId: store.id,
-          items: state.items,
-          total,
-          customer: {
-            name: orderData.customerName,
-            email: orderData.customerEmail,
-            phone: orderData.customerPhone,
-          },
-        }),
-      })
-
       if (!paymentResponse.ok) {
         throw new Error("Error al crear el pago")
       }
 
-      const { preferenceId, initPoint } = await paymentResponse.json()
+      const { initPoint, sessionId } = await paymentResponse.json()
+
+      try {
+        window.localStorage.setItem("foody_now.checkout_session", sessionId)
+      } catch (storageError) {
+        console.warn("No se pudo guardar la sesión de pago localmente", storageError)
+      }
+
+      clearCart()
 
       // Redirect to MercadoPago checkout
       window.location.href = initPoint

@@ -111,6 +111,28 @@ CREATE TABLE IF NOT EXISTS order_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Checkout sessions to coordinate MercadoPago flow
+CREATE TABLE IF NOT EXISTS checkout_sessions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    external_reference UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE NOT NULL,
+    items JSONB,
+    order_data JSONB,
+    subtotal DECIMAL(10,2),
+    delivery_fee DECIMAL(10,2),
+    total DECIMAL(10,2),
+    preference_id TEXT,
+    preference_payload JSONB,
+    init_point TEXT,
+    status TEXT DEFAULT 'pending',
+    payment_status payment_status DEFAULT 'pending',
+    payment_id TEXT,
+    order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+    processed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Store settings
 CREATE TABLE IF NOT EXISTS store_settings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -134,6 +156,7 @@ ALTER TABLE product_options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_option_values ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE checkout_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for stores
@@ -176,9 +199,18 @@ CREATE POLICY "Anyone can view available products of active stores" ON products
     FOR SELECT USING (
         is_available = true AND
         EXISTS (
-            SELECT 1 FROM stores 
-            WHERE stores.id = products.store_id 
+            SELECT 1 FROM stores
+            WHERE stores.id = products.store_id
             AND stores.is_active = true
+        )
+    );
+
+CREATE POLICY "Store owners can manage their checkout sessions" ON checkout_sessions
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM stores
+            WHERE stores.id = checkout_sessions.store_id
+            AND stores.owner_id = auth.uid()
         )
     );
 
@@ -194,5 +226,8 @@ CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_orders_store ON orders(store_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE INDEX idx_checkout_sessions_store ON checkout_sessions(store_id);
+CREATE INDEX idx_checkout_sessions_external_reference ON checkout_sessions(external_reference);
+CREATE INDEX idx_checkout_sessions_preference ON checkout_sessions(preference_id);
 
 -- Ejecutando script para crear todas las tablas necesarias

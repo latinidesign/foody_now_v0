@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { CheckoutForm } from "@/components/store/checkout-form"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -28,10 +28,6 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
     notFound()
   }
 
-  const handleOrderComplete = (orderId: string) => {
-    redirect(combineStorePath(storeBasePath, `/order/${orderId}`))
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b">
@@ -52,7 +48,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <CheckoutForm store={store} onOrderComplete={handleOrderComplete} />
+        <CheckoutForm store={store} />
       </main>
     </div>
   )
