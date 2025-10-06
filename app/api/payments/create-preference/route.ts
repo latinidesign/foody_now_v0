@@ -5,16 +5,66 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const { storeId, items, orderData, subtotal, deliveryFee, total } = await request.json()
+    let body: any
+
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error("Failed to parse request body:", parseError)
+      return NextResponse.json(
+        { error: "Payload inválido", details: "No se pudo leer el body de la solicitud" },
+        { status: 400 },
+      )
+    }
+
+    const { storeId, items, orderData, subtotal, deliveryFee, total } = body
+
+    if (!storeId) {
+      return NextResponse.json(
+        { error: "storeId faltante", details: "Debes enviar el identificador del local" },
+        { status: 400 },
+      )
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        {
+          error: "Items inválidos",
+          details: "Debes enviar un arreglo con los productos del pedido",
+        },
+        { status: 400 },
+      )
+    }
+
+    if (!orderData?.customerEmail || !orderData?.customerName) {
+      return NextResponse.json(
+        {
+          error: "Datos del cliente incompletos",
+          details: "Nombre y email del cliente son obligatorios",
+        },
+        { status: 400 },
+      )
+    }
 
     const supabase = createAdminClient()
 
     // Get store settings for MercadoPago credentials
-    const { data: storeSettings } = await supabase
+    const { data: storeSettings, error: storeSettingsError } = await supabase
       .from("store_settings")
       .select("mercadopago_access_token")
       .eq("store_id", storeId)
       .single()
+
+    if (storeSettingsError) {
+      console.error("Failed to fetch store settings:", storeSettingsError)
+      return NextResponse.json(
+        {
+          error: "Configuración de tienda inválida",
+          details: storeSettingsError.message,
+        },
+        { status: 400 },
+      )
+    }
 
     if (!storeSettings?.mercadopago_access_token) {
       return NextResponse.json({ error: "MercadoPago no configurado" }, { status: 400 })
@@ -39,7 +89,13 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !checkoutSession) {
       console.error("Failed to create checkout session:", sessionError)
-      return NextResponse.json({ error: "No se pudo iniciar el pago" }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: "No se pudo iniciar el pago",
+          details: sessionError?.message ?? "Error desconocido al crear la sesión",
+        },
+        { status: 500 },
+      )
     }
 
     if (!process.env.NEXT_PUBLIC_APP_URL) {
@@ -83,9 +139,17 @@ export async function POST(request: NextRequest) {
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
+      let errorData: unknown
+
+      try {
+        errorData = await response.json()
+      } catch (responseParseError) {
+        console.error("Failed to parse MercadoPago error response:", responseParseError)
+      }
+
       console.error("MercadoPago error:", errorData)
-            await supabase
+
+      await supabase
         .from("checkout_sessions")
         .update({
           status: "failed",
@@ -94,7 +158,13 @@ export async function POST(request: NextRequest) {
         })
         .eq("id", checkoutSession.id)
 
-      return NextResponse.json({ error: "Error al crear preferencia de pago" }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: "Error al crear preferencia de pago",
+          details: errorData,
+        },
+        { status: 502 },
+      )
     }
 
     const preference = await response.json()
@@ -120,6 +190,12 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Payment preference error:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Error interno del servidor",
+        details: error instanceof Error ? error.message : "Error desconocido",
+      },
+      { status: 500 },
+    )
   }
 }
