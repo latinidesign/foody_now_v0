@@ -128,7 +128,10 @@ export async function POST(request: NextRequest) {
       .eq("id", session.order_id)
 
     if (orderUpdateError) {
-      console.error(`[payments:webhook][cid:${cid}] Error al actualizar el estado del pago en la orden`, orderUpdateError)
+      console.error(
+        `[payments:webhook][cid:${cid}] Error al actualizar el estado del pago en la orden`,
+        orderUpdateError,
+      )
     }
   }
 
@@ -200,7 +203,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-     await updateSession({
+    await updateSession({
       status: payment.status,
       payment_status: mappedPaymentStatus,
       order_id: order.id,
@@ -226,24 +229,11 @@ export async function POST(request: NextRequest) {
         })
       } catch (notificationError) {
         console.error(`[payments:webhook][cid:${cid}] Error enviando notificación de nueva orden`, notificationError)
-
       }
     }
 
-    if (payment.status === "rejected" || payment.status === "cancelled") {
-      await updateSession({
-        status: payment.status,
-        payment_status: mappedPaymentStatus,
-        processed_at: new Date().toISOString(),
-        items: null,
-        order_data: null,
-        subtotal: null,
-        delivery_fee: null,
-        total: null,
-      })
-
-      return NextResponse.json({ received: true })
-    }
+    return NextResponse.json({ received: true })
+  }
 
   if (payment.status === "rejected" || payment.status === "cancelled") {
     await updateSession({
