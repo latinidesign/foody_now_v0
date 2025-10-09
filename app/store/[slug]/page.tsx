@@ -111,7 +111,7 @@ export default async function StorePage({ params }: StorePageProps) {
     .from("store_settings")
     .select("business_hours, is_open")
     .eq("store_id", store.id)
-    .single()
+    .maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
 
   const storeWithSettings = {
     ...store,
@@ -160,7 +160,7 @@ export async function generateMetadata({ params }: StorePageProps) {
     }
   }
 
-  const { data: store } = await supabase.from("stores").select("name, description").eq("slug", slug).single()
+  const { data: store } = await supabase.from("stores").select("name, description").eq("slug", slug).maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
 
   return {
     title: store?.name || `Tienda ${slug}`,

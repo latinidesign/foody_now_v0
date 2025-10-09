@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { Copy, Check, Settings, Phone } from "lucide-react"
+import { Copy, Check, Settings, Phone, Send, ExternalLink } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
 import { toast } from "sonner"
 
@@ -48,7 +48,9 @@ export function WhatsAppSettings({
   const [accessToken, setAccessToken] = useState(waAccessToken || "")
   const [welcomeTemplate, setWelcomeTemplate] = useState(waDefaultWelcomeTemplate || "")
   const [orderTemplate, setOrderTemplate] = useState(waDefaultOrderTemplate || "")
-
+  const [testing, setTesting] = useState(false)
+  const [testLink, setTestLink] = useState<string | null>(null)
+  const [testError, setTestError] = useState<string | null>(null)
   const storeUrl = typeof window !== "undefined" ? `${window.location.origin}/store/${storeSlug}` : ""
   const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
   const responseMessage = customMessage || defaultMessage
@@ -93,6 +95,68 @@ export function WhatsAppSettings({
       toast.error("Error al guardar la configuración")
     } finally {
       setSaving(false)
+    }
+  }
+
+ const handleSendTestMessage = async () => {
+    setTesting(true)
+    setTestLink(null)
+    setTestError(null)
+
+    try {
+      const payload: Record<string, unknown> = {}
+      if (phone) {
+        payload.to = phone
+      }
+
+      const response = await fetch(`/api/stores/${storeId}/whatsapp/test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const errorMessage = data?.error || "No se pudo enviar el mensaje de prueba"
+        setTestError(errorMessage)
+        setTestLink(data?.fallbackLink ?? null)
+        toast.error(errorMessage)
+        return
+      }
+
+      if (data.success) {
+        toast.success("Mensaje de prueba enviado correctamente")
+        setTestLink(null)
+        setTestError(null)
+      } else {
+        const errorMessage = data?.error || "No se pudo enviar el mensaje de prueba"
+        setTestError(errorMessage)
+        setTestLink(data?.fallbackLink ?? null)
+        toast.warning(errorMessage)
+        if (data?.fallbackLink) {
+          toast.info("Generamos un enlace alternativo para que pruebes la integración manualmente")
+        }
+      }
+    } catch (error) {
+      console.error("Error sending WhatsApp test message:", error)
+      setTestError("Ocurrió un error inesperado al enviar el mensaje de prueba")
+      toast.error("Ocurrió un error inesperado al enviar el mensaje de prueba")
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  const handleCopyTestLink = async () => {
+    if (!testLink) return
+    try {
+      await navigator.clipboard.writeText(testLink)
+      toast.success("Link de prueba copiado al portapapeles")
+    } catch (error) {
+      console.error("Error copying test link:", error)
+      toast.error("No se pudo copiar el link")
     }
   }
 
@@ -202,6 +266,42 @@ export function WhatsAppSettings({
           <Button onClick={handleSave} className="w-full" disabled={saving}>
             {saving ? "Guardando..." : "Guardar configuración"}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5 text-emerald-500" />
+            Probar integración de WhatsApp
+          </CardTitle>
+          <CardDescription>
+            Envía un mensaje de prueba para verificar que la configuración de WhatsApp Cloud API funciona correctamente
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button onClick={handleSendTestMessage} className="w-full" variant="secondary" disabled={testing}>
+            {testing ? "Enviando prueba..." : "Enviar mensaje de prueba"}
+          </Button>
+          {testError && <p className="text-sm text-destructive">{testError}</p>}
+          {testLink && (
+            <div className="rounded-lg border border-dashed border-muted-foreground/50 p-4 space-y-3">
+              <p className="text-sm">
+                No pudimos enviar el mensaje automáticamente. Usa este enlace para abrir WhatsApp y probar manualmente.
+              </p>
+              <a
+                href={testLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium transition hover:bg-muted"
+              >
+                <ExternalLink className="h-4 w-4" /> Abrir WhatsApp
+              </a>
+              <Button onClick={handleCopyTestLink} variant="outline" className="w-full">
+                <Copy className="h-4 w-4 mr-2" /> Copiar enlace
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

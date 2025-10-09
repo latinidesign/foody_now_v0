@@ -20,7 +20,7 @@ interface OrderNotification {
   storeName: string
 }
 
-type WhatsAppMessageStrategy =
+export type WhatsAppMessageStrategy =
   | { type: "text" }
   | {
       type: "template"
@@ -255,6 +255,29 @@ ${deliveryInfo}
     }
 
     const link = this.getCustomerConfirmationLink(customerPhone, orderId, storeName, estimatedTime)
+    return { success: false, link, error: sendResult.error }
+  }
+
+  async sendTextMessage(
+    to: string,
+    message: string,
+    options?: SendMessageOptions,
+  ): Promise<{ success: boolean; link?: string; error?: string }> {
+    const payload = this.buildMessagePayload(message, options)
+
+    const sendResult = options?.credentials
+      ? await this.sendCloudApiMessage({
+          to,
+          credentials: options.credentials,
+          payload,
+        })
+      : { success: false, error: "missing_credentials" as const }
+
+    if (sendResult.success) {
+      return { success: true }
+    }
+
+    const link = `${this.baseUrl}?phone=${to}&text=${encodeURIComponent(message)}`
     return { success: false, link, error: sendResult.error }
   }
 }
