@@ -15,7 +15,7 @@ interface ProductOptionsProps {
   onOptionsChange: (options: Record<string, any>) => void
 }
 
-const getOptionValues = (option) => option.values ?? option.product_option_values ?? []
+const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
 export function ProductOptions({ options, selectedOptions, onOptionsChange }: ProductOptionsProps) {
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 

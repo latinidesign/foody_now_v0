@@ -106,6 +106,22 @@ export interface OrderItem {
   product?: Product
 }
 
+export interface Payment {
+  id: string
+  order_id: string
+  store_id: string
+  preference_id?: string | null
+  mp_payment_id?: string | null
+  status?: string | null
+  transaction_amount?: number | null
+  currency?: string | null
+  payer_email?: string | null
+  collector_id?: string | null
+  raw?: Record<string, any> | null
+  created_at: string
+  updated_at: string
+}
+
 export interface StoreSettings {
   id: string
   store_id: string

@@ -1,14 +1,14 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { notFound, redirect } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, Clock, ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Clock, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { notFound, redirect } from "next/navigation"
 import { combineStorePath } from "@/lib/store/path"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface PaymentPendingPageProps {
-  searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ order_id?: string }>
 }
 
 const formatCurrency = (value: unknown) => {
@@ -21,37 +21,37 @@ const formatCurrency = (value: unknown) => {
 }
 
 export default async function PaymentPendingPage({ searchParams }: PaymentPendingPageProps) {
-  const { session_id } = await searchParams
+  const { order_id } = await searchParams
 
-  if (!session_id) {
+  if (!order_id) {
     notFound()
   }
 
   const supabase = createAdminClient()
 
-  const { data: session, error: sessionError } = await supabase
-    .from("checkout_sessions")
+  const { data: order, error } = await supabase
+    .from("orders")
     .select(
       `*,
       stores (name, slug)
     `,
     )
-    .eq("id", session_id)
+    .eq("id", order_id)
     .single()
 
-  if (sessionError || !session || !session.stores) {
+  if (error || !order || !order.stores?.slug) {
     notFound()
   }
 
-  if (session.status === "approved" && session.order_id) {
-    redirect(`/store/payment/success?session_id=${session.id}`)
+  if (order.payment_status === "completed") {
+    redirect(`/store/payment/success?order_id=${order.id}`)
   }
 
-  if (session.status === "rejected" || session.status === "cancelled") {
-    redirect(`/store/payment/failure?session_id=${session.id}`)
+  if (order.payment_status === "failed" || order.payment_status === "refunded") {
+    redirect(`/store/payment/failure?order_id=${order.id}`)
   }
 
-  const storeBasePath = getStoreBasePathFromHeaders(session.stores.slug)
+  const storeBasePath = getStoreBasePathFromHeaders(order.stores.slug)
   const storeHomeHref = combineStorePath(storeBasePath)
 
   return (
@@ -72,13 +72,13 @@ export default async function PaymentPendingPage({ searchParams }: PaymentPendin
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Identificador de sesión</p>
-                  <p className="text-sm text-muted-foreground">{session.id}</p>
+                  <p className="text-sm font-medium">Identificador del pedido</p>
+                  <p className="text-sm text-muted-foreground">{order.id}</p>
                 </div>
               </div>
               <div>
                 <p className="text-sm font-medium">Importe</p>
-                <p className="text-lg font-semibold text-primary">{formatCurrency(session.total)}</p>
+                <p className="text-lg font-semibold text-primary">{formatCurrency(order.total)}</p>
               </div>
             </div>
           </div>

@@ -62,6 +62,10 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Opcional para revalidación
 REVALIDATE_SECRET=your-secret-key
+
+# WhatsApp Cloud API
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=choose-a-secure-token
+WHATSAPP_APP_SECRET=meta-app-secret
 \`\`\`
 
 - `SUPABASE_SERVICE_ROLE_KEY` debe copiarse desde **Supabase → Project Settings → API → service_role**.

@@ -1,14 +1,14 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { notFound, redirect } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { XCircle, ArrowLeft, RefreshCw } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, RefreshCw, XCircle } from "lucide-react"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
+import { notFound, redirect } from "next/navigation"
 
 interface PaymentFailurePageProps {
-  searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ order_id?: string }>
 }
 
 const formatCurrency = (value: unknown) => {
@@ -18,35 +18,36 @@ const formatCurrency = (value: unknown) => {
     currency: "ARS",
     minimumFractionDigits: 2,
   })
-  }
+}
 
 export default async function PaymentFailurePage({ searchParams }: PaymentFailurePageProps) {
-  const { session_id } = await searchParams
+  const { order_id } = await searchParams
 
-  if (!session_id) {
+  if (!order_id) {
     notFound()
   }
 
   const supabase = createAdminClient()
 
-  const { data: session, error: sessionError } = await supabase
-    .from("checkout_sessions")
+  const { data: order, error } = await supabase
+    .from("orders")
     .select(
       `*,
       stores (name, slug)
     `,
     )
-    .eq("id", session_id)
+    .eq("id", order_id)
     .single()
 
-  if (sessionError || !session || !session.stores) {
+  if (error || !order || !order.stores?.slug) {
     notFound()
   }
-  if (session.status === "approved" && session.order_id) {
-    redirect(`/store/payment/success?session_id=${session.id}`)
+
+  if (order.payment_status === "completed") {
+    redirect(`/store/payment/success?order_id=${order.id}`)
   }
 
-  const storeBasePath = getStoreBasePathFromHeaders(session.stores.slug)
+  const storeBasePath = getStoreBasePathFromHeaders(order.stores.slug)
   const storeHomeHref = combineStorePath(storeBasePath)
   const checkoutHref = combineStorePath(storeBasePath, "/checkout")
 
@@ -62,8 +63,8 @@ export default async function PaymentFailurePage({ searchParams }: PaymentFailur
         <CardContent className="text-center space-y-4">
           <div>
             <p className="text-muted-foreground mb-2">Hubo un problema con el pago</p>
-            <p className="font-semibold">Sesión #{session.id.slice(-8)}</p>
-            <p className="text-2xl font-bold text-muted-foreground">{formatCurrency(session.total)}</p>
+            <p className="font-semibold">Pedido #{order.id.slice(-8)}</p>
+            <p className="text-2xl font-bold text-muted-foreground">{formatCurrency(order.total)}</p>
           </div>
 
           <div className="bg-muted/50 rounded-lg p-4">

@@ -35,7 +35,10 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const storeBasePath = deriveStoreBasePathFromPathname(pathname, store.slug)
   const storeHomeHref = combineStorePath(storeBasePath)
 
-  const cartQuantity = getItemQuantity(product.id)
+  // Create a stable id for the cart item that includes selected options so
+  // variants with different options are stored as separate items in the cart.
+  const variantId = `${product.id}:${encodeURIComponent(JSON.stringify(selectedOptions || {}))}`
+  const cartQuantity = getItemQuantity(variantId)
   const basePrice = product.sale_price || product.price
 
   const calculateAdditionalPrice = () => {
@@ -79,8 +82,12 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
 
   const handleAddToCart = async () => {
     setIsAdding(true)
+    // Use the variant id when adding the item so different option selections
+    // create separate entries in the cart.
     await addItem({
-      id: product.id,
+      id: variantId,
+      // keep original product id for reference
+      product_id: product.id,
       name: product.name,
       price: finalPrice,
       image_url: product.image_url,
@@ -91,10 +98,12 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   }
 
   const handleUpdateCartQuantity = (newQuantity: number) => {
+    // When updating quantity from the product detail page we must update the
+    // variant entry in the cart (if present) using variantId.
     if (newQuantity === 0) {
-      updateQuantity(product.id, 0)
+      updateQuantity(variantId, 0)
     } else {
-      updateQuantity(product.id, newQuantity)
+      updateQuantity(variantId, newQuantity)
     }
   }
 

@@ -60,12 +60,10 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
     }
 
     try {
-      const paymentResponse = await fetch("/api/payments/create-preference", {
-
+      // Crear la orden primero
+      const orderResponse = await fetch("/api/orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storeId: store.id,
           items: state.items,
@@ -76,22 +74,28 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
         }),
       })
 
-      if (!paymentResponse.ok) {
-        throw new Error("Error al crear el pago")
+      const orderPayload = await orderResponse.json()
+
+      if (!orderResponse.ok || !orderPayload?.order_id) {
+        throw new Error(orderPayload?.error ?? "No se pudo crear la orden")
       }
 
-      const { initPoint, sessionId } = await paymentResponse.json()
+      // Crear la preferencia de pago usando el order_id
+      const paymentResponse = await fetch("/api/payments/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderPayload.order_id }),
+      })
 
-      try {
-        window.localStorage.setItem("foody_now.checkout_session", sessionId)
-      } catch (storageError) {
-        console.warn("No se pudo guardar la sesión de pago localmente", storageError)
+      const paymentPayload = await paymentResponse.json()
+
+      if (!paymentResponse.ok || !paymentPayload?.init_point) {
+        throw new Error(paymentPayload?.error ?? "Error al crear el pago")
       }
 
+      // Limpiar carrito y redirigir al init_point
       clearCart()
-
-      // Redirect to MercadoPago checkout
-      window.location.href = initPoint
+      window.location.href = paymentPayload.init_point
     } catch (err) {
       setError("Error al procesar el pedido. Intenta nuevamente.")
     } finally {

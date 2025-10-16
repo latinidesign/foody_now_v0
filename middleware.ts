@@ -15,6 +15,7 @@ export async function middleware(request: NextRequest) {
     "foodynowapp.vercel.app",
     "v0-ecommerce-pwa.vercel.app",
     "localhost:3000",
+    "localhost:3001",
   ]
 
   // Rutas que nunca deben ser reescritas
@@ -28,8 +29,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Verificar si es un subdominio de tienda
   const isMainDomain = mainDomains.some((domain) => hostname === domain)
+  const isLocalhost = hostname.includes("localhost") || hostname.startsWith("127.0.0.1")
 
   if (!isMainDomain) {
     let storeSlug = ""
@@ -100,7 +101,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (url.pathname.startsWith("/store/") && isMainDomain) {
+  if (url.pathname.startsWith("/store/") && isMainDomain && !isLocalhost) {
     const pathParts = url.pathname.split("/")
     if (pathParts.length >= 3) {
       const storeSlug = pathParts[2]

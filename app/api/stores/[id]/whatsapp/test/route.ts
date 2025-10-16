@@ -58,7 +58,7 @@ const sanitizePhoneNumber = (value: string | undefined): string | undefined => {
   return cleaned.length > 0 ? cleaned : undefined
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: { id: string } }) {
   try {
     const supabase = await createClient()
     const {
@@ -68,6 +68,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (!user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
+
+    // Esperar params si es promesa
+    const resolvedParams = await (context.params as Promise<{ id: string }> | { id: string })
+    const storeId = resolvedParams.id
+    console.log("POST /stores/[id]/whatsapp/test", { storeId, userId: user.id })
 
     const body = await request
       .json()
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { data: store } = await supabase
       .from("stores")
       .select("id, name, whatsapp_number, store_settings (*)")
-      .eq("id", params.id)
+      .eq("id", storeId)
       .eq("owner_id", user.id)
       .single()
 

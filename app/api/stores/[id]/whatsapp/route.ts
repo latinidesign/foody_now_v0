@@ -12,6 +12,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
+    // Log para depuración de parámetros
+    console.log("PUT /stores/[id]/whatsapp", { paramsId: params.id, userId: user.id })
+
     const body = await request.json()
     const {
       whatsapp_number,

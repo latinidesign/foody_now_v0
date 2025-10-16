@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { Copy, Check, Settings, Phone, Send, ExternalLink } from "lucide-react"
+import { Copy, Check, Phone, Send, ExternalLink } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
 import { toast } from "sonner"
 
@@ -18,11 +18,6 @@ interface WhatsAppSettingsProps {
   currentPhone?: string
   autoNotifications?: boolean
   initialMessage?: string
-  waPhoneNumberId?: string
-  waBusinessAccountId?: string
-  waAccessToken?: string
-  waDefaultWelcomeTemplate?: string
-  waDefaultOrderTemplate?: string
 }
 
 export function WhatsAppSettings({
@@ -32,22 +27,12 @@ export function WhatsAppSettings({
   currentPhone,
   autoNotifications: initialAutoNotifications,
   initialMessage,
-  waPhoneNumberId,
-  waBusinessAccountId,
-  waAccessToken,
-  waDefaultWelcomeTemplate,
-  waDefaultOrderTemplate,
 }: WhatsAppSettingsProps) {
   const [phone, setPhone] = useState(currentPhone || "")
   const [autoNotifications, setAutoNotifications] = useState(initialAutoNotifications ?? true)
   const [customMessage, setCustomMessage] = useState(initialMessage || "")
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [phoneNumberId, setPhoneNumberId] = useState(waPhoneNumberId || "")
-  const [businessAccountId, setBusinessAccountId] = useState(waBusinessAccountId || "")
-  const [accessToken, setAccessToken] = useState(waAccessToken || "")
-  const [welcomeTemplate, setWelcomeTemplate] = useState(waDefaultWelcomeTemplate || "")
-  const [orderTemplate, setOrderTemplate] = useState(waDefaultOrderTemplate || "")
   const [testing, setTesting] = useState(false)
   const [testLink, setTestLink] = useState<string | null>(null)
   const [testError, setTestError] = useState<string | null>(null)
@@ -77,11 +62,6 @@ export function WhatsAppSettings({
           whatsapp_number: phone,
           whatsapp_notifications: autoNotifications,
           whatsapp_message: customMessage,
-          wa_phone_number_id: phoneNumberId,
-          wa_business_account_id: businessAccountId,
-          wa_access_token: accessToken,
-          wa_default_welcome_template: welcomeTemplate,
-          wa_default_order_template: orderTemplate,
         }),
       })
 
@@ -165,77 +145,6 @@ export function WhatsAppSettings({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-blue-500" />
-            Configuración de WhatsApp Cloud API
-          </CardTitle>
-          <CardDescription>
-            Ingresa los datos de tu aplicación de Meta para enviar mensajes automáticos desde la Cloud API
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="wa-phone-number-id">Phone Number ID</Label>
-            <Input
-              id="wa-phone-number-id"
-              placeholder="123456789012345"
-              value={phoneNumberId}
-              onChange={(e) => setPhoneNumberId(e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Identificador del número de teléfono habilitado en tu cuenta de WhatsApp Business
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="wa-business-account-id">Business Account ID</Label>
-            <Input
-              id="wa-business-account-id"
-              placeholder="123456789012345"
-              value={businessAccountId}
-              onChange={(e) => setBusinessAccountId(e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">Identificador de tu cuenta de WhatsApp Business en Meta</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="wa-access-token">Access Token</Label>
-            <Input
-              id="wa-access-token"
-              type="password"
-              placeholder="EAAG..."
-              value={accessToken}
-              onChange={(e) => setAccessToken(e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Token de acceso con permisos para enviar mensajes en nombre de tu aplicación
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="wa-welcome-template">Plantilla de bienvenida por defecto</Label>
-            <Input
-              id="wa-welcome-template"
-              placeholder="store_welcome"
-              value={welcomeTemplate}
-              onChange={(e) => setWelcomeTemplate(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="wa-order-template">Plantilla de confirmación de pedido</Label>
-            <Input
-              id="wa-order-template"
-              placeholder="order_confirmation"
-              value={orderTemplate}
-              onChange={(e) => setOrderTemplate(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
             <Phone className="h-5 w-5 text-green-500" />
             Número de Contacto de la Tienda
           </CardTitle>
@@ -275,9 +184,7 @@ export function WhatsAppSettings({
             <Send className="h-5 w-5 text-emerald-500" />
             Probar integración de WhatsApp
           </CardTitle>
-          <CardDescription>
-            Envía un mensaje de prueba para verificar que la configuración de WhatsApp Cloud API funciona correctamente
-          </CardDescription>
+          <CardDescription>Envía un mensaje de prueba para confirmar que la integración responde correctamente</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button onClick={handleSendTestMessage} className="w-full" variant="secondary" disabled={testing}>

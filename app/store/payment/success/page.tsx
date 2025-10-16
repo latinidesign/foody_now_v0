@@ -1,14 +1,14 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { notFound, redirect } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, ArrowRight, Loader2 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowRight, CheckCircle } from "lucide-react"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface PaymentSuccessPageProps {
-  searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ order_id?: string }>
 }
 
 const formatCurrency = (value: unknown) => {
@@ -21,113 +21,38 @@ const formatCurrency = (value: unknown) => {
 }
 
 export default async function PaymentSuccessPage({ searchParams }: PaymentSuccessPageProps) {
-  const { session_id } = await searchParams
+  const { order_id } = await searchParams
 
-  if (!session_id) {
+  if (!order_id) {
     notFound()
   }
 
   const supabase = createAdminClient()
 
-  const { data: session, error: sessionError } = await supabase
-    .from("checkout_sessions")
+  const { data: order, error } = await supabase
+    .from("orders")
     .select(
       `*,
       stores (name, slug)
     `,
     )
-    .eq("id", session_id)
+    .eq("id", order_id)
     .single()
 
-  if (sessionError || !session || !session.stores) {
+  if (error || !order || !order.stores?.slug) {
     notFound()
   }
 
-  if (session.status === "rejected" || session.status === "cancelled") {
-    redirect(`/store/payment/failure?session_id=${session.id}`)
+  if (order.payment_status === "failed" || order.payment_status === "refunded") {
+    redirect(`/store/payment/failure?order_id=${order.id}`)
   }
 
-  const storeBasePath = getStoreBasePathFromHeaders(session.stores.slug)
+  if (order.payment_status === "pending") {
+    redirect(`/store/payment/pending?order_id=${order.id}`)
+  }
+
+  const storeBasePath = getStoreBasePathFromHeaders(order.stores.slug)
   const storeHomeHref = combineStorePath(storeBasePath)
-
-  const orderId = session.order_id
-  let order: any = null
-  let orderError: any = null
-
-  if (orderId) {
-    const result = await supabase
-      .from("orders")
-      .select(
-        `*,
-        stores (name, slug)
-      `,
-      )
-      .eq("id", orderId)
-      .single()
-
-    order = result.data
-    orderError = result.error
-  }
-
-  if (orderError) {
-    console.error("No se pudo recuperar la orden creada para la sesión", orderError)
-  }
-
-  if (orderId && !order) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <Loader2 className="w-8 h-8 animate-spin" />
-            </div>
-            <CardTitle className="text-2xl">Procesando tu pago</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Estamos confirmando tu pedido. Recargar esta página en unos instantes debería mostrar el estado final.
-            </p>
-            <Link href={storeHomeHref}>
-              <Button variant="outline" className="w-full bg-transparent">
-                Volver a la Tienda
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <Loader2 className="w-8 h-8 animate-spin" />
-            </div>
-            <CardTitle className="text-2xl">Estamos procesando tu pago</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Tu pago fue recibido por MercadoPago y estamos esperando la confirmación final. Mantén esta página abierta o vuelve
-              más tarde con el identificador de sesión para revisar el estado.
-            </p>
-            <div className="bg-muted/50 rounded-lg p-4">
-              <p className="text-sm text-muted-foreground mb-2">Importe del pedido</p>
-              <p className="text-2xl font-bold text-primary">{formatCurrency(session.total)}</p>
-            </div>
-            <Link href={storeHomeHref}>
-              <Button variant="outline" className="w-full bg-transparent">
-                Volver a la Tienda
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   const orderDetailsHref = combineStorePath(storeBasePath, `/order/${order.id}`)
 
   return (
@@ -148,7 +73,7 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
 
           <div className="bg-muted/50 rounded-lg p-4">
             <p className="text-sm text-muted-foreground mb-2">El comercio ha sido notificado</p>
-            <p className="font-medium">{order.stores?.name ?? session.stores.name}</p>
+            <p className="font-medium">{order.stores?.name}</p>
             <p className="text-sm">Te contactarán pronto para coordinar la entrega</p>
           </div>
 
