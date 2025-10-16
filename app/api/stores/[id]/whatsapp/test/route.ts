@@ -82,20 +82,41 @@ export async function POST(request: NextRequest, context: { params: { id: string
     const customMessage = typeof body?.message === "string" ? body.message.trim() : undefined
     const strategy = resolveStrategy(body?.strategy)
 
-    const { data: store } = await supabase
+    const {
+      data: store,
+      error: storeError,
+    } = await supabase
       .from("stores")
-      .select("id, name, whatsapp_number, store_settings (*)")
+      .select("id, name, whatsapp_number")
       .eq("id", storeId)
       .eq("owner_id", user.id)
-      .single()
+      .maybeSingle()
+
+    if (storeError) {
+      console.error("[whatsapp:test] Error fetching store", storeError)
+      return NextResponse.json({ error: "No se pudo obtener la tienda" }, { status: 500 })
+    }
 
     if (!store) {
       return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
     }
 
-    const storeSettings = Array.isArray(store.store_settings)
-      ? store.store_settings[0]
-      : store.store_settings || undefined
+    const {
+      data: storeSettings,
+      error: storeSettingsError,
+    } = await supabase
+      .from("store_settings")
+      .select("*")
+      .eq("store_id", storeId)
+      .maybeSingle()
+
+    if (storeSettingsError && storeSettingsError.code !== "PGRST116") {
+      console.error("[whatsapp:test] Error fetching store settings", storeSettingsError)
+      return NextResponse.json(
+        { error: "No se pudo obtener la configuración de WhatsApp" },
+        { status: 500 },
+      )
+    }
 
     const targetPhone =
       requestedNumber && requestedNumber.length > 0
