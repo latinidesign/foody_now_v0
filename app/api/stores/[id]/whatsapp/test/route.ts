@@ -87,7 +87,7 @@ export async function POST(request: NextRequest, context: { params: { id: string
       error: storeError,
     } = await supabase
       .from("stores")
-      .select("id, name, whatsapp_number")
+      .select("id, name, phone, whatsapp_phone")
       .eq("id", storeId)
       .eq("owner_id", user.id)
       .maybeSingle()
@@ -117,6 +117,13 @@ export async function POST(request: NextRequest, context: { params: { id: string
         { status: 500 },
       )
     }
+
+    const targetPhone =
+      requestedNumber && requestedNumber.length > 0
+        ? requestedNumber
+        : sanitizePhoneNumber(storeSettings?.whatsapp_number as string | undefined) ??
+          sanitizePhoneNumber(store?.whatsapp_phone as string | undefined) ??
+          sanitizePhoneNumber(store?.phone as string | undefined)
 
     const targetPhone =
       requestedNumber && requestedNumber.length > 0
