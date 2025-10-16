@@ -94,11 +94,11 @@ export async function POST(request: NextRequest, context: { params: { id: string
 
     if (storeError) {
       console.error("[whatsapp:test] Error fetching store", storeError)
-      return NextResponse.json({ error: "No se pudo obtener la tienda" }, { status: 500 })
+      return NextResponse.json({ error: "No se pudo obtener la tienda :(" }, { status: 500 })
     }
 
     if (!store) {
-      return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
+      return NextResponse.json({ error: "Tienda no encontrada =(" }, { status: 404 })
     }
 
     const {

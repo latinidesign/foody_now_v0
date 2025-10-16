@@ -148,7 +148,7 @@ export function WhatsAppSettings({
             <Phone className="h-5 w-5 text-green-500" />
             Número de Contacto de la Tienda
           </CardTitle>
-          <CardDescription>Tu número personal de WhatsApp para recibir notificaciones</CardDescription>
+          <CardDescription>Tu número personal de WhatsApp para recibir notificaciones.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
