@@ -125,12 +125,6 @@ export async function POST(request: NextRequest, context: { params: { id: string
           sanitizePhoneNumber(store?.whatsapp_phone as string | undefined) ??
           sanitizePhoneNumber(store?.phone as string | undefined)
 
-    const targetPhone =
-      requestedNumber && requestedNumber.length > 0
-        ? requestedNumber
-        : sanitizePhoneNumber(storeSettings?.whatsapp_number as string | undefined) ??
-          sanitizePhoneNumber(store.whatsapp_number as string | undefined)
-
     if (!targetPhone) {
       return NextResponse.json(
         { error: "No hay un número de WhatsApp configurado para enviar el mensaje" },
