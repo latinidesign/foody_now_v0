@@ -14,7 +14,7 @@ interface CheckoutPageProps {
 export default async function CheckoutPage({ params }: CheckoutPageProps) {
   const { slug } = await params
   const supabase = await createClient()
-  const storeBasePath = getStoreBasePathFromHeaders(slug)
+  const storeBasePath = await getStoreBasePathFromHeaders(slug)
   const storeHomeHref = combineStorePath(storeBasePath)
 
   const { data: store, error } = await supabase
