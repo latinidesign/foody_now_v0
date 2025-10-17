@@ -6,6 +6,11 @@ import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
 
+type CreatePreferencePayload = {
+  order_id?: string
+  orderId?: string
+}
+
 export async function POST(request: Request) {
   const cid = randomUUID()
 
@@ -14,15 +19,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message, cid }, { status })
   }
 
-  let body: { order_id?: string } | undefined
+  let body: CreatePreferencePayload | undefined
 
   try {
-    body = (await request.json()) as { order_id?: string }
+    body = (await request.json()) as CreatePreferencePayload
   } catch (error) {
     return fail(400, "Invalid JSON payload", error)
   }
 
-  if (!body?.order_id) {
+  const orderId = body?.order_id ?? body?.orderId
+
+  if (!orderId) {
     return fail(400, "Missing order_id in payload")
   }
 
@@ -31,7 +38,7 @@ export async function POST(request: Request) {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select("id, store_id, subtotal, delivery_fee, total, payment_status")
-    .eq("id", body.order_id)
+    .eq("id", orderId)
     .single()
 
   if (orderError || !order) {
@@ -99,7 +106,7 @@ export async function POST(request: Request) {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "")
   const notificationUrl = new URL(`${normalizedBaseUrl}/api/webhooks/mercadopago`)
   notificationUrl.searchParams.set("store_id", store.id)
-  notificationUrl.searchParams.set("tenant", store.slug)
+  notificationUrl.searchParams.set("store_slug", store.slug)
 
   const preferencePayload = {
     items: orderItems.map((item) => ({
