@@ -9,6 +9,7 @@ export const runtime = "nodejs"
 interface IncomingOrderItem {
   id?: string
   productId?: string
+  product_id?: string
   quantity?: number
   price?: number
   unitPrice?: number
@@ -130,8 +131,34 @@ export async function POST(request: Request) {
     selected_options: Record<string, unknown> | null
   }[] = []
 
+  const isValidUuid = (value: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+
+  const extractProductId = (item: IncomingOrderItem): string | null => {
+    const candidates = [item.product_id, item.productId, item.id]
+
+    for (const candidate of candidates) {
+      if (typeof candidate !== "string") {
+        continue
+      }
+
+      if (isValidUuid(candidate)) {
+        return candidate
+      }
+
+      if (candidate.includes(":")) {
+        const [variantProductId] = candidate.split(":")
+        if (variantProductId && isValidUuid(variantProductId)) {
+          return variantProductId
+        }
+      }
+    }
+
+    return null
+  }
+
   for (const item of items) {
-    const productId = item.productId ?? item.id
+    const productId = extractProductId(item)
     const quantity = Number(item.quantity ?? 0)
     const unitPrice = Number(item.unitPrice ?? item.price ?? 0)
 
