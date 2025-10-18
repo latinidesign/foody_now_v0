@@ -1,12 +1,12 @@
-# Checkout Pro con Service Role
+# Checkout API con Service Role
 
-Esta guía resume los puntos clave para mantener operativo el flujo de pagos con Mercado Pago usando el cliente admin de Supabase.
+Esta guía resume los puntos clave para mantener operativo el flujo de pagos directos con Mercado Pago (Checkout API) usando el cliente admin de Supabase y deja preparado el terreno para otros proveedores.
 
 ## Endpoints críticos
 
 - `app/api/orders/route.ts` crea la orden y los ítems utilizando `createAdminClient()` con `runtime = "nodejs"`.
-- `app/api/payments/create-preference/route.ts` genera la preferencia Checkout Pro a partir de una orden existente y guarda el registro en `payments`.
-- `app/api/webhooks/mercadopago/route.ts` concilia los webhooks, realiza `upsert` sobre `payments` por `mp_payment_id` y actualiza el estado de la orden.
+- `app/api/payments/charge/route.ts` consume Checkout API con el token generado en el frontend, inserta/actualiza `payments` por `provider,provider_payment_id` y normaliza el estado de la orden.
+- `app/api/webhooks/mercadopago/route.ts` concilia los webhooks, realiza `upsert` sobre `payments` por `provider,provider_payment_id` y actualiza el estado de la orden.
 
 Todos los handlers deben devolver errores en formato `{ error, cid }` para facilitar la trazabilidad en los logs.
 
@@ -28,11 +28,12 @@ Asegúrate de definir en todos los entornos:
 ## Flujo resumido
 
 1. El frontend crea la orden (`POST /api/orders`).
-2. Con el `order_id` llama a `POST /api/payments/create-preference` y redirige al `init_point` devuelto.
-3. Mercado Pago notifica a `/api/webhooks/mercadopago`; el backend consulta el pago, actualiza `payments` y sincroniza `orders.status` y `orders.payment_status`.
+2. Tokeniza el medio de pago (tarjeta o billetera) desde el subdominio correspondiente y envía el token a `POST /api/payments/charge`.
+3. El backend ejecuta `v1/payments` de Mercado Pago con las credenciales de la tienda, actualiza `payments` y sincroniza `orders.status` y `orders.payment_status`.
+4. Los webhooks de Mercado Pago llegan a `/api/webhooks/mercadopago` y garantizan idempotencia en caso de reintentos o conciliaciones posteriores.
 
 ## Pruebas recomendadas
 
 1. Crear una orden desde el checkout y validar que se insertan orden e ítems.
-2. Generar una preferencia y confirmar que `payments` guarda `preference_id` y `status`.
-3. Simular un webhook de Mercado Pago y verificar que `payments` se actualiza por `mp_payment_id` y la orden cambia a `confirmed/completed`.
+2. Crear un pago directo (`POST /api/payments/charge`) y confirmar que `payments` guarda `provider = mercadopago`, `provider_payment_id` y `status`.
+3. Simular un webhook de Mercado Pago y verificar que `payments` se actualiza por `provider,provider_payment_id` y la orden cambia a `confirmed/completed`.

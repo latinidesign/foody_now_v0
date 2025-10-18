@@ -2,8 +2,11 @@ import { randomUUID } from "crypto"
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { mapOrderStatus, mapPaymentStatus } from "@/lib/payments"
 
 export const runtime = "nodejs"
+
+const PROVIDER_KEY = "mercadopago"
 
 type MercadoPagoPayment = {
   status?: string
@@ -13,7 +16,10 @@ type MercadoPagoPayment = {
   collector_id?: string | number
   external_reference?: string
   order?: { id?: string }
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
+  payment_method_id?: string
+  payment_type_id?: string
+  status_detail?: string
 }
 
 type SupabasePaymentRow = {
@@ -21,10 +27,17 @@ type SupabasePaymentRow = {
   order_id: string | null
   store_id: string | null
   preference_id: string | null
+  provider?: string | null
+  provider_payment_id?: string | null
 }
 
 function isIdempotentConflict(error: unknown) {
-  const message = typeof error === "object" && error !== null ? (error as any).message : String(error ?? "")
+  const potentialMessage =
+    typeof error === "object" && error !== null && "message" in error
+      ? (error as { message?: unknown }).message
+      : undefined
+
+  const message = typeof potentialMessage === "string" ? potentialMessage : String(error ?? "")
   return message.includes("duplicate key value") || message.includes("unique constraint")
 }
 
@@ -74,14 +87,27 @@ export async function POST(request: Request) {
   if (!resolvedStoreId) {
     const { data: paymentRows } = await supabase
       .from("payments")
-      .select("id, order_id, store_id, preference_id")
-      .eq("mp_payment_id", String(paymentId))
+      .select("id, order_id, store_id, preference_id, provider, provider_payment_id, mp_payment_id")
+      .eq("provider", PROVIDER_KEY)
+      .eq("provider_payment_id", String(paymentId))
       .limit(1)
 
-    if (paymentRows && paymentRows.length > 0) {
-      existingPayment = paymentRows[0] as SupabasePaymentRow
-      resolvedStoreId = existingPayment.store_id ?? null
-      resolvedOrderId = existingPayment.order_id ?? null
+    let paymentMatch: SupabasePaymentRow | null = paymentRows?.[0] ? (paymentRows[0] as SupabasePaymentRow) : null
+
+    if (!paymentMatch) {
+      const { data: fallbackRows } = await supabase
+        .from("payments")
+        .select("id, order_id, store_id, preference_id, provider, provider_payment_id, mp_payment_id")
+        .eq("mp_payment_id", String(paymentId))
+        .limit(1)
+
+      paymentMatch = fallbackRows?.[0] ? (fallbackRows[0] as SupabasePaymentRow) : null
+    }
+
+    if (paymentMatch) {
+      existingPayment = paymentMatch
+      resolvedStoreId = paymentMatch.store_id ?? null
+      resolvedOrderId = paymentMatch.order_id ?? null
     }
   }
 
@@ -153,8 +179,9 @@ export async function POST(request: Request) {
   if (!existingPayment && paymentDetail?.order?.id) {
     const { data: paymentRowsByPreference } = await supabase
       .from("payments")
-      .select("id, order_id, store_id, preference_id")
+      .select("id, order_id, store_id, preference_id, provider, provider_payment_id")
       .eq("preference_id", paymentDetail.order.id)
+      .eq("provider", PROVIDER_KEY)
       .limit(1)
 
     if (paymentRowsByPreference && paymentRowsByPreference.length > 0) {
@@ -167,8 +194,9 @@ export async function POST(request: Request) {
   if (!existingPayment && resolvedOrderId) {
     const { data: paymentRowsByOrder } = await supabase
       .from("payments")
-      .select("id, order_id, store_id, preference_id")
+      .select("id, order_id, store_id, preference_id, provider, provider_payment_id")
       .eq("order_id", resolvedOrderId)
+      .eq("provider", PROVIDER_KEY)
       .order("created_at", { ascending: false })
       .limit(1)
 
@@ -230,52 +258,41 @@ export async function POST(request: Request) {
   const paymentRecord = {
     order_id: finalOrderId,
     store_id: finalStoreId,
+    provider: PROVIDER_KEY,
+    provider_payment_id: String(paymentId),
     preference_id: paymentDetail?.order?.id ?? existingPayment?.preference_id ?? null,
     mp_payment_id: String(paymentId),
+    payment_method: paymentDetail?.payment_method_id ?? null,
+    source_type: paymentDetail?.payment_type_id ?? null,
     status,
+    status_detail: paymentDetail?.status_detail ?? null,
     transaction_amount: amount,
     currency,
     payer_email: payerEmail,
     collector_id: collectorId,
+    metadata: paymentDetail?.metadata ?? payload?.metadata ?? null,
     raw: paymentDetail ?? payload,
   }
 
   const { error: upsertError } = await supabase
     .from("payments")
-    .upsert(paymentRecord, { onConflict: "mp_payment_id" })
+    .upsert(paymentRecord, { onConflict: "provider,provider_payment_id" })
 
   if (upsertError && !isIdempotentConflict(upsertError)) {
     fail("Unable to persist payment", upsertError)
   }
 
   if (finalOrderId) {
-    const paymentStatusMap: Record<string, "pending" | "completed" | "failed" | "refunded"> = {
-      approved: "completed",
-      accredited: "completed",
-      in_process: "pending",
-      pending: "pending",
-      rejected: "failed",
-      cancelled: "failed",
-      refunded: "refunded",
-      charged_back: "refunded",
-    }
-
-    const mappedPaymentStatus = paymentStatusMap[status] ?? "pending"
-
-    const orderStatusMap: Record<string, string> = {
-      approved: "confirmed",
-      accredited: "confirmed",
-      rejected: "cancelled",
-      cancelled: "cancelled",
-    }
+    const mappedPaymentStatus = mapPaymentStatus(PROVIDER_KEY, status)
+    const mappedOrderStatus = mapOrderStatus(PROVIDER_KEY, status)
 
     const updates: Record<string, unknown> = {
       payment_status: mappedPaymentStatus,
       payment_id: String(paymentId),
     }
 
-    if (orderStatusMap[status]) {
-      updates.status = orderStatusMap[status]
+    if (mappedOrderStatus) {
+      updates.status = mappedOrderStatus
     }
 
     const { error: orderUpdateError } = await supabase

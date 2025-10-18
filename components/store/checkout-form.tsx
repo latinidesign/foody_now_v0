@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,6 +30,7 @@ interface OrderData {
 
 export function CheckoutForm({ store }: CheckoutFormProps) {
   const { state, clearCart } = useCart()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -39,6 +41,12 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
     deliveryType: "pickup",
     deliveryAddress: "",
     deliveryNotes: "",
+  })
+
+  const [paymentDetails, setPaymentDetails] = useState({
+    token: "",
+    paymentMethodId: "",
+    installments: "1",
   })
 
   const deliveryFee = orderData.deliveryType === "delivery" ? store.delivery_fee : 0
@@ -55,6 +63,12 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
     if (!meetsMinimum) {
       setError(`El pedido mínimo para delivery es $${store.min_order_amount}`)
+      setLoading(false)
+      return
+    }
+
+    if (!paymentDetails.token.trim()) {
+      setError("Necesitamos un token de pago válido para continuar.")
       setLoading(false)
       return
     }
@@ -80,24 +94,53 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
         throw new Error(orderPayload?.error ?? "No se pudo crear la orden")
       }
 
-      // Crear la preferencia de pago usando el order_id
-      const paymentResponse = await fetch("/api/payments/create-preference", {
+      const [firstName, ...restName] = orderData.customerName.trim().split(" ")
+      const installmentsNumber = Number.parseInt(paymentDetails.installments, 10)
+      const normalizedInstallments = Number.isFinite(installmentsNumber) && installmentsNumber > 0 ? installmentsNumber : undefined
+
+      const paymentResponse = await fetch("/api/payments/charge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_id: orderPayload.order_id }),
+        body: JSON.stringify({
+          order_id: orderPayload.order_id,
+          provider: "mercadopago",
+          payment_source: {
+            type: "card",
+            token: paymentDetails.token.trim(),
+            payment_method_id: paymentDetails.paymentMethodId.trim() || undefined,
+            installments: normalizedInstallments,
+          },
+          payer: {
+            email: orderData.customerEmail,
+            first_name: firstName,
+            last_name: restName.join(" ") || undefined,
+          },
+          metadata: {
+            delivery_type: orderData.deliveryType,
+          },
+        }),
       })
 
       const paymentPayload = await paymentResponse.json()
 
-      if (!paymentResponse.ok || !paymentPayload?.init_point) {
-        throw new Error(paymentPayload?.error ?? "Error al crear el pago")
+      if (!paymentResponse.ok || !paymentPayload?.payment_status) {
+        throw new Error(paymentPayload?.error ?? "Error al procesar el pago")
       }
 
-      // Limpiar carrito y redirigir al init_point
+      const paymentStatus = String(paymentPayload.payment_status)
+
       clearCart()
-      window.location.href = paymentPayload.init_point
+
+      if (paymentStatus === "completed") {
+        router.push(`/store/payment/success?order_id=${orderPayload.order_id}`)
+      } else if (paymentStatus === "pending") {
+        router.push(`/store/payment/pending?order_id=${orderPayload.order_id}`)
+      } else {
+        router.push(`/store/payment/failure?order_id=${orderPayload.order_id}`)
+      }
     } catch (err) {
-      setError("Error al procesar el pedido. Intenta nuevamente.")
+      console.error("[checkout:payment]", err)
+      setError(err instanceof Error ? err.message : "Error al procesar el pedido. Intenta nuevamente.")
     } finally {
       setLoading(false)
     }
@@ -218,6 +261,54 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
               onChange={(e) => setOrderData({ ...orderData, deliveryNotes: e.target.value })}
               placeholder="Instrucciones especiales, alergias, etc..."
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Detalles de Pago
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Ingresa el token generado por Mercado Pago Checkout API para esta tienda. Puedes complementar con el método y las cuotas cuando corresponda.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="paymentToken">Token de Tarjeta *</Label>
+            <Input
+              id="paymentToken"
+              value={paymentDetails.token}
+              onChange={(e) => setPaymentDetails({ ...paymentDetails, token: e.target.value })}
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Método de Pago (opcional)</Label>
+              <Input
+                id="paymentMethod"
+                placeholder="visa, mastercard, etc."
+                value={paymentDetails.paymentMethodId}
+                onChange={(e) => setPaymentDetails({ ...paymentDetails, paymentMethodId: e.target.value })}
+                disabled={loading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="installments">Cuotas</Label>
+              <Input
+                id="installments"
+                type="number"
+                min={1}
+                value={paymentDetails.installments}
+                onChange={(e) => setPaymentDetails({ ...paymentDetails, installments: e.target.value })}
+                disabled={loading}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

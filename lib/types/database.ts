@@ -110,14 +110,20 @@ export interface Payment {
   id: string
   order_id: string
   store_id: string
+  provider: string
+  provider_payment_id?: string | null
   preference_id?: string | null
   mp_payment_id?: string | null
+  payment_method?: string | null
   status?: string | null
+  status_detail?: string | null
   transaction_amount?: number | null
   currency?: string | null
   payer_email?: string | null
   collector_id?: string | null
-  raw?: Record<string, any> | null
+  source_type?: string | null
+  metadata?: Record<string, unknown> | null
+  raw?: Record<string, unknown> | null
   created_at: string
   updated_at: string
 }
