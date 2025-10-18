@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { notFound } from "next/navigation"
 import { CheckoutForm } from "@/components/store/checkout-form"
 import { Button } from "@/components/ui/button"
@@ -28,8 +29,9 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
     notFound()
   }
 
-  const { data: paymentSettings } = await supabase
-    .from("store_settings")
+  const adminClient = createAdminClient()
+
+  const { data: paymentSettings } = await adminClient    .from("store_settings")
     .select("mercadopago_public_key")
     .eq("store_id", store.id)
     .maybeSingle()
