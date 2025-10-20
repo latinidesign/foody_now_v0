@@ -14,7 +14,7 @@ function cleanObject<T extends Record<string, unknown>>(value: T): T {
 
 export class MercadoPagoProvider implements PaymentProvider {
   async charge(params: PaymentProviderChargeParams): Promise<PaymentChargeResult> {
-    const { order, store, storeSettings, payer, source, description, metadata, currency } = params
+    const { order, store, storeSettings, payer, source, description, metadata } = params
 
     if (source.type !== "card") {
       throw new PaymentProviderError("Mercado Pago currently supports card tokens for direct charges", { status: 400 })
@@ -62,7 +62,6 @@ export class MercadoPagoProvider implements PaymentProvider {
           },
         ],
       },
-      currency_id: currency ?? "ARS",
     })
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
