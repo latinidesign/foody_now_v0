@@ -50,6 +50,29 @@ export class MercadoPagoProvider implements PaymentProvider {
       throw new PaymentProviderError("Missing card token for Mercado Pago payment", { status: 400 })
     }
 
+    // If raw card fields are present on the source, validate and normalize them
+    // (some frontends may send card fields instead of a token). This does not
+    // replace token-based flows, but helps catch malformed requests early.
+    const cardData = (source as any).card ?? (source as any)
+    const expMonthRaw = cardData.expiration_month ?? cardData.expiry_month ?? cardData.month ?? undefined
+    const expYearRaw = cardData.expiration_year ?? cardData.expiry_year ?? cardData.year ?? undefined
+
+    if (expMonthRaw || expYearRaw) {
+      if (!expMonthRaw) throw new PaymentProviderError('Missing expiration_month', { status: 400 })
+      const expMonth = Number(expMonthRaw)
+      if (!Number.isInteger(expMonth) || expMonth < 1 || expMonth > 12) throw new PaymentProviderError('Invalid expiration_month', { status: 400 })
+
+      if (!expYearRaw) throw new PaymentProviderError('Missing expiration_year', { status: 400 })
+      let expYearStr = String(expYearRaw).trim()
+      if (expYearStr.length === 4) expYearStr = expYearStr.slice(-2) // 2028 -> "28"
+      if (expYearStr.length !== 2) throw new PaymentProviderError('Invalid expiration_year format', { status: 400 })
+
+      // Normalized values (not added to requestPayload when using tokens).
+      const expiration_month = expMonth
+      const expiration_year = expYearStr
+      // If you ever send raw card data to Mercado Pago, include these fields.
+    }
+
     const requestPayload = cleanObject({
       transaction_amount: Number(order.total),
       token: source.token,
