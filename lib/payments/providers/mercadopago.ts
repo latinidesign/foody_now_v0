@@ -84,11 +84,17 @@ export class MercadoPagoProvider implements PaymentProvider {
       },
     })
 
+    // Build an idempotency key: prefer a UUID from global crypto if available, otherwise fall back
+    const idempotencyKey = typeof globalThis?.crypto?.randomUUID === "function"
+      ? (globalThis.crypto as any).randomUUID()
+      : `${new Date().toISOString()};${order.id};${Math.random().toString(36).slice(2,9)}`
+
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
+        "X-Idempotency-Key": idempotencyKey,
       },
       body: JSON.stringify(requestPayload),
     })
