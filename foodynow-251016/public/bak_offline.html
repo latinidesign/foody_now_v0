@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin Conexión - Foody Now</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F7F3E9 0%, #E8E2D4 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 400px;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(45, 80, 22, 0.1);
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #2D5016;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+        }
+        
+        h1 {
+            color: #2D5016;
+            font-size: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .retry-btn {
+            background: #2D5016;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .retry-btn:hover {
+            background: #1F3610;
+        }
+        
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background: #4A7C59;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📱</div>
+        <h1>Sin Conexión</h1>
+        <p>No hay conexión a internet en este momento. Algunas funciones pueden estar limitadas.</p>
+        
+        <button class="retry-btn" onclick="window.location.reload()">
+            Reintentar
+        </button>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>Puedes navegar por páginas visitadas</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>Los pedidos se sincronizarán automáticamente</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>La app funciona sin conexión</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for connection and reload when back online
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+        
+        // Register service worker if not already registered
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
+</body>
+</html>

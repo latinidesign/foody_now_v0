@@ -1,0 +1,154 @@
+import { createClient } from "@/lib/supabase/server"
+import { whatsappService, type WhatsAppMessageStrategy } from "@/lib/whatsapp/client"
+import { type NextRequest, NextResponse } from "next/server"
+
+const normalizeComponents = (value: unknown): Array<Record<string, unknown>> | undefined => {
+  if (Array.isArray(value)) {
+    return value as Array<Record<string, unknown>>
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? (parsed as Array<Record<string, unknown>>) : undefined
+    } catch (error) {
+      console.warn("[v0] Unable to parse WhatsApp template components:", error)
+    }
+  }
+
+  return undefined
+}
+
+const resolveStrategy = (value: unknown): WhatsAppMessageStrategy | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined
+  }
+
+  const strategy = value as Record<string, unknown>
+  const type = strategy.type
+
+  if (type === "template") {
+    const name = typeof strategy.name === "string" ? strategy.name : undefined
+    const language = typeof strategy.languageCode === "string" ? strategy.languageCode : "es"
+    const components = normalizeComponents(strategy.components)
+
+    if (name) {
+      return {
+        type: "template",
+        name,
+        languageCode: language,
+        ...(components ? { components } : {}),
+      }
+    }
+  }
+
+  if (type === "text") {
+    return { type: "text" }
+  }
+
+  return undefined
+}
+
+const sanitizePhoneNumber = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const cleaned = value.replace(/[\s-()]/g, "").trim()
+  return cleaned.length > 0 ? cleaned : undefined
+}
+
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const body = await request
+      .json()
+      .catch(() => ({}))
+
+    const requestedNumber = sanitizePhoneNumber(typeof body?.to === "string" ? body.to : undefined)
+    const customMessage = typeof body?.message === "string" ? body.message.trim() : undefined
+    const strategy = resolveStrategy(body?.strategy)
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)
+
+    const storesQuery = supabase
+      .from("stores")
+      .select("id, slug, name, whatsapp_number, store_settings (*)")
+      .eq("owner_id", user.id)
+
+    const { data: store } = isUuid
+      ? await storesQuery.eq("id", params.id).single()
+      : await storesQuery.eq("slug", params.id).single()
+
+    if (!store) {
+      return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
+    }
+
+    const storeSettings = Array.isArray(store.store_settings)
+      ? store.store_settings[0]
+      : store.store_settings || undefined
+
+    const targetPhone =
+      requestedNumber && requestedNumber.length > 0
+        ? requestedNumber
+        : sanitizePhoneNumber(storeSettings?.whatsapp_number as string | undefined) ??
+          sanitizePhoneNumber(store.whatsapp_number as string | undefined)
+
+    if (!targetPhone) {
+      return NextResponse.json(
+        { error: "No hay un número de WhatsApp configurado para enviar el mensaje" },
+        { status: 400 },
+      )
+    }
+
+    const message =
+      customMessage && customMessage.length > 0
+        ? customMessage
+        : `Hola! Este es un mensaje de prueba enviado desde FoodyNow para verificar la integración de WhatsApp de ${store.name}.`
+
+    const waPhoneNumberId = storeSettings?.wa_phone_number_id as string | undefined
+    const waAccessToken = storeSettings?.wa_access_token as string | undefined
+    const waApiVersion = storeSettings?.wa_api_version as string | undefined
+
+    const options: {
+      credentials?: { waPhoneNumberId: string; waAccessToken: string; apiVersion?: string }
+      strategy?: WhatsAppMessageStrategy
+    } = {
+      ...(waPhoneNumberId && waAccessToken
+        ? { credentials: { waPhoneNumberId, waAccessToken, apiVersion: waApiVersion } }
+        : {}),
+      ...(strategy ? { strategy } : {}),
+    }
+
+    const result = await whatsappService.sendTextMessage(targetPhone, message, options)
+
+    if (result.success) {
+      return NextResponse.json({ success: true })
+    }
+
+    const errorMessage =
+      result.error === "missing_credentials"
+        ? "No se encontraron credenciales de WhatsApp Cloud API configuradas"
+        : result.error || "No se pudo enviar el mensaje de prueba"
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorMessage,
+        fallbackLink: result.link,
+      },
+      { status: 200 },
+    )
+  } catch (error) {
+    console.error("Error sending WhatsApp test message:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+  }
+}
