@@ -12,6 +12,26 @@ function cleanObject<T extends Record<string, unknown>>(value: T): T {
   return result as T
 }
 
+// Add Mercado Pago response types so TypeScript knows the shape of the parsed JSON
+interface MercadoPagoPayer {
+  email?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  identification?: { type?: string; number?: string } | null
+}
+
+interface MercadoPagoPaymentResponse {
+  id?: string | number
+  status?: string
+  status_detail?: string
+  transaction_amount?: number
+  currency_id?: string
+  payment_method_id?: string
+  collector_id?: number
+  payer?: MercadoPagoPayer | null
+  [key: string]: unknown
+}
+
 export class MercadoPagoProvider implements PaymentProvider {
   async charge(params: PaymentProviderChargeParams): Promise<PaymentChargeResult> {
     const { order, store, storeSettings, payer, source, description, metadata } = params
@@ -73,7 +93,7 @@ export class MercadoPagoProvider implements PaymentProvider {
       body: JSON.stringify(requestPayload),
     })
 
-    const body = (await response.json().catch(() => ({}))) as Record<string, unknown>
+    const body = (await response.json().catch(() => ({}))) as MercadoPagoPaymentResponse
 
     if (!response.ok || !body?.id) {
       throw new PaymentProviderError("Mercado Pago rejected the payment", {
@@ -84,14 +104,14 @@ export class MercadoPagoProvider implements PaymentProvider {
 
     return {
       id: String(body.id),
-      status: body.status,
-      status_detail: body.status_detail,
-      transaction_amount: body.transaction_amount,
-      currency_id: body.currency_id,
-      payment_method_id: body.payment_method_id,
-      collector_id: body.collector_id,
+      status: String(body.status ?? "unknown"),
+      status_detail: body.status_detail ?? undefined,
+      transaction_amount: (typeof body.transaction_amount === "number" ? body.transaction_amount : undefined),
+      currency_id: typeof body.currency_id === "string" ? body.currency_id : undefined,
+      payment_method_id: typeof body.payment_method_id === "string" ? body.payment_method_id : undefined,
+      collector_id: typeof body.collector_id === "number" || typeof body.collector_id === "string" ? body.collector_id : undefined,
       payer_email: body.payer?.email ?? payer.email ?? order.customer_email ?? null,
-      raw: body,
+      raw: body as Record<string, unknown>,
     }
   }
 }
