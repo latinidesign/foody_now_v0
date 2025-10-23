@@ -4,8 +4,6 @@ import { createContext, useContext, useReducer, type ReactNode } from "react"
 
 interface CartItem {
   id: string
-  // original product id when items are stored as variant keys (e.g. productId:options)
-  product_id?: string
   name: string
   price: number
   quantity: number

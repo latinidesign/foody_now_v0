@@ -10,9 +10,6 @@ export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  console.log("[createAdminClient] NEXT_PUBLIC_SUPABASE_URL:", !!url)
-  console.log("[createAdminClient] SUPABASE_SERVICE_ROLE_KEY length:", serviceKey ? serviceKey.length : 0)
-
   if (!url || !serviceKey) {
     throw new Error("Missing Supabase admin environment variables. Please check your configuration.")
   }

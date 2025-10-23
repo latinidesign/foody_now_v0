@@ -13,10 +13,7 @@ export const revalidate = 0 // Sin cache para evitar problemas de subdominios
 
 export default async function StorePage({ params }: StorePageProps) {
   const { slug } = await params
-  const supabase = await createClient().catch((error) => {
-    console.warn(`[store][slug:${slug}] Supabase client unavailable, falling back to demo data`, error)
-    return null
-  })
+  const supabase = await createClient()
 
   if (!supabase) {
     // Show demo data when Supabase is not available
@@ -154,10 +151,7 @@ export default async function StorePage({ params }: StorePageProps) {
 
 export async function generateMetadata({ params }: StorePageProps) {
   const { slug } = await params
-  const supabase = await createClient().catch((error) => {
-    console.warn(`[store][metadata][slug:${slug}] Supabase client unavailable`, error)
-    return null
-  })
+  const supabase = await createClient()
 
   if (!supabase) {
     return {
@@ -166,11 +160,7 @@ export async function generateMetadata({ params }: StorePageProps) {
     }
   }
 
-  const { data: store } = await supabase
-    .from("stores")
-    .select("name, description")
-    .eq("slug", slug)
-    .maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
+  const { data: store } = await supabase.from("stores").select("name, description").eq("slug", slug).maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
 
   return {
     title: store?.name || `Tienda ${slug}`,

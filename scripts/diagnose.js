@@ -107,22 +107,18 @@ async function diagnose() {
   // Verificar variables de entorno
   log(colors.magenta, "🔧 Variables de Entorno:")
   const requiredEnvVars = [
-    { key: "SUPABASE_URL", mask: true },
-    { key: "NEXT_PUBLIC_SUPABASE_URL", mask: true },
-    { key: "SUPABASE_ANON_KEY", mask: true },
-    { key: "NEXT_PUBLIC_SUPABASE_ANON_KEY", mask: true },
-    { key: "SUPABASE_SERVICE_ROLE_KEY", mask: false },
-    { key: "WHATSAPP_WEBHOOK_VERIFY_TOKEN", mask: false },
-    { key: "WHATSAPP_APP_SECRET", mask: false },
+    "SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   ]
 
-  requiredEnvVars.forEach(({ key, mask }) => {
-    const value = process.env[key]
+  requiredEnvVars.forEach((envVar) => {
+    const value = process.env[envVar]
     if (value) {
-      const displayValue = mask ? `${value.substring(0, 20)}...` : "[configurada]"
-      log(colors.green, `  ✅ ${key}: ${displayValue}`)
+      log(colors.green, `  ✅ ${envVar}: ${value.substring(0, 20)}...`)
     } else {
-      log(colors.red, `  ❌ ${key}: No configurada`)
+      log(colors.red, `  ❌ ${envVar}: No configurada`)
     }
   })
 

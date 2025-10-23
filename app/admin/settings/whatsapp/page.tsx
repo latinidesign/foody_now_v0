@@ -41,6 +41,11 @@ export default async function WhatsAppSettingsPage() {
         currentPhone={storeSettings?.whatsapp_number || store.whatsapp_number || undefined}
         autoNotifications={storeSettings?.whatsapp_notifications_enabled ?? undefined}
         initialMessage={storeSettings?.whatsapp_message ?? undefined}
+        waPhoneNumberId={storeSettings?.wa_phone_number_id ?? undefined}
+        waBusinessAccountId={storeSettings?.wa_business_account_id ?? undefined}
+        waAccessToken={storeSettings?.wa_access_token ?? undefined}
+        waDefaultWelcomeTemplate={storeSettings?.wa_default_welcome_template ?? undefined}
+        waDefaultOrderTemplate={storeSettings?.wa_default_order_template ?? undefined}
       />
     </div>
   )

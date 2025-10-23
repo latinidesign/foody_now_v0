@@ -9,22 +9,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    allowedOrigins: [
-      "https://foodynow.com.ar",
-      "https://*.foodynow.com.ar",
-      "https://foodynowapp.vercel.app",
-      "https://v0-ecommerce-pwa.vercel.app",
-    ],
-    allowedDevOrigins: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:3001",
-      "http://*.localhost:3000",
-      "http://*.localhost:3001",
-    ],
-  },
   async rewrites() {
     return {
       beforeFiles: [

@@ -142,18 +142,7 @@ export function LocationMap({
                     <Navigation className="w-4 h-4 mr-2" />
                     Cómo llegar (Google Maps)
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      window.open(
-                        `https://www.openstreetmap.org/?mlat=${coordinates.lat}&mlon=${coordinates.lng}&zoom=16`,
-                        "_blank",
-                      )
-                    }
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Ver en OpenStreetMap
-                  </Button>
+
                 </div>
               </div>
             )}

@@ -62,22 +62,12 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Opcional para revalidación
 REVALIDATE_SECRET=your-secret-key
-
-# WhatsApp Cloud API
-WHATSAPP_WEBHOOK_VERIFY_TOKEN=choose-a-secure-token
-WHATSAPP_APP_SECRET=meta-app-secret
 \`\`\`
 
 - `SUPABASE_SERVICE_ROLE_KEY` debe copiarse desde **Supabase → Project Settings → API → service_role**.
 - Define esta variable únicamente en el entorno del servidor (`.env.local`, variables privadas de Vercel/Render, etc.). No la expongas como variable pública ni la utilices en componentes del navegador.
 - Asegúrate de que `NEXT_PUBLIC_SUPABASE_URL` continúe apuntando al proyecto correcto de Supabase.
-- Para la verificación del webhook de WhatsApp debes configurar tanto `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (token libremente elegido, pero seguro) como `WHATSAPP_APP_SECRET` (lo encuentras en el panel de Meta). Ambos deben cargarse en Vercel.
 
-#### Cómo validar que las variables estén activas en producción
-
-1. Despliega la app y visita `/api/health/env` en el entorno correspondiente.
-2. El JSON resultante debe mostrar `service_role`, `whatsapp_webhook_verify_token` y `whatsapp_app_secret` en `true`.
-3. Si alguno aparece en `false`, revisa la configuración de variables en Vercel (`Project Settings → Environment Variables`) y en tu `.env.local`.
 ## 🛠️ Desarrollo Local
 
 ### Instalación

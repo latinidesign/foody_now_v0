@@ -58,7 +58,7 @@ const sanitizePhoneNumber = (value: string | undefined): string | undefined => {
   return cleaned.length > 0 ? cleaned : undefined
 }
 
-export async function POST(request: NextRequest, context: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabase = await createClient()
     const {
@@ -69,11 +69,6 @@ export async function POST(request: NextRequest, context: { params: { id: string
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    // Esperar params si es promesa
-    const resolvedParams = await (context.params as Promise<{ id: string }> | { id: string })
-    const storeId = resolvedParams.id
-    console.log("POST /stores/[id]/whatsapp/test", { storeId, userId: user.id })
-
     const body = await request
       .json()
       .catch(() => ({}))
@@ -82,48 +77,30 @@ export async function POST(request: NextRequest, context: { params: { id: string
     const customMessage = typeof body?.message === "string" ? body.message.trim() : undefined
     const strategy = resolveStrategy(body?.strategy)
 
-    const {
-      data: store,
-      error: storeError,
-    } = await supabase
-      .from("stores")
-      .select("id, name, phone, whatsapp_phone")
-      .eq("id", storeId)
-      .eq("owner_id", user.id)
-      .maybeSingle()
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)
 
-    if (storeError) {
-      console.error("[whatsapp:test] Error fetching store", storeError)
-      return NextResponse.json({ error: "No se pudo obtener la tienda :(" }, { status: 500 })
-    }
+    const storesQuery = supabase
+      .from("stores")
+      .select("id, slug, name, whatsapp_number, store_settings (*)")
+      .eq("owner_id", user.id)
+
+    const { data: store } = isUuid
+      ? await storesQuery.eq("id", params.id).single()
+      : await storesQuery.eq("slug", params.id).single()
 
     if (!store) {
-      return NextResponse.json({ error: "Tienda no encontrada =(" }, { status: 404 })
+      return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
     }
 
-    const {
-      data: storeSettings,
-      error: storeSettingsError,
-    } = await supabase
-      .from("store_settings")
-      .select("*")
-      .eq("store_id", storeId)
-      .maybeSingle()
-
-    if (storeSettingsError && storeSettingsError.code !== "PGRST116") {
-      console.error("[whatsapp:test] Error fetching store settings", storeSettingsError)
-      return NextResponse.json(
-        { error: "No se pudo obtener la configuración de WhatsApp" },
-        { status: 500 },
-      )
-    }
+    const storeSettings = Array.isArray(store.store_settings)
+      ? store.store_settings[0]
+      : store.store_settings || undefined
 
     const targetPhone =
       requestedNumber && requestedNumber.length > 0
         ? requestedNumber
         : sanitizePhoneNumber(storeSettings?.whatsapp_number as string | undefined) ??
-          sanitizePhoneNumber(store?.whatsapp_phone as string | undefined) ??
-          sanitizePhoneNumber(store?.phone as string | undefined)
+          sanitizePhoneNumber(store.whatsapp_number as string | undefined)
 
     if (!targetPhone) {
       return NextResponse.json(

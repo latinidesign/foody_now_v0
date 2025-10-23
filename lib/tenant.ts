@@ -16,16 +16,11 @@ function normalizeHost(host: string | null | undefined) {
   return host.split(":")[0].toLowerCase()
 }
 
-export function getSubdomainFromHost(host?: string | null) {
+export function getTenantSlugFromHost(host: string | null | undefined) {
   const hostname = normalizeHost(host)
 
   if (!hostname || MAIN_DOMAINS.has(hostname)) {
     return null
-  }
-
-  if (hostname.endsWith(".localhost")) {
-    const slug = hostname.replace(".localhost", "")
-    return RESERVED_SUBDOMAINS.has(slug) ? null : slug
   }
 
   if (hostname.endsWith(".foodynow.com.ar")) {
@@ -33,21 +28,24 @@ export function getSubdomainFromHost(host?: string | null) {
     return RESERVED_SUBDOMAINS.has(slug) ? null : slug
   }
 
-  const parts = hostname.split(".")
+  if (hostname.includes("vercel.app")) {
+    const parts = hostname.split(".")
+    if (parts.length > 2) {
+      const slug = parts[0]
+      return RESERVED_SUBDOMAINS.has(slug) ? null : slug
+    }
+  }
 
-  if (hostname.includes("vercel.app") && parts.length > 2) {
-    const slug = parts[0]
+  if (hostname.endsWith(".localhost")) {
+    const slug = hostname.replace(".localhost", "")
     return RESERVED_SUBDOMAINS.has(slug) ? null : slug
   }
 
+  const parts = hostname.split(".")
   if (parts.length > 2) {
     const slug = parts[0]
     return RESERVED_SUBDOMAINS.has(slug) ? null : slug
   }
 
   return null
-}
-
-export function getTenantSlugFromHost(host: string | null | undefined) {
-  return getSubdomainFromHost(host)
 }

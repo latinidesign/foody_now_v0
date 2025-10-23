@@ -12,9 +12,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    // Log para depuración de parámetros
-    console.log("PUT /stores/[id]/whatsapp", { paramsId: params.id, userId: user.id })
-
     const body = await request.json()
     const {
       whatsapp_number,
@@ -26,13 +23,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       wa_metadata,
     } = body
 
-    // Verificar que la tienda pertenece al usuario
-    const { data: store } = await supabase
-      .from("stores")
-      .select("id")
-      .eq("id", params.id)
-      .eq("owner_id", user.id)
-      .single()
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)
+
+    // Verificar que la tienda pertenece al usuario usando ID o slug
+    const storesQuery = supabase.from("stores").select("id").eq("owner_id", user.id)
+    const { data: store } = isUuid
+      ? await storesQuery.eq("id", params.id).single()
+      : await storesQuery.eq("slug", params.id).single()
 
     if (!store) {
       return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
@@ -42,7 +39,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .from("store_settings")
       .upsert(
         {
-          store_id: params.id,
+          store_id: store.id,
           whatsapp_number,
           whatsapp_notifications_enabled: whatsapp_notifications,
           whatsapp_message,
