@@ -108,8 +108,51 @@ export async function POST(request: Request) {
   notificationUrl.searchParams.set("store_id", store.id)
   notificationUrl.searchParams.set("store_slug", store.slug)
 
-  const preferencePayload = {
-    items: orderItems.map((item) => ({
+  const externalReference = randomUUID()
+
+  const { data: checkoutSession, error: sessionError } = await supabase
+    .from("checkout_sessions")
+    .insert({
+      store_id: store.id,
+      items: orderItems,
+      order_data: {
+        id: order.id,
+        store_id: order.store_id,
+        subtotal: order.subtotal,
+        delivery_fee: order.delivery_fee,
+        total: order.total,
+        payment_status: order.payment_status,
+      },
+      subtotal: order.subtotal,
+      delivery_fee: order.delivery_fee,
+      total: order.total,
+      external_reference: externalReference,
+      status: "pending",
+      payment_status: "pending",
+    })
+    .select()
+    .single()
+
+  if (sessionError || !checkoutSession) {
+    return fail(500, "No se pudo iniciar el pago", sessionError)
+  }
+
+  // Build tenant root URL (tenant subdomain) so back_urls redirect to the store home
+  let tenantBase: string
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    const appUrl = new URL(process.env.NEXT_PUBLIC_APP_URL)
+    tenantBase = `${appUrl.protocol}//${store.slug}.${appUrl.hostname}`
+  } else {
+    // fallback to request host-derived base (assume host like tenant.example.com)
+    const hostHeader = request.headers.get("host") ?? `${store.slug}.localhost`
+    const hostParts = hostHeader.split(":")[0]
+    tenantBase = `https://${hostParts.split(".").slice(-2).join(".")}`
+    tenantBase = tenantBase.replace("//", `//${store.slug}.`)
+  }
+
+  const preferenceData = {
+    items: orderItems.map((item: any) => ({
+      id: item.id,
       title: item.products?.name ?? "Producto",
       quantity: item.quantity,
       unit_price: item.unit_price,
@@ -118,14 +161,14 @@ export async function POST(request: Request) {
     external_reference: order.id,
     auto_return: "approved",
     back_urls: {
-      success: `${normalizedBaseUrl}/store/payment/success?order_id=${order.id}`,
-      pending: `${normalizedBaseUrl}/store/payment/pending?order_id=${order.id}`,
-      failure: `${normalizedBaseUrl}/store/payment/failure?order_id=${order.id}`,
+      success: `${tenantBase}/?session_id=${checkoutSession.id}`,
+      pending: `${tenantBase}/?session_id=${checkoutSession.id}`,
+      failure: `${tenantBase}/?session_id=${checkoutSession.id}`,
     },
-    notification_url: notificationUrl.toString(),
+    notification_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/webhook?tenant=${store.slug}`,
     metadata: {
-      store_id: store.id,
-      order_id: order.id,
+      checkout_session_id: checkoutSession.id,
+      store_slug: store.slug,
       subdomain: subdomain ?? null,
     },
   }
@@ -136,7 +179,7 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${storeSettings.mercadopago_access_token}`,
     },
-    body: JSON.stringify(preferencePayload),
+    body: JSON.stringify(preferenceData),
   })
 
   const preference = await response.json().catch(() => null)
