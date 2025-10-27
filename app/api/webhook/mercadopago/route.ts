@@ -370,20 +370,26 @@ async function handlePaymentApprovedNotifications(orderId: string, storeId: stri
       total: order.total,
     })
 
-    await sendStoreNotification(storeId, pushPayload)
-    console.log(`[webhooks:mercadopago][cid:${cid}] Store notification sent`)
+    const pushResult = await sendStoreNotification(storeId, pushPayload)
+    
+    if (pushResult) {
+      console.log(`[webhooks:mercadopago][cid:${cid}] Store notification sent`)
+    } else {
+      console.warn(`[webhooks:mercadopago][cid:${cid}] Store notification failed (might not be configured)`)
+    }
 
-    // Marcar como notificado
+    // Marcar como notificado independientemente del resultado
     await supabase
       .from('orders')
       .update({ 
         store_notified_at: new Date().toISOString(),
-        notification_status: { push_sent: true }
+        notification_status: { push_sent: pushResult }
       })
       .eq('id', orderId)
 
   } catch (error) {
     console.error(`[webhooks:mercadopago][cid:${cid}] Failed to send store notification:`, error)
+    // No fallar el webhook por problemas de notificaciones push
   }
 
   // 2. Encolar mensaje de WhatsApp para el cliente
