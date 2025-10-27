@@ -63,26 +63,26 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 # Opcional para revalidación
 REVALIDATE_SECRET=your-secret-key
 
-# WhatsApp Cloud API (Global - recomendado)
-WHATSAPP_PHONE_NUMBER_ID=123456789012345
-WHATSAPP_ACCESS_TOKEN=EAAx...
-WHATSAPP_BUSINESS_ACCOUNT_ID=123456789012345
+# WhatsApp Cloud API (Global - usando nombres existentes en Vercel)
+WHATSAPP_BUSINESS_PHONE_NUMBER_ID=836468659544565
+WHATSAPP_BUSINESS_ACCESS_TOKEN=EAAT...
+WHATSAPP_BUSINESS_ACCOUNT_ID=123456789012345  # opcional
 WHATSAPP_API_VERSION=v20.0
 
 # WhatsApp Webhook (solo para verificación)
-WHATSAPP_WEBHOOK_VERIFY_TOKEN=choose-a-secure-token
-WHATSAPP_APP_SECRET=meta-app-secret
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=FoodyNow.2025.ButinofLatini
+WHATSAPP_APP_SECRET=143daf0a6e2123f35bc54656df2ed74d
 \`\`\`
 
 - `SUPABASE_SERVICE_ROLE_KEY` debe copiarse desde **Supabase → Project Settings → API → service_role**.
 - Define esta variable únicamente en el entorno del servidor (`.env.local`, variables privadas de Vercel/Render, etc.). No la expongas como variable pública ni la utilices en componentes del navegador.
 - Asegúrate de que `NEXT_PUBLIC_SUPABASE_URL` continúe apuntando al proyecto correcto de Supabase.
-- **WhatsApp Cloud API**: Configura las credenciales globales desde Meta for Developers:
-  - `WHATSAPP_PHONE_NUMBER_ID`: ID del número de teléfono de WhatsApp Business
-  - `WHATSAPP_ACCESS_TOKEN`: Token de acceso (temporal o permanente)
+- **WhatsApp Cloud API**: Ya están configuradas las credenciales globales en Vercel:
+  - `WHATSAPP_BUSINESS_PHONE_NUMBER_ID`: ID del número de teléfono de WhatsApp Business ✅
+  - `WHATSAPP_BUSINESS_ACCESS_TOKEN`: Token de acceso ✅
   - `WHATSAPP_BUSINESS_ACCOUNT_ID`: ID de la cuenta de negocio (opcional)
-  - `WHATSAPP_API_VERSION`: Versión de la API (por defecto v20.0)
-- Para la verificación del webhook de WhatsApp configura `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (token libremente elegido, pero seguro) y `WHATSAPP_APP_SECRET` (lo encuentras en el panel de Meta).
+  - `WHATSAPP_API_VERSION`: Versión de la API ✅
+- Para la verificación del webhook de WhatsApp ya están configurados `WHATSAPP_WEBHOOK_VERIFY_TOKEN` ✅ y `WHATSAPP_APP_SECRET` ✅.
 
 #### Cómo validar que las variables estén activas en producción
 

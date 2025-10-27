@@ -64,9 +64,9 @@ export class WhatsAppService {
   
   // Global WhatsApp Cloud API credentials from environment variables
   private globalCredentials = {
-    waPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
-    waAccessToken: process.env.WHATSAPP_ACCESS_TOKEN,
-    waBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID,
+    waPhoneNumberId: process.env.WHATSAPP_BUSINESS_PHONE_NUMBER_ID,
+    waAccessToken: process.env.WHATSAPP_BUSINESS_ACCESS_TOKEN,
+    waBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID, // opcional
     apiVersion: process.env.WHATSAPP_API_VERSION || "v20.0",
   }
 
