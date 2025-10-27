@@ -3,6 +3,8 @@ import { randomUUID } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { mapOrderStatus, mapPaymentStatus } from "@/lib/payments"
+import { enqueueCustomerConfirmation } from "@/lib/queue/queue-initializer"
+import { sendStoreNotification, buildPaymentReceivedNotification } from "@/lib/notifications/store-notifications"
 
 export const runtime = "nodejs"
 
@@ -303,7 +305,124 @@ export async function POST(request: Request) {
     if (orderUpdateError) {
       fail("Unable to update order status", orderUpdateError)
     }
+
+    // Enviar notificaciones cuando el pago se aprueba
+    if (mappedPaymentStatus === 'completed' || mappedOrderStatus === 'confirmed') {
+      try {
+        if (typeof finalOrderId === 'string' && typeof finalStoreId === 'string') {
+          await handlePaymentApprovedNotifications(finalOrderId, finalStoreId, cid)
+        }
+      } catch (error) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Failed to send notifications:`, error)
+        // No fallar el webhook por problemas de notificaciones
+      }
+    }
   }
 
   return NextResponse.json({ ok: true, cid })
+}
+
+// Función para enviar notificaciones cuando se aprueba un pago
+async function handlePaymentApprovedNotifications(orderId: string, storeId: string, cid: string) {
+  const supabase = createAdminClient()
+
+  // Obtener detalles del pedido y la tienda
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select(`
+      id,
+      customer_name,
+      customer_phone,
+      customer_email,
+      total,
+      delivery_type,
+      delivery_address,
+      order_items (
+        quantity,
+        unit_price,
+        products (name)
+      )
+    `)
+    .eq('id', orderId)
+    .single()
+
+  if (orderError || !order) {
+    console.error(`[webhooks:mercadopago][cid:${cid}] Failed to fetch order:`, orderError)
+    return
+  }
+
+  const { data: store, error: storeError } = await supabase
+    .from('stores')
+    .select('id, name, slug')
+    .eq('id', storeId)
+    .single()
+
+  if (storeError || !store) {
+    console.error(`[webhooks:mercadopago][cid:${cid}] Failed to fetch store:`, storeError)
+    return
+  }
+
+  // 1. Enviar push notification a la tienda
+  try {
+    const pushPayload = buildPaymentReceivedNotification({
+      orderId: order.id,
+      customerName: order.customer_name,
+      total: order.total,
+    })
+
+    await sendStoreNotification(storeId, pushPayload)
+    console.log(`[webhooks:mercadopago][cid:${cid}] Store notification sent`)
+
+    // Marcar como notificado
+    await supabase
+      .from('orders')
+      .update({ 
+        store_notified_at: new Date().toISOString(),
+        notification_status: { push_sent: true }
+      })
+      .eq('id', orderId)
+
+  } catch (error) {
+    console.error(`[webhooks:mercadopago][cid:${cid}] Failed to send store notification:`, error)
+  }
+
+  // 2. Encolar mensaje de WhatsApp para el cliente
+  if (order.customer_phone) {
+    try {
+      const items = order.order_items?.map((item: any) => ({
+        name: item.products?.name || 'Producto',
+        quantity: item.quantity,
+        price: item.unit_price,
+      })) || []
+
+      await enqueueCustomerConfirmation({
+        orderId: order.id,
+        storeId,
+        customerPhone: order.customer_phone,
+        customerName: order.customer_name,
+        storeName: store.name,
+        total: order.total,
+        items,
+        deliveryType: order.delivery_type as 'pickup' | 'delivery',
+        deliveryAddress: order.delivery_address,
+        estimatedTime: '30-45 min', // Por defecto, se puede hacer configurable
+      })
+
+      console.log(`[webhooks:mercadopago][cid:${cid}] Customer WhatsApp message enqueued`)
+
+      // Actualizar estado de notificación
+      await supabase
+        .from('orders')
+        .update({ 
+          customer_notified_at: new Date().toISOString(),
+          notification_status: { push_sent: true, whatsapp_enqueued: true }
+        })
+        .eq('id', orderId)
+
+    } catch (error) {
+      console.error(`[webhooks:mercadopago][cid:${cid}] Failed to enqueue customer WhatsApp:`, error)
+    }
+  } else {
+    console.warn(`[webhooks:mercadopago][cid:${cid}] No customer phone for WhatsApp notification`)
+  }
 }
