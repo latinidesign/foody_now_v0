@@ -355,13 +355,13 @@ export default function HomePage() {
               La plataforma moderna para comercialización eficiente en el segmento alimentario
             </p>
             <div className="flex justify-center gap-6 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-primary">
+              <Link href="/terms" className="hover:text-primary">
                 Términos de Servicio
               </Link>
-              <Link href="#" className="hover:text-primary">
+              <Link href="/privacy" className="hover:text-primary">
                 Política de Privacidad
               </Link>
-              <Link href="#" className="hover:text-primary">
+              <Link href="/contact" className="hover:text-primary">
                 Contacto
               </Link>
             </div>
