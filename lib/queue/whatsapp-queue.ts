@@ -147,15 +147,8 @@ class WhatsAppQueue {
     const supabase = createAdminClient()
 
     // Get store settings for WhatsApp credentials
-    const { data: storeSettings } = await supabase
-      .from('store_settings')
-      .select('wa_phone_number_id, wa_access_token, wa_api_version')
-      .eq('store_id', job.storeId)
-      .single()
-
-    if (!storeSettings?.wa_phone_number_id || !storeSettings?.wa_access_token) {
-      throw new Error('WhatsApp credentials not configured for store')
-    }
+    // No need to fetch store settings for WhatsApp credentials anymore
+    // Global credentials are handled by WhatsAppService
 
     // Build message based on type
     let message: string
@@ -173,14 +166,8 @@ class WhatsAppQueue {
         throw new Error(`Unknown message type: ${job.type}`)
     }
 
-    // Send via WhatsApp Cloud API
-    const result = await whatsappService.sendTextMessage(job.to, message, {
-      credentials: {
-        waPhoneNumberId: storeSettings.wa_phone_number_id,
-        waAccessToken: storeSettings.wa_access_token,
-        apiVersion: storeSettings.wa_api_version,
-      }
-    })
+    // Send via WhatsApp Cloud API using global credentials
+    const result = await whatsappService.sendTextMessage(job.to, message)
 
     if (!result.success) {
       throw new Error(result.error || 'WhatsApp send failed')

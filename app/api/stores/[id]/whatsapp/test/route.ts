@@ -137,29 +137,18 @@ export async function POST(request: NextRequest, context: { params: { id: string
         ? customMessage
         : `Hola! Este es un mensaje de prueba enviado desde FoodyNow para verificar la integración de WhatsApp de ${store.name}.`
 
-    const waPhoneNumberId = storeSettings?.wa_phone_number_id as string | undefined
-    const waAccessToken = storeSettings?.wa_access_token as string | undefined
-    const waApiVersion = storeSettings?.wa_api_version as string | undefined
-
-    const options: {
-      credentials?: { waPhoneNumberId: string; waAccessToken: string; apiVersion?: string }
-      strategy?: WhatsAppMessageStrategy
-    } = {
-      ...(waPhoneNumberId && waAccessToken
-        ? { credentials: { waPhoneNumberId, waAccessToken, apiVersion: waApiVersion } }
-        : {}),
+    // Use global WhatsApp service without per-tenant credentials
+    const result = await whatsappService.sendTextMessage(targetPhone, message, {
       ...(strategy ? { strategy } : {}),
-    }
-
-    const result = await whatsappService.sendTextMessage(targetPhone, message, options)
+    })
 
     if (result.success) {
       return NextResponse.json({ success: true })
     }
 
     const errorMessage =
-      result.error === "missing_credentials"
-        ? "No se encontraron credenciales de WhatsApp Cloud API configuradas"
+      result.error === "missing_global_credentials"
+        ? "No se encontraron credenciales globales de WhatsApp Cloud API. Revisa las variables de entorno."
         : result.error || "No se pudo enviar el mensaje de prueba"
 
     return NextResponse.json(

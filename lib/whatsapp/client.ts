@@ -49,25 +49,26 @@ type WhatsAppMessagePayload =
       }
     }
 
-interface SendMessageParams {
-  to: string
-  credentials: WhatsAppCloudApiCredentials
-  payload: WhatsAppMessagePayload
-}
-
 interface SendMessageResult {
   success: boolean
   error?: string
 }
 
 interface SendMessageOptions {
-  credentials?: WhatsAppCloudApiCredentials
   strategy?: WhatsAppMessageStrategy
 }
 
 export class WhatsAppService {
   private baseUrl = "https://api.whatsapp.com/send"
   private defaultApiVersion = process.env.WHATSAPP_API_VERSION || "v20.0"
+  
+  // Global WhatsApp Cloud API credentials from environment variables
+  private globalCredentials = {
+    waPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    waAccessToken: process.env.WHATSAPP_ACCESS_TOKEN,
+    waBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID,
+    apiVersion: process.env.WHATSAPP_API_VERSION || "v20.0",
+  }
 
   // Generate WhatsApp link for store access
   generateStoreLink(storeSlug: string, storePhone: string): string {
@@ -143,15 +144,15 @@ ${deliveryInfo}
     return `${this.baseUrl}?phone=${customerPhone}&text=${message}`
   }
 
-  private async sendCloudApiMessage({ to, credentials, payload }: SendMessageParams): Promise<SendMessageResult> {
+  private async sendCloudApiMessage({ to, payload }: { to: string; payload: WhatsAppMessagePayload }): Promise<SendMessageResult> {
     if (!to) {
       return { success: false, error: "missing_destination" }
     }
 
-    const { waPhoneNumberId, waAccessToken, apiVersion } = credentials
+    const { waPhoneNumberId, waAccessToken, apiVersion } = this.globalCredentials
 
     if (!waPhoneNumberId || !waAccessToken) {
-      return { success: false, error: "missing_credentials" }
+      return { success: false, error: "missing_global_credentials" }
     }
 
     const version = apiVersion || this.defaultApiVersion
@@ -216,13 +217,10 @@ ${deliveryInfo}
     const message = decodeURIComponent(this.generateOrderNotification(order))
     const payload = this.buildMessagePayload(message, options)
 
-    const sendResult = options?.credentials
-      ? await this.sendCloudApiMessage({
-          to: order.storePhone,
-          credentials: options.credentials,
-          payload,
-        })
-      : { success: false, error: "missing_credentials" }
+    const sendResult = await this.sendCloudApiMessage({
+      to: order.storePhone,
+      payload,
+    })
 
     if (sendResult.success) {
       return { success: true }
@@ -242,13 +240,10 @@ ${deliveryInfo}
     const message = decodeURIComponent(this.generateCustomerConfirmation(orderId, storeName, estimatedTime))
     const payload = this.buildMessagePayload(message, options)
 
-    const sendResult = options?.credentials
-      ? await this.sendCloudApiMessage({
-          to: customerPhone,
-          credentials: options.credentials,
-          payload,
-        })
-      : { success: false, error: "missing_credentials" }
+    const sendResult = await this.sendCloudApiMessage({
+      to: customerPhone,
+      payload,
+    })
 
     if (sendResult.success) {
       return { success: true }
@@ -265,13 +260,10 @@ ${deliveryInfo}
   ): Promise<{ success: boolean; link?: string; error?: string }> {
     const payload = this.buildMessagePayload(message, options)
 
-    const sendResult = options?.credentials
-      ? await this.sendCloudApiMessage({
-          to,
-          credentials: options.credentials,
-          payload,
-        })
-      : { success: false, error: "missing_credentials" as const }
+    const sendResult = await this.sendCloudApiMessage({
+      to,
+      payload,
+    })
 
     if (sendResult.success) {
       return { success: true }
