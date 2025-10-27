@@ -110,7 +110,7 @@ export async function POST(request: Request) {
 
   const preferencePayload = {
     items: orderItems.map((item) => ({
-      title: item.products?.name ?? "Producto",
+      title: item.products?.[0]?.name ?? "Producto",
       quantity: item.quantity,
       unit_price: item.unit_price,
       currency_id: "ARS",

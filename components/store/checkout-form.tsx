@@ -16,6 +16,7 @@ import type { Store } from "@/lib/types/database"
 
 interface CheckoutFormProps {
   store: Store
+  mercadopagoPublicKey?: string | null
 }
 
 interface OrderData {
@@ -27,7 +28,7 @@ interface OrderData {
   deliveryNotes: string
 }
 
-export function CheckoutForm({ store }: CheckoutFormProps) {
+export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps) {
   const { state, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -166,7 +167,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
                   {/* Store icon is removed to avoid redeclaration */}
                   <div>
                     <p className="font-medium">Retiro en Local</p>
-                    <p className="text-sm text-muted-foreground">Gratis - {store.address}</p>
+                    <p className="text-sm text-muted-foreground">Gratis! - {store.address}</p>
                   </div>
                 </div>
               </Label>
@@ -275,7 +276,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
             <img src="/mp_handshake.png" alt="MercadoPago" className="h-8" />
             <div className="flex-1">
               <p className="font-medium">Pago seguro con MercadoPago</p>
-              <p className="text-sm text-muted-foreground">Tarjetas de crédito, débito y más</p>
+              <p className="text-sm text-muted-foreground">Tarjetas de crédito, débito y más.</p>
             </div>
           </div>
         </CardContent>
