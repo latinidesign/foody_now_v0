@@ -15,6 +15,7 @@ import {
   Tags,
   ExternalLink,
   MessageCircle,
+  Bell,
 } from "lucide-react"
 
 interface AdminSidebarProps {
@@ -27,6 +28,7 @@ const navigation = [
   { name: "Categorías", href: "/admin/categories", icon: Tags },
   { name: "Pedidos", href: "/admin/orders", icon: ShoppingBag },
   { name: "Estadísticas", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Notificaciones", href: "/admin/notifications", icon: Bell },
   { name: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
   { name: "Configuración", href: "/admin/settings", icon: Settings },
 ]
