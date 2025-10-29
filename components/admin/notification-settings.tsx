@@ -36,6 +36,13 @@ export function NotificationSettings({ storeId, storeName }: NotificationSetting
     setPushPermission(permission)
     setPushEnabled(permission === 'granted')
 
+    // Debug: Verificar que la clave VAPID esté disponible
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    console.log('[NotificationSettings] VAPID key available:', !!vapidKey)
+    if (!vapidKey) {
+      console.error('[NotificationSettings] VAPID public key not found in environment')
+    }
+
     // Obtener estadísticas de la cola de WhatsApp
     const stats = whatsappQueue.getStats()
     setWhatsappQueueStats(stats)
@@ -55,6 +62,14 @@ export function NotificationSettings({ storeId, storeName }: NotificationSetting
       return
     }
 
+    // Verificar que la clave VAPID esté disponible
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!vapidKey) {
+      toast.error("Las notificaciones push no están configuradas (falta clave VAPID)")
+      console.error('[NotificationSettings] VAPID key missing')
+      return
+    }
+
     setLoading(true)
     try {
       if (pushEnabled) {
@@ -64,23 +79,25 @@ export function NotificationSettings({ storeId, storeName }: NotificationSetting
         toast.success("Notificaciones push desactivadas")
       } else {
         // Inicializar y suscribir
+        console.log('[NotificationSettings] Starting initialization...')
         const initialized = await storeNotificationService.initialize()
         if (initialized) {
+          console.log('[NotificationSettings] Initialization successful, starting subscription...')
           const subscribed = await storeNotificationService.subscribe(storeId)
           if (subscribed) {
             setPushEnabled(true)
             setPushPermission('granted')
             toast.success("Notificaciones push activadas")
           } else {
-            toast.error("No se pudo activar las notificaciones push")
+            toast.error("No se pudo crear la suscripción push (revisa la consola para detalles)")
           }
         } else {
-          toast.error("No se pudieron inicializar las notificaciones")
+          toast.error("No se pudieron inicializar las notificaciones (revisa la consola para detalles)")
         }
       }
     } catch (error) {
       console.error("Error toggling push notifications:", error)
-      toast.error("Error al cambiar configuración de notificaciones")
+      toast.error(`Error al cambiar configuración de notificaciones: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     } finally {
       setLoading(false)
     }

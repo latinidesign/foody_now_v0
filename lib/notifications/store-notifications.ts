@@ -33,22 +33,41 @@ class StoreNotificationService {
 
   // Initialize push notifications for store admin
   async initialize(): Promise<boolean> {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('[StoreNotifications] Push notifications not supported')
+    if (typeof window === 'undefined') {
+      console.warn('[StoreNotifications] Not in browser environment')
+      return false
+    }
+    
+    if (!('serviceWorker' in navigator)) {
+      console.warn('[StoreNotifications] Service workers not supported')
+      return false
+    }
+    
+    if (!('PushManager' in window)) {
+      console.warn('[StoreNotifications] Push messaging not supported')
       return false
     }
 
     try {
+      // Check if VAPID key is available
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidPublicKey) {
+        console.error('[StoreNotifications] VAPID public key not found in environment')
+        return false
+      }
+
       // Register service worker if not already registered
       const registration = await navigator.serviceWorker.getRegistration()
       if (!registration) {
+        console.log('[StoreNotifications] Registering service worker...')
         await navigator.serviceWorker.register('/sw.js')
       }
 
       // Request permission
+      console.log('[StoreNotifications] Requesting notification permission...')
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
-        console.warn('[StoreNotifications] Permission denied')
+        console.warn('[StoreNotifications] Permission denied:', permission)
         return false
       }
 
@@ -63,30 +82,45 @@ class StoreNotificationService {
   // Subscribe to push notifications
   async subscribe(storeId: string): Promise<boolean> {
     try {
+      console.log('[StoreNotifications] Starting subscription process for store:', storeId)
+      
       const registration = await navigator.serviceWorker.ready
+      console.log('[StoreNotifications] Service worker ready')
       
       // Get existing subscription or create new one
       let subscription = await registration.pushManager.getSubscription()
       
       if (!subscription) {
+        console.log('[StoreNotifications] No existing subscription, creating new one...')
+        
+        // Get VAPID public key from environment
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        if (!vapidPublicKey) {
+          console.error('[StoreNotifications] VAPID public key not found')
+          throw new Error('VAPID public key not configured')
+        }
+
         // Create new subscription
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
-          ),
+          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey),
         })
+        console.log('[StoreNotifications] New subscription created')
+      } else {
+        console.log('[StoreNotifications] Using existing subscription')
       }
 
       if (subscription) {
         this.subscription = subscription
         
         // Send subscription to server
+        console.log('[StoreNotifications] Saving subscription to server...')
         await this.saveSubscription(storeId, subscription)
         console.log('[StoreNotifications] Subscribed successfully')
         return true
       }
 
+      console.warn('[StoreNotifications] No subscription available')
       return false
     } catch (error) {
       console.error('[StoreNotifications] Subscription failed:', error)
@@ -96,22 +130,34 @@ class StoreNotificationService {
 
   // Save subscription to server
   private async saveSubscription(storeId: string, subscription: PushSubscription) {
-    await fetch('/api/notifications/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        storeId,
-        subscription: {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: subscription.getKey('p256dh') ? 
-              btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))) : '',
-            auth: subscription.getKey('auth') ? 
-              btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))) : '',
+    try {
+      const response = await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId,
+          subscription: {
+            endpoint: subscription.endpoint,
+            keys: {
+              p256dh: subscription.getKey('p256dh') ? 
+                btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))) : '',
+              auth: subscription.getKey('auth') ? 
+                btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))) : '',
+            },
           },
-        },
-      }),
-    })
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`Server error: ${errorData.error || response.statusText}`)
+      }
+
+      console.log('[StoreNotifications] Subscription saved to server successfully')
+    } catch (error) {
+      console.error('[StoreNotifications] Failed to save subscription to server:', error)
+      throw error
+    }
   }
 
   // Unsubscribe from push notifications
