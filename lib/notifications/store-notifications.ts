@@ -93,8 +93,21 @@ class StoreNotificationService {
       if (!subscription) {
         console.log('[StoreNotifications] No existing subscription, creating new one...')
         
-        // Get VAPID public key from environment
-        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        // Get VAPID public key from server (fallback to env)
+        let vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        
+        if (!vapidPublicKey) {
+          console.log('[StoreNotifications] VAPID not in env, fetching from server...')
+          try {
+            const response = await fetch('/api/vapid/public-key')
+            const data = await response.json()
+            vapidPublicKey = data.publicKey
+          } catch (error) {
+            console.error('[StoreNotifications] Failed to fetch VAPID key from server:', error)
+            throw new Error('VAPID public key not available')
+          }
+        }
+        
         if (!vapidPublicKey) {
           console.error('[StoreNotifications] VAPID public key not found')
           throw new Error('VAPID public key not configured')

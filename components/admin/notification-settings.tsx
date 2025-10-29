@@ -36,12 +36,21 @@ export function NotificationSettings({ storeId, storeName }: NotificationSetting
     setPushPermission(permission)
     setPushEnabled(permission === 'granted')
 
-    // Debug: Verificar que la clave VAPID esté disponible
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-    console.log('[NotificationSettings] VAPID key available:', !!vapidKey)
-    if (!vapidKey) {
-      console.error('[NotificationSettings] VAPID public key not found in environment')
+    // Verificar que la clave VAPID esté disponible (desde servidor)
+    const checkVapidKey = async () => {
+      try {
+        const response = await fetch('/api/vapid/public-key')
+        const data = await response.json()
+        console.log('[NotificationSettings] VAPID key available:', !!data.publicKey)
+        if (!data.publicKey) {
+          console.error('[NotificationSettings] VAPID public key not found on server')
+        }
+      } catch (error) {
+        console.error('[NotificationSettings] Failed to check VAPID key:', error)
+      }
     }
+    
+    checkVapidKey()
 
     // Obtener estadísticas de la cola de WhatsApp
     const stats = whatsappQueue.getStats()
@@ -62,11 +71,19 @@ export function NotificationSettings({ storeId, storeName }: NotificationSetting
       return
     }
 
-    // Verificar que la clave VAPID esté disponible
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-    if (!vapidKey) {
-      toast.error("Las notificaciones push no están configuradas (falta clave VAPID)")
-      console.error('[NotificationSettings] VAPID key missing')
+    // Verificar que la clave VAPID esté disponible desde el servidor
+    try {
+      const response = await fetch('/api/vapid/public-key')
+      const data = await response.json()
+      
+      if (!data.publicKey) {
+        toast.error("Las notificaciones push no están configuradas (falta clave VAPID)")
+        console.error('[NotificationSettings] VAPID key missing on server')
+        return
+      }
+    } catch (error) {
+      toast.error("Error verificando configuración VAPID")
+      console.error('[NotificationSettings] VAPID check failed:', error)
       return
     }
 

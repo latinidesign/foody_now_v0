@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { MuseoModerno, Open_Sans } from "next/font/google"
 import { Toaster } from "sonner"
+import { PWAProvider } from "@/components/pwa/pwa-provider"
 import "./globals.css"
 
 const museoModerno = MuseoModerno({
@@ -100,7 +101,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`font-sans ${openSans.variable} ${museoModerno.variable}`}>
-        {children}
+        <PWAProvider>
+          {children}
+        </PWAProvider>
         <Toaster />
       </body>
     </html>
