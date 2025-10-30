@@ -142,20 +142,46 @@ export async function POST(request: NextRequest, context: { params: { id: string
       ...(strategy ? { strategy } : {}),
     })
 
+    console.log("[whatsapp:test] Result:", result)
+
     if (result.success) {
-      return NextResponse.json({ success: true })
+      return NextResponse.json({ 
+        success: true,
+        message_sent: true,
+        method: "api",
+        to: targetPhone,
+        message: message.substring(0, 100) + "...",
+        debug: {
+          strategy: strategy,
+          store_name: store.name,
+          timestamp: new Date().toISOString()
+        }
+      })
     }
+
+    // Si no se pudo enviar via API, generar link de WhatsApp
+    const whatsappLink = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(message)}`
 
     const errorMessage =
       result.error === "missing_global_credentials"
-        ? "No se encontraron credenciales globales de WhatsApp Cloud API. Revisa las variables de entorno."
-        : result.error || "No se pudo enviar el mensaje de prueba"
+        ? "No se encontraron credenciales globales de WhatsApp Cloud API. Se generó link de WhatsApp."
+        : result.error || "No se pudo enviar via API. Se generó link de WhatsApp."
 
     return NextResponse.json(
       {
-        success: false,
+        success: true,
+        message_sent: false,
+        method: "link",
+        whatsapp_link: whatsappLink,
+        to: targetPhone,
+        message: message.substring(0, 100) + "...",
         error: errorMessage,
-        fallbackLink: result.link,
+        debug: {
+          original_error: result.error,
+          strategy: strategy,
+          store_name: store.name,
+          timestamp: new Date().toISOString()
+        }
       },
       { status: 200 },
     )
