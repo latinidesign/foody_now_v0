@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Eye, Phone, MapPin, Search, X } from "lucide-react"
+import { Eye, Phone, MapPin, Search, X, MessageCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
@@ -41,6 +41,12 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [deliveryFilter, setDeliveryFilter] = useState<string>("all")
+  const [whatsappModal, setWhatsappModal] = useState<{
+    isOpen: boolean
+    order: OrderWithItems | null
+    message: string
+    link: string | null
+  }>({ isOpen: false, order: null, message: "", link: null })
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -114,12 +120,151 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     }
   }
 
+  const getWhatsAppMessage = (order: OrderWithItems, status: string) => {
+    const storeName = "Tu Tienda" // Esto debería venir del contexto de la tienda
+    const orderItems = order.order_items.map(item => 
+      `• ${item.quantity}x ${item.products.name}`
+    ).join('\n')
+
+    switch (status) {
+      case "confirmed":
+        return `🎉 *¡Pedido Confirmado!*
+
+📦 Pedido: #${order.id.slice(-8)}
+🏪 ${storeName}
+👤 ${order.customer_name}
+
+✅ *Tu pedido ha sido confirmado y está en proceso*
+
+📋 *Resumen del pedido:*
+${orderItems}
+
+💰 Total: $${order.total.toLocaleString()}
+
+⏰ *Tiempo estimado:* 30-45 minutos
+📱 Te mantendremos informado del progreso.
+
+¡Gracias por tu pedido!
+
+---
+*${storeName} - FoodyNow*`
+
+      case "preparing":
+        return `👨‍🍳 *¡Tu pedido se está preparando!*
+
+📦 Pedido: #${order.id.slice(-8)}
+🏪 ${storeName}
+👤 ${order.customer_name}
+
+🔥 *Nuestros chefs están preparando tu pedido*
+
+📋 *Tu pedido incluye:*
+${orderItems}
+
+⏰ *Tiempo estimado restante:* 15-20 minutos
+🍕 ¡Ya casi está listo!
+
+---
+*${storeName} - FoodyNow*`
+
+      case "ready":
+        return `🎉 *¡Tu pedido está LISTO!*
+
+📦 Pedido: #${order.id.slice(-8)}
+🏪 ${storeName}
+👤 ${order.customer_name}
+
+✅ *Tu pedido está preparado y listo para ${order.delivery_type === 'pickup' ? 'retirar' : 'entregar'}*
+
+📋 *Tu pedido:*
+${orderItems}
+
+💰 Total: $${order.total.toLocaleString()}
+
+${order.delivery_type === 'pickup' ? 
+  `📍 *Dirección para retirar:*
+${order.delivery_address || 'Ver ubicación en la app'}
+
+⏰ *Horario de retiro:*
+Lun a Dom: 11:00 - 23:00
+
+🚗 Te esperamos para que retires tu pedido.` :
+  `🚴‍♂️ *Nuestro repartidor está en camino*
+📍 Dirección de entrega: ${order.delivery_address}
+📱 Te contactaremos al llegar.`
+}
+
+¡Gracias por elegirnos!
+
+---
+*${storeName} - FoodyNow*`
+
+      case "delivered":
+        return `✅ *¡Pedido Entregado!*
+
+📦 Pedido: #${order.id.slice(-8)}
+🏪 ${storeName}
+👤 ${order.customer_name}
+
+🎉 *Tu pedido ha sido entregado exitosamente*
+
+📋 *Pedido completado:*
+${orderItems}
+
+💰 Total: $${order.total.toLocaleString()}
+
+⭐ *¿Cómo estuvo tu experiencia?*
+Tu opinión nos ayuda a mejorar.
+
+¡Esperamos verte pronto de nuevo!
+
+---
+*${storeName} - FoodyNow*`
+
+      case "cancelled":
+        return `❌ *Pedido Cancelado*
+
+📦 Pedido: #${order.id.slice(-8)}
+🏪 ${storeName}
+👤 ${order.customer_name}
+
+😔 *Tu pedido ha sido cancelado*
+
+💰 Si realizaste un pago, será reembolsado en 2-3 días hábiles.
+
+📱 Si tienes preguntas, no dudes en contactarnos.
+
+¡Esperamos poder atenderte pronto!
+
+---
+*${storeName} - FoodyNow*`
+
+      default:
+        return `📦 *Actualización de Pedido*
+
+Pedido: #${order.id.slice(-8)}
+Estado: ${getStatusText(status)}
+
+¡Te mantendremos informado!
+
+---
+*${storeName} - FoodyNow*`
+    }
+  }
+
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setIsUpdating(orderId)
     try {
       const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId)
 
       if (error) throw error
+
+      // Buscar el pedido para enviar mensaje de WhatsApp
+      const order = orders.find(o => o.id === orderId)
+      if (order && order.customer_phone && newStatus !== 'pending') {
+        // Generar mensaje automáticamente
+        await sendWhatsAppMessage(order, newStatus)
+      }
 
       toast.success("Estado del pedido actualizado")
       router.refresh()
@@ -128,6 +273,43 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       toast.error("Error al actualizar el estado del pedido")
     } finally {
       setIsUpdating(null)
+    }
+  }
+
+  const sendWhatsAppMessage = async (order: OrderWithItems, status: string) => {
+    try {
+      const message = getWhatsAppMessage(order, status)
+      
+      const response = await fetch(`/api/stores/${order.store_id}/whatsapp/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: order.customer_phone,
+          message: message,
+          strategy: 'text'
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.whatsapp_link) {
+        // Mostrar modal con el link de WhatsApp
+        setWhatsappModal({
+          isOpen: true,
+          order: order,
+          message: message,
+          link: result.whatsapp_link
+        })
+      } else if (result.success) {
+        toast.success("Mensaje de WhatsApp enviado")
+      } else {
+        toast.error("Error al enviar mensaje de WhatsApp")
+      }
+    } catch (error) {
+      console.error("Error sending WhatsApp message:", error)
+      toast.error("Error al enviar mensaje de WhatsApp")
     }
   }
 
@@ -345,6 +527,61 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Modal de WhatsApp */}
+      <Dialog open={whatsappModal.isOpen} onOpenChange={(open) => 
+        setWhatsappModal(prev => ({ ...prev, isOpen: open }))
+      }>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-green-600" />
+              Mensaje de WhatsApp Generado
+            </DialogTitle>
+            <DialogDescription>
+              El mensaje se ha generado automáticamente. Haz clic en el botón para enviarlo al cliente.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {whatsappModal.order && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Cliente:</h4>
+                <p className="text-sm">{whatsappModal.order.customer_name}</p>
+                <p className="text-sm text-muted-foreground">{whatsappModal.order.customer_phone}</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold mb-2">Mensaje:</h4>
+                <div className="bg-muted p-3 rounded-lg text-sm max-h-40 overflow-y-auto whitespace-pre-wrap">
+                  {whatsappModal.message}
+                </div>
+              </div>
+              
+              {whatsappModal.link && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      window.open(whatsappModal.link!, '_blank')
+                      setWhatsappModal(prev => ({ ...prev, isOpen: false }))
+                    }}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Enviar por WhatsApp
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setWhatsappModal(prev => ({ ...prev, isOpen: false }))}
+                  >
+                    Cerrar
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
