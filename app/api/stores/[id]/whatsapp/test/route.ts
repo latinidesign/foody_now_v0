@@ -144,7 +144,11 @@ export async function POST(request: NextRequest, context: { params: { id: string
 
     console.log("[whatsapp:test] Result:", result)
 
-    if (result.success) {
+    // Verificar si tenemos credenciales de WhatsApp configuradas
+    const hasWhatsAppCredentials = process.env.WHATSAPP_BUSINESS_PHONE_NUMBER_ID && 
+                                   process.env.WHATSAPP_BUSINESS_ACCESS_TOKEN
+
+    if (result.success && hasWhatsAppCredentials) {
       return NextResponse.json({ 
         success: true,
         message_sent: true,
@@ -154,16 +158,18 @@ export async function POST(request: NextRequest, context: { params: { id: string
         debug: {
           strategy: strategy,
           store_name: store.name,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          credentials_configured: true
         }
       })
     }
 
-    // Si no se pudo enviar via API, generar link de WhatsApp
+    // Si no hay credenciales o falló el envío, generar link de WhatsApp
     const whatsappLink = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(message)}`
 
-    const errorMessage =
-      result.error === "missing_global_credentials"
+    const errorMessage = !hasWhatsAppCredentials
+      ? "Credenciales de WhatsApp Business API no configuradas. Usando modo link."
+      : result.error === "missing_global_credentials"
         ? "No se encontraron credenciales globales de WhatsApp Cloud API. Se generó link de WhatsApp."
         : result.error || "No se pudo enviar via API. Se generó link de WhatsApp."
 
@@ -180,7 +186,8 @@ export async function POST(request: NextRequest, context: { params: { id: string
           original_error: result.error,
           strategy: strategy,
           store_name: store.name,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          credentials_configured: hasWhatsAppCredentials
         }
       },
       { status: 200 },
