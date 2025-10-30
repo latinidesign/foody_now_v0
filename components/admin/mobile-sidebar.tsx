@@ -17,6 +17,7 @@ import {
   Tags,
   ExternalLink,
   MessageCircle,
+  Bell,
   Menu,
 } from "lucide-react"
 
@@ -25,11 +26,12 @@ interface MobileSidebarProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Info General", href: "/admin", icon: LayoutDashboard },
   { name: "Productos", href: "/admin/products", icon: Package },
   { name: "Categorías", href: "/admin/categories", icon: Tags },
   { name: "Pedidos", href: "/admin/orders", icon: ShoppingBag },
   { name: "Estadísticas", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Notificaciones", href: "/admin/notifications", icon: Bell },
   { name: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
   { name: "Configuración", href: "/admin/settings", icon: Settings },
 ]
@@ -50,9 +52,9 @@ export function MobileSidebar({ store }: MobileSidebarProps) {
         <div className="flex flex-col h-full">
           {/* Logo/Store Info */}
           <div className="p-6 border-b">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-col">
               {store?.logo_url && (
-                <img src={store.logo_url || "/placeholder.svg"} alt={store.name} className="w-10 h-10 rounded-full" />
+                <img src={store.logo_url || "/placeholder.svg"} alt={store.name} className="rounded-full size-36" />
               )}
               <div className="min-w-0 flex-1">
                 <h2 className="font-semibold text-lg truncate">{store?.name || "Mi Tienda"}</h2>
