@@ -149,30 +149,63 @@ self.addEventListener("sync", (event) => {
 self.addEventListener("push", (event) => {
   console.log("[SW] Push received")
 
-  const options = {
-    body: event.data ? event.data.text() : "Nuevo pedido recibido",
+  let notificationData = {
+    title: "Foody Now",
+    body: "Nuevo pedido recibido",
     icon: "/icon-192.png",
     badge: "/icon-72.png",
-    vibrate: [200, 100, 200],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1,
-    },
-    actions: [
-      {
-        action: "view",
-        title: "Ver Pedido",
-        icon: "/icon-192.png",
-      },
-      {
-        action: "close",
-        title: "Cerrar",
-        icon: "/icon-192.png",
-      },
-    ],
+    data: { dateOfArrival: Date.now() }
   }
 
-  event.waitUntil(self.registration.showNotification("Foody Now", options))
+  // Procesar datos del push si existen
+  if (event.data) {
+    try {
+      const pushData = event.data.json()
+      console.log("[SW] Push data received:", pushData)
+      
+      notificationData = {
+        title: pushData.title || notificationData.title,
+        body: pushData.body || notificationData.body,
+        icon: pushData.icon || notificationData.icon,
+        badge: pushData.badge || notificationData.badge,
+        data: pushData.data || notificationData.data,
+        actions: pushData.actions || [
+          {
+            action: "view",
+            title: "Ver",
+            icon: "/icon-192.png",
+          },
+          {
+            action: "close",
+            title: "Cerrar",
+            icon: "/icon-192.png",
+          },
+        ],
+        vibrate: [200, 100, 200],
+        requireInteraction: false,
+        silent: false
+      }
+    } catch (error) {
+      console.error("[SW] Error parsing push data:", error)
+      // Si hay error parseando, usar datos de texto plano
+      notificationData.body = event.data.text() || notificationData.body
+    }
+  }
+
+  console.log("[SW] Showing notification:", notificationData)
+
+  const showNotification = self.registration.showNotification(notificationData.title, {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    data: notificationData.data,
+    actions: notificationData.actions,
+    vibrate: notificationData.vibrate,
+    requireInteraction: notificationData.requireInteraction,
+    silent: notificationData.silent
+  })
+
+  event.waitUntil(showNotification)
 })
 
 // Notification click handler
