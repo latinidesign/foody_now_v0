@@ -7,7 +7,6 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
-import { SandboxCheckoutButton } from "./sandbox-checkout-button"
 
 interface CheckoutPageProps {
   params: Promise<{ slug: string }>
@@ -58,13 +57,6 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
       <main className="container mx-auto px-4 py-6 max-w-2xl">
         <CheckoutForm store={store} mercadopagoPublicKey={paymentSettings?.mercadopago_public_key ?? null} />
-        {/* Sandbox helper: use this button to verify the protected MP flow without exposing credentials. Remove or hide for production. */}
-        <section className="mt-8 space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Checkout Pro directo (sandbox): usa test users y redirige con los metodos filtrados.
-          </p>
-          <SandboxCheckoutButton commerceId={store.id} />
-        </section>
       </main>
     </div>
   )
