@@ -24,7 +24,7 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-store-id={store.id}>
       <div>
         <h1 className="text-3xl font-bold">Notificaciones</h1>
         <p className="text-muted-foreground">
