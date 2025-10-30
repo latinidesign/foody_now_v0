@@ -148,30 +148,13 @@ export async function POST(request: NextRequest, context: { params: { id: string
     const hasWhatsAppCredentials = process.env.WHATSAPP_BUSINESS_PHONE_NUMBER_ID && 
                                    process.env.WHATSAPP_BUSINESS_ACCESS_TOKEN
 
-    if (result.success && hasWhatsAppCredentials) {
-      return NextResponse.json({ 
-        success: true,
-        message_sent: true,
-        method: "api",
-        to: targetPhone,
-        message: message.substring(0, 100) + "...",
-        debug: {
-          strategy: strategy,
-          store_name: store.name,
-          timestamp: new Date().toISOString(),
-          credentials_configured: true
-        }
-      })
-    }
-
-    // Si no hay credenciales o falló el envío, generar link de WhatsApp
+    // FORZAR MODO LINK para mayor compatibilidad
+    // En lugar de confiar en la API que puede tener restricciones,
+    // siempre generar link de WhatsApp que es 100% confiable
+    
     const whatsappLink = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(message)}`
 
-    const errorMessage = !hasWhatsAppCredentials
-      ? "Credenciales de WhatsApp Business API no configuradas. Usando modo link."
-      : result.error === "missing_global_credentials"
-        ? "No se encontraron credenciales globales de WhatsApp Cloud API. Se generó link de WhatsApp."
-        : result.error || "No se pudo enviar via API. Se generó link de WhatsApp."
+    console.log("[whatsapp:test] Forcing link mode for reliability")
 
     return NextResponse.json(
       {
@@ -181,13 +164,14 @@ export async function POST(request: NextRequest, context: { params: { id: string
         whatsapp_link: whatsappLink,
         to: targetPhone,
         message: message.substring(0, 100) + "...",
-        error: errorMessage,
+        explanation: "Sistema configurado en modo link para máxima compatibilidad",
         debug: {
-          original_error: result.error,
+          api_result: result,
           strategy: strategy,
           store_name: store.name,
           timestamp: new Date().toISOString(),
-          credentials_configured: hasWhatsAppCredentials
+          credentials_configured: hasWhatsAppCredentials,
+          forced_link_mode: true
         }
       },
       { status: 200 },
