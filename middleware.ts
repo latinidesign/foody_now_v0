@@ -18,6 +18,18 @@ export async function middleware(request: NextRequest) {
     "localhost:3001",
   ]
 
+  // Detectar deployments de desarrollo/preview de Vercel
+  const isVercelDeployment = hostname.includes("vercel.app")
+  const isVercelDevelopmentDeploy = isVercelDeployment && (
+    hostname.includes("-git-") || // Branch deployments
+    hostname.includes("-git-development") || // Development branch
+    hostname.includes("-git-main") || // Main branch preview
+    hostname.match(/^[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+\.vercel\.app$/) // Random preview URLs
+  )
+
+  // Si es un deployment de desarrollo de Vercel, tratarlo como dominio principal
+  const isMainDomain = mainDomains.some((domain) => hostname === domain) || isVercelDevelopmentDeploy
+
   // Rutas que nunca deben ser reescritas
   const excludedPaths = ["/_next", "/api", "/manifest.json", "/sw.js", "/robots.txt", "/favicon.ico", "/offline"]
 
@@ -29,7 +41,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const isMainDomain = mainDomains.some((domain) => hostname === domain)
   const isLocalhost = hostname.includes("localhost") || hostname.startsWith("127.0.0.1")
 
   if (!isMainDomain) {
