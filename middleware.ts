@@ -112,7 +112,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (url.pathname.startsWith("/store/") && isMainDomain && !isLocalhost) {
+  if (url.pathname.startsWith("/store/") && isMainDomain && !isLocalhost && !isVercelDevelopmentDeploy) {
     const pathParts = url.pathname.split("/")
     if (pathParts.length >= 3) {
       const storeSlug = pathParts[2]
