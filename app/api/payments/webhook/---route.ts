@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
         subtotal: session.subtotal ?? 0,
         delivery_fee: session.delivery_fee ?? 0,
         total: session.total ?? 0,
-        status: "confirmed",
+        status: "pending",
         payment_status: mappedPaymentStatus,
         payment_id: paymentIdString,
       })

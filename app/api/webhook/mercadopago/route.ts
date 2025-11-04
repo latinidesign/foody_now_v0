@@ -593,7 +593,7 @@ async function handleMerchantOrderWebhook(
           subtotal: checkoutSession.subtotal ?? 0,
           delivery_fee: checkoutSession.delivery_fee ?? 0,
           total: checkoutSession.total ?? 0,
-          status: "confirmed",
+          status: "pending",
           payment_status: "completed",
           payment_id: String(paymentId),
         })

@@ -1,5 +1,5 @@
 export type DeliveryType = "pickup" | "delivery"
-export type OrderStatus = "pending" | "confirmed" | "preparing" | "ready" | "delivered" | "cancelled"
+export type OrderStatus = "pending" | "confirmed" | "preparing" | "ready" | "sent" | "delivered" | "cancelled"
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded"
 
 export interface Store {
