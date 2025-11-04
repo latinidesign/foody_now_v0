@@ -96,9 +96,11 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={handleAddToCart} disabled={isAdding} size="sm">
-                    {isAdding ? "Agregando..." : "Agregar"}
-                  </Button>
+                  <Link href={productLink}>
+                    <Button size="sm">
+                      Ver Producto
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>
@@ -161,9 +163,11 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
             </Button>
           </div>
         ) : (
-          <Button onClick={handleAddToCart} disabled={isAdding} className="w-full">
-            {isAdding ? "Agregando..." : "Agregar al Carrito"}
-          </Button>
+          <Link href={productLink}>
+            <Button className="w-full">
+              Ver Producto
+            </Button>
+          </Link>
         )}
       </CardContent>
     </Card>

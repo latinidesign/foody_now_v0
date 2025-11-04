@@ -247,24 +247,6 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                       </>
                     )}
                   </Button>
-
-                  {cartQuantity > 0 && (
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-                        <span>En tu carrito:</span>
-                        <span>{cartQuantity} unidades</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleUpdateCartQuantity(cartQuantity - 1)}>
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                        <span className="font-medium min-w-[2rem] text-center">{cartQuantity}</span>
-                        <Button variant="outline" size="sm" onClick={() => handleUpdateCartQuantity(cartQuantity + 1)}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
