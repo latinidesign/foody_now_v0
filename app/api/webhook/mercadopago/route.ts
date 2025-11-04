@@ -64,13 +64,33 @@ export async function POST(request: Request) {
   const storeIdFromQuery = url.searchParams.get("store_id")
   const storeSlugFromQuery = url.searchParams.get("store_slug")
 
-  const paymentId =
-    payload?.data?.id ?? payload?.data?.payment?.id ?? payload?.id ?? payload?.resource?.split("/").pop()
+  // Detectar el tipo de webhook (payment o merchant_order)
+  const webhookType = url.searchParams.get("topic") || payload?.type
+  
+  console.log(`[webhooks:mercadopago][cid:${cid}] Webhook received - Type: ${webhookType}, Payload:`, payload)
 
-  if (!paymentId) {
-    fail("Webhook received without payment identifier", payload)
+  // Extraer ID según el tipo de webhook
+  let entityId: string | null = null
+  
+  if (webhookType === "merchant_order") {
+    entityId = payload?.data?.id ?? payload?.id ?? url.searchParams.get("id")
+  } else {
+    // payment webhook
+    entityId = payload?.data?.id ?? payload?.data?.payment?.id ?? payload?.id ?? payload?.resource?.split("/").pop()
+  }
+
+  if (!entityId) {
+    fail("Webhook received without entity identifier", { webhookType, payload })
     return NextResponse.json({ ok: true, cid })
   }
+
+  // Si es merchant_order, necesitamos obtener los payments de esa orden
+  if (webhookType === "merchant_order") {
+    return handleMerchantOrderWebhook(request, cid, entityId, storeSlugFromQuery, storeIdFromQuery)
+  }
+
+  // Continuar con el flujo original para payment webhooks
+  const paymentId = entityId
 
   let resolvedStoreId: string | null = storeIdFromQuery
   let resolvedOrderId: string | null = null
@@ -431,4 +451,240 @@ async function handlePaymentApprovedNotifications(orderId: string, storeId: stri
   } else {
     console.warn(`[webhooks:mercadopago][cid:${cid}] No customer phone for WhatsApp notification`)
   }
+}
+
+// Función para manejar webhooks de merchant_order (Checkout PRO)
+async function handleMerchantOrderWebhook(
+  request: Request,
+  cid: string,
+  merchantOrderId: string,
+  storeSlug: string | null,
+  storeId: string | null
+) {
+  const supabase = createAdminClient()
+
+  const fail = (message: string, context?: unknown) => {
+    console.error(`[webhooks:mercadopago][cid:${cid}] ${message}`, context)
+    return NextResponse.json({ ok: true, cid })
+  }
+
+  // Obtener store_id si no se proporcionó
+  let resolvedStoreId = storeId
+  if (!resolvedStoreId && storeSlug) {
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("slug", storeSlug)
+      .single()
+    
+    resolvedStoreId = store?.id ?? null
+  }
+
+  if (!resolvedStoreId) {
+    return fail("Unable to resolve store for merchant_order webhook", { merchantOrderId, storeSlug })
+  }
+
+  // Obtener credenciales de MercadoPago para consultar la merchant_order
+  const { data: settings } = await supabase
+    .from("store_settings")
+    .select("mercadopago_access_token")
+    .eq("store_id", resolvedStoreId)
+    .single()
+
+  if (!settings?.mercadopago_access_token) {
+    return fail("Store missing MercadoPago credentials", { storeId: resolvedStoreId })
+  }
+
+  // Consultar la merchant_order desde MercadoPago
+  console.log(`[webhooks:mercadopago][cid:${cid}] Fetching merchant_order ${merchantOrderId}`)
+  
+  const merchantOrderResponse = await fetch(`https://api.mercadopago.com/merchant_orders/${merchantOrderId}`, {
+    headers: {
+      Authorization: `Bearer ${settings.mercadopago_access_token}`,
+    },
+  })
+
+  if (!merchantOrderResponse.ok) {
+    return fail("Failed to fetch merchant_order from MercadoPago", { 
+      status: merchantOrderResponse.status,
+      merchantOrderId 
+    })
+  }
+
+  const merchantOrder = await merchantOrderResponse.json()
+  console.log(`[webhooks:mercadopago][cid:${cid}] Merchant Order data:`, merchantOrder)
+
+  // Una merchant_order puede tener múltiples payments
+  const payments = merchantOrder.payments || []
+  
+  if (payments.length === 0) {
+    return fail("Merchant order has no payments", { merchantOrder })
+  }
+
+  // Procesar cada payment de la merchant_order
+  for (const payment of payments) {
+    const paymentId = payment.id
+    if (!paymentId) continue
+
+    console.log(`[webhooks:mercadopago][cid:${cid}] Processing payment ${paymentId} from merchant_order`)
+
+    // Obtener detalles completos del payment
+    const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Bearer ${settings.mercadopago_access_token}`,
+      },
+    })
+
+    if (!paymentResponse.ok) {
+      console.error(`[webhooks:mercadopago][cid:${cid}] Failed to fetch payment ${paymentId}`)
+      continue
+    }
+
+    const paymentDetail = await paymentResponse.json()
+    
+    // Buscar la checkout_session por external_reference
+    const externalReference = paymentDetail.external_reference || merchantOrder.external_reference
+    
+    if (!externalReference) {
+      console.error(`[webhooks:mercadopago][cid:${cid}] No external_reference found for payment ${paymentId}`)
+      continue
+    }
+
+    console.log(`[webhooks:mercadopago][cid:${cid}] Looking for checkout_session with external_reference: ${externalReference}`)
+
+    const { data: checkoutSession } = await supabase
+      .from("checkout_sessions")
+      .select("*")
+      .eq("external_reference", externalReference)
+      .eq("store_id", resolvedStoreId)
+      .single()
+
+    if (!checkoutSession) {
+      console.error(`[webhooks:mercadopago][cid:${cid}] No checkout_session found for external_reference: ${externalReference}`)
+      continue
+    }
+
+    // Solo procesar si el payment está approved
+    if (paymentDetail.status !== "approved") {
+      console.log(`[webhooks:mercadopago][cid:${cid}] Payment ${paymentId} not approved, status: ${paymentDetail.status}`)
+      continue
+    }
+
+    let finalOrderId = checkoutSession.order_id
+
+    // Crear la orden si no existe
+    if (!checkoutSession.order_id) {
+      console.log(`[webhooks:mercadopago][cid:${cid}] Creating order for approved payment ${paymentId}`)
+      
+      const orderData = checkoutSession.order_data as any
+      const sessionItems = checkoutSession.items as any[]
+
+      // Crear la orden
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          store_id: resolvedStoreId,
+          customer_name: orderData.customerName,
+          customer_email: orderData.customerEmail,
+          customer_phone: orderData.customerPhone,
+          delivery_type: orderData.deliveryType,
+          delivery_address: orderData.deliveryAddress,
+          delivery_notes: orderData.deliveryNotes,
+          subtotal: checkoutSession.subtotal ?? 0,
+          delivery_fee: checkoutSession.delivery_fee ?? 0,
+          total: checkoutSession.total ?? 0,
+          status: "confirmed",
+          payment_status: "completed",
+          payment_id: String(paymentId),
+        })
+        .select("*, stores (slug)")
+        .single()
+
+      if (orderError || !order) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Failed to create order:`, orderError)
+        continue
+      }
+
+      finalOrderId = order.id
+
+      // Crear order_items
+      if (sessionItems.length > 0) {
+        const orderItems = sessionItems.map((item: any) => ({
+          order_id: order.id,
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+          selected_options: item.selectedOptions ?? null,
+        }))
+
+        const { error: itemsError } = await supabase
+          .from("order_items")
+          .insert(orderItems)
+
+        if (itemsError) {
+          console.error(`[webhooks:mercadopago][cid:${cid}] Failed to create order items:`, itemsError)
+        }
+      }
+
+      // Actualizar checkout_session con order_id
+      await supabase
+        .from("checkout_sessions")
+        .update({
+          order_id: order.id,
+          status: "approved",
+          payment_status: "completed",
+          payment_id: String(paymentId),
+          processed_at: new Date().toISOString(),
+        })
+        .eq("id", checkoutSession.id)
+
+      console.log(`[webhooks:mercadopago][cid:${cid}] Order created successfully: ${order.id}`)
+
+      // Enviar notificaciones
+      try {
+        await handlePaymentApprovedNotifications(order.id, resolvedStoreId, cid)
+      } catch (error) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Failed to send notifications:`, error)
+      }
+    }
+
+    // Registrar el payment en la tabla payments
+    const normalizedPaymentStatus = mapPaymentStatus(PROVIDER_KEY, paymentDetail.status)
+    const normalizedOrderStatus = mapOrderStatus(PROVIDER_KEY, paymentDetail.status)
+
+    const paymentRecord = {
+      order_id: finalOrderId,
+      store_id: resolvedStoreId,
+      provider: PROVIDER_KEY,
+      provider_payment_id: String(paymentId),
+      preference_id: merchantOrder.preference_id ?? null,
+      mp_payment_id: String(paymentId),
+      payment_method: paymentDetail.payment_method_id ?? null,
+      source_type: paymentDetail.payment_type_id ?? null,
+      status: normalizedPaymentStatus,
+      status_detail: paymentDetail.status_detail ?? null,
+      transaction_amount: paymentDetail.transaction_amount,
+      currency: paymentDetail.currency_id ?? "ARS",
+      payer_email: paymentDetail.payer?.email ?? null,
+      collector_id: paymentDetail.collector_id ? String(paymentDetail.collector_id) : null,
+      metadata: paymentDetail.metadata ?? null,
+      raw: paymentDetail,
+    }
+
+    const { error: upsertError } = await supabase
+      .from("payments")
+      .upsert(paymentRecord, {
+        onConflict: "provider,provider_payment_id",
+        ignoreDuplicates: false,
+      })
+
+    if (upsertError && !isIdempotentConflict(upsertError)) {
+      console.error(`[webhooks:mercadopago][cid:${cid}] Failed to upsert payment:`, upsertError)
+    } else {
+      console.log(`[webhooks:mercadopago][cid:${cid}] Payment record upserted successfully`)
+    }
+  }
+
+  return NextResponse.json({ ok: true, cid })
 }
