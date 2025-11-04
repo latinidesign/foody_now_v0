@@ -3,16 +3,16 @@
 // Script para probar el webhook de merchant_order con los datos del pago real
 import fetch from 'node-fetch'
 
-const WEBHOOK_URL = 'https://foodynow.com.ar/api/webhook/mercadopago?tenant=pizzeria-don-mario&topic=merchant_order&id=35202173516'
+const WEBHOOK_URL = 'https://foodynow.com.ar/api/webhook/mercadopago?tenant=pizzeria-don-mario&topic=merchant_order&id=TEST_MERCHANT_ORDER_123'
 
 // Simular el payload que envía MercadoPago para un merchant_order
 const merchantOrderPayload = {
   action: "payment.updated",
   api_version: "v1",
   data: {
-    id: "35202173516"  // Este es el merchant_order ID del log
+    id: "TEST_MERCHANT_ORDER_123"  // ID de prueba para verificar el webhook
   },
-  date_created: "2025-10-31T22:32:54.000Z",
+  date_created: new Date().toISOString(),
   id: 12345,
   live_mode: false,
   type: "merchant_order",

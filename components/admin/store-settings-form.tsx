@@ -633,6 +633,16 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
           <CardContent>
             <form onSubmit={handlePaymentUpdate} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="mercadopagoPublicKey">Public Key de MercadoPago</Label>
+                <Input
+                  id="mercadopagoPublicKey"
+                  value={paymentSettings.mercadopagoPublicKey}
+                  onChange={(e) => setPaymentSettings({ ...paymentSettings, mercadopagoPublicKey: e.target.value })}
+                  placeholder="APP_USR-..."
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="mercadopagoAccessToken">Access Token de MercadoPago</Label>
                 <div className="relative">
                   <Input
@@ -653,16 +663,6 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">Obtén tu Access Token desde tu cuenta de MercadoPago</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="mercadopagoPublicKey">Public Key de MercadoPago</Label>
-                <Input
-                  id="mercadopagoPublicKey"
-                  value={paymentSettings.mercadopagoPublicKey}
-                  onChange={(e) => setPaymentSettings({ ...paymentSettings, mercadopagoPublicKey: e.target.value })}
-                  placeholder="APP_USR-..."
-                />
               </div>
 
               <Button type="submit" disabled={loading}>
