@@ -10,12 +10,6 @@ const nextConfig = {
     unoptimized: true,
   },
   experimental: {
-    allowedOrigins: [
-      "https://foodynow.com.ar",
-      "https://*.foodynow.com.ar",
-      "https://foodynowapp.vercel.app",
-      "https://v0-ecommerce-pwa.vercel.app",
-    ],
     allowedDevOrigins: [
       "http://localhost:3000",
       "http://localhost:3001",
