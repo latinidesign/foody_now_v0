@@ -5,75 +5,87 @@
 
 :root {
   /* Updated color palette for Foody Now - food industry colors */
-  --background: oklch(0.98 0.01 85); /* Warm cream background */
-  --foreground: oklch(0.2 0.02 120); /* Dark green text */
+  --background: oklch(1 0 0); /* Warm cream background */
+  --foreground: oklch(0.145 0 0); /* Dark green text */
   --card: oklch(1 0 0); /* Pure white cards */
-  --card-foreground: oklch(0.2 0.02 120);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 120);
-  --primary: oklch(0.35 0.08 135); /* Deep forest green #2D5016 */
-  --primary-foreground: oklch(0.98 0.01 85);
-  --secondary: oklch(0.55 0.06 140); /* Medium green #4A7C59 */
-  --secondary-foreground: oklch(0.98 0.01 85);
-  --muted: oklch(0.95 0.01 85); /* Light cream */
-  --muted-foreground: oklch(0.45 0.02 120);
-  --accent: oklch(0.65 0.15 45); /* Warm orange #FF6B35 */
-  --accent-foreground: oklch(0.98 0.01 85);
+  --card-foreground: oklch(0.145 0 0);
+  --primary: #b728d7; /* Deep forest green #2D5016 */
+  --primary-foreground: #fbf5fe;
+  --secondary: #78716c; /* Medium green #4A7C59 */
+  --secondary-foreground: #fafafa;
+  --muted: oklch(0.97 0 0); /* Light cream */
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: #90cb22; /* Warm orange #FF6B35 */
+  --accent-foreground: #f9fee9;
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0.01 85);
-  --border: oklch(0.9 0.01 85);
-  --input: oklch(0.95 0.01 85);
-  --ring: oklch(0.35 0.08 135);
-  --chart-1: oklch(0.35 0.08 135); /* Primary green */
-  --chart-2: oklch(0.55 0.06 140); /* Secondary green */
-  --chart-3: oklch(0.65 0.15 45); /* Orange accent */
-  --chart-4: oklch(0.7 0.1 85); /* Light warm */
-  --chart-5: oklch(0.4 0.04 160); /* Dark green variant */
-  --radius: 0.75rem; /* Slightly more rounded for food industry */
-  --sidebar: oklch(0.98 0.01 85);
-  --sidebar-foreground: oklch(0.2 0.02 120);
-  --sidebar-primary: oklch(0.35 0.08 135);
-  --sidebar-primary-foreground: oklch(0.98 0.01 85);
-  --sidebar-accent: oklch(0.95 0.01 85);
-  --sidebar-accent-foreground: oklch(0.2 0.02 120);
-  --sidebar-border: oklch(0.9 0.01 85);
-  --sidebar-ring: oklch(0.35 0.08 135);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: #cf48f3; /* Primary green */
+  --chart-2: oklch(0.6 0.118 184.704); /* Secondary green */
+  --chart-3: oklch(0.398 0.07 227.392); /* Orange accent */
+  --chart-4: oklch(0.828 0.189 84.429); /* Light warm */
+  --chart-5: oklch(0.769 0.188 70.08); /* Dark green variant */
+  --radius: 0.625rem; /* Slightly more rounded for food industry */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --popover: #78716c;
+  --popover-foreground: oklch(0.145 0 0);
+  --shadow-x: 0px;
+  --shadow-y: 1px;
+  --shadow-blur: 2px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.05;
+  --shadow-color: #000000;
 }
 
 .dark {
   /* Dark mode colors adapted for food industry */
-  --background: oklch(0.15 0.02 120); /* Dark green background */
-  --foreground: oklch(0.95 0.01 85); /* Light cream text */
-  --card: oklch(0.2 0.02 120);
-  --card-foreground: oklch(0.95 0.01 85);
-  --popover: oklch(0.2 0.02 120);
-  --popover-foreground: oklch(0.95 0.01 85);
-  --primary: oklch(0.55 0.06 140); /* Lighter green for dark mode */
-  --primary-foreground: oklch(0.15 0.02 120);
-  --secondary: oklch(0.25 0.03 120);
-  --secondary-foreground: oklch(0.95 0.01 85);
-  --muted: oklch(0.25 0.03 120);
-  --muted-foreground: oklch(0.7 0.02 85);
-  --accent: oklch(0.65 0.15 45); /* Keep orange accent */
-  --accent-foreground: oklch(0.15 0.02 120);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.95 0.01 85);
-  --border: oklch(0.25 0.03 120);
-  --input: oklch(0.25 0.03 120);
-  --ring: oklch(0.55 0.06 140);
-  --chart-1: oklch(0.55 0.06 140);
-  --chart-2: oklch(0.65 0.15 45);
-  --chart-3: oklch(0.7 0.1 85);
-  --chart-4: oklch(0.4 0.04 160);
-  --chart-5: oklch(0.75 0.08 140);
-  --sidebar: oklch(0.18 0.02 120);
-  --sidebar-foreground: oklch(0.95 0.01 85);
-  --sidebar-primary: oklch(0.55 0.06 140);
-  --sidebar-primary-foreground: oklch(0.15 0.02 120);
-  --sidebar-accent: oklch(0.25 0.03 120);
-  --sidebar-accent-foreground: oklch(0.95 0.01 85);
-  --sidebar-border: oklch(0.25 0.03 120);
-  --sidebar-ring: oklch(0.55 0.06 140);
+  --background: oklch(0.145 0 0); /* Dark green background */
+  --foreground: oklch(0.985 0 0); /* Light cream text */
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0); /* Lighter green for dark mode */
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.371 0 0); /* Keep orange accent */
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.439 0 0);
+  --shadow-x: 0px;
+  --shadow-y: 1px;
+  --shadow-blur: 2px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.05;
+  --shadow-color: #000000;
 }
 
 @theme inline {
