@@ -16,7 +16,12 @@ import {
   ExternalLink,
   MessageCircle,
   Bell,
+  LifeBuoy,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"
+import { useState } from "react"
+import { adminHelpLinks } from "./help-links"
 
 interface AdminSidebarProps {
   store: StoreType | null
@@ -35,6 +40,7 @@ const navigation = [
 
 export function AdminSidebar({ store }: AdminSidebarProps) {
   const pathname = usePathname()
+  const [helpOpen, setHelpOpen] = useState(false)
 
   return (
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r lg:block hidden">
@@ -69,6 +75,46 @@ export function AdminSidebar({ store }: AdminSidebarProps) {
             )
           })}
         </nav>
+
+        <div className="p-4 border-t">
+          <Button
+            variant={helpOpen ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start",
+              helpOpen ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
+            )}
+            onClick={() => setHelpOpen((prev) => !prev)}
+          >
+            <LifeBuoy className="mr-3 h-4 w-4" />
+            Ayuda
+            <ChevronDown
+              className={cn("ml-auto h-4 w-4 transition-transform", helpOpen ? "rotate-180" : "")}
+            />
+          </Button>
+
+          {helpOpen && (
+            <div className="mt-3 space-y-1">
+              {adminHelpLinks.map((item) => {
+                const itemPath = item.href.split("#")[0]
+                const isActive = pathname === itemPath
+                return (
+                  <Link key={item.name} href={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start text-sm text-muted-foreground pl-8",
+                        isActive && "text-primary"
+                      )}
+                    >
+                      <ChevronRight className="mr-2 h-4 w-4" />
+                      {item.name}
+                    </Button>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Store Link */}
         {store && (
