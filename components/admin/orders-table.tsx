@@ -92,6 +92,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         return "default"
       case "ready":
         return "default"
+      case "sent":
+        return "default"
       case "delivered":
         return "default"
       case "cancelled":
@@ -111,6 +113,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         return "Preparando"
       case "ready":
         return "Listo"
+      case "sent":
+        return "Enviado"
       case "delivered":
         return "Entregado"
       case "cancelled":
@@ -121,7 +125,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   }
 
   const getWhatsAppMessage = (order: OrderWithItems, status: string) => {
-    const storeName = "Tu Tienda" // Esto debería venir del contexto de la tienda
+    const storeName = "Pizzeria Don Mario" // Nombre de la tienda
     const orderItems = order.order_items.map(item => 
       `• ${item.quantity}x ${item.products.name}`
     ).join('\n')
@@ -168,33 +172,53 @@ ${orderItems}
 *${storeName} - FoodyNow*`
 
       case "ready":
-        return `🎉 *¡Tu pedido está LISTO!*
+        return `🎉 *¡Tu pedido está LISTO para retirar!*
 
 📦 Pedido: #${order.id.slice(-8)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
-✅ *Tu pedido está preparado y listo para ${order.delivery_type === 'pickup' ? 'retirar' : 'entregar'}*
+✅ *Tu pedido está preparado y listo para retirar*
 
 📋 *Tu pedido:*
 ${orderItems}
 
 💰 Total: $${order.total.toLocaleString()}
 
-${order.delivery_type === 'pickup' ? 
-  `📍 *Dirección para retirar:*
+📍 *Dirección para retirar:*
 ${order.delivery_address || 'Ver ubicación en la app'}
 
 ⏰ *Horario de retiro:*
 Lun a Dom: 11:00 - 23:00
 
-🚗 Te esperamos para que retires tu pedido.` :
-  `🚴‍♂️ *Nuestro repartidor está en camino*
-📍 Dirección de entrega: ${order.delivery_address}
-📱 Te contactaremos al llegar.`
-}
+🚗 ¡Vení a retirarlo! Te esperamos.
 
 ¡Gracias por elegirnos!
+
+---
+*${storeName} - FoodyNow*`
+
+      case "sent":
+        return `🚴‍♂️ *¡Tu pedido está EN CAMINO!*
+
+📦 Pedido: #${order.id.slice(-8)}
+🏪 ${storeName}
+👤 ${order.customer_name}
+
+� *Nuestro repartidor está en camino hacia tu ubicación*
+
+📋 *Tu pedido:*
+${orderItems}
+
+💰 Total: $${order.total.toLocaleString()}
+
+📍 *Dirección de entrega:*
+${order.delivery_address}
+
+📱 Te contactaremos al llegar a tu puerta.
+⏰ Tiempo estimado: 10-15 minutos
+
+¡Gracias por tu paciencia!
 
 ---
 *${storeName} - FoodyNow*`
@@ -339,6 +363,7 @@ Estado: ${getStatusText(status)}
                 <SelectItem value="confirmed">Confirmado</SelectItem>
                 <SelectItem value="preparing">Preparando</SelectItem>
                 <SelectItem value="ready">Listo</SelectItem>
+                <SelectItem value="sent">Enviado</SelectItem>
                 <SelectItem value="delivered">Entregado</SelectItem>
                 <SelectItem value="cancelled">Cancelado</SelectItem>
               </SelectContent>
@@ -419,6 +444,7 @@ Estado: ${getStatusText(status)}
                       <SelectItem value="confirmed">Confirmado</SelectItem>
                       <SelectItem value="preparing">Preparando</SelectItem>
                       <SelectItem value="ready">Listo</SelectItem>
+                      <SelectItem value="sent">Enviado</SelectItem>
                       <SelectItem value="delivered">Entregado</SelectItem>
                       <SelectItem value="cancelled">Cancelado</SelectItem>
                     </SelectContent>
@@ -458,6 +484,7 @@ Estado: ${getStatusText(status)}
                                 <SelectItem value="confirmed">Confirmado</SelectItem>
                                 <SelectItem value="preparing">Preparando</SelectItem>
                                 <SelectItem value="ready">Listo</SelectItem>
+                                <SelectItem value="sent">Enviado</SelectItem>
                                 <SelectItem value="delivered">Entregado</SelectItem>
                                 <SelectItem value="cancelled">Cancelado</SelectItem>
                               </SelectContent>
