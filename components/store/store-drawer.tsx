@@ -9,6 +9,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
+import { useStoreHours } from "@/lib/hooks/use-store-hours"
 
 interface StoreDrawerProps {
   store: Store & { business_hours?: any; is_open?: boolean }
@@ -16,116 +17,15 @@ interface StoreDrawerProps {
   onOpenChange: (open: boolean) => void
 }
 
-const timeToMinutes = (t: string) => {
-  const [h, m] = t.split(":").map(Number)
-  return h * 60 + m
-}
-
-function isStoreOpen(businessHours: any, isOpen = true) {
-  if (!isOpen || !businessHours) return false
-
-  const now = new Date()
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
-  const currentDay = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][now.getDay()]
-
-  const daySchedule = businessHours[currentDay]
-  if (!daySchedule || !daySchedule.isOpen) {
-    return false
-  }
-
-  const checkPeriod = (openStr: string, closeStr: string) => {
-    const open = timeToMinutes(openStr)
-    const close = timeToMinutes(closeStr)
-    const current = nowMinutes
-
-    if (close < open) {
-      return current >= open || current <= close
-    }
-    return current >= open && current <= close
-  }
-
-  if (daySchedule.open1 && daySchedule.close1) {
-    if (checkPeriod(daySchedule.open1, daySchedule.close1)) {
-      return true
-    }
-  }
-
-  if (daySchedule.open2 && daySchedule.close2) {
-    if (checkPeriod(daySchedule.open2, daySchedule.close2)) {
-      return true
-    }
-  }
-
-  return false
-}
-
-const minutesToTime = (minutes: number) => {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`
-}
-
-function getNextScheduleInfo(businessHours: any, isOpen = true) {
-  if (!isOpen || !businessHours) return null
-
-  const now = new Date()
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
-  const currentDayIndex = now.getDay()
-  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-  const dayNames = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
-
-  const currentSchedule = businessHours[days[currentDayIndex]]
-
-  if (currentSchedule?.isOpen) {
-    const { open1, close1, open2, close2 } = currentSchedule
-
-    if (open1 && close1) {
-      const start = timeToMinutes(open1)
-      const end = timeToMinutes(close1)
-      if (nowMinutes >= start && nowMinutes <= end) {
-        return `hasta las ${close1} hs`
-      }
-    }
-
-    if (open2 && close2) {
-      const start = timeToMinutes(open2)
-      const end = timeToMinutes(close2)
-      if (nowMinutes >= start && (end > start ? nowMinutes <= end : true)) {
-        return `hasta las ${close2} hs`
-      }
-    }
-
-    if (open1 && close1) {
-      const start = timeToMinutes(open1)
-      const end = timeToMinutes(close1)
-      if (nowMinutes < start) {
-        return `Abre hoy a las ${minutesToTime(start)}`
-      }
-      if (end <= start && nowMinutes > end) {
-        return `Abre hoy a las ${minutesToTime(start)}`
-      }
-    }
-
-    for (let i = 1; i <= 7; i++) {
-      const nextDayIndex = (currentDayIndex + i) % 7
-      const nextSchedule = businessHours[days[nextDayIndex]]
-      if (nextSchedule?.isOpen) {
-        const dayName = i === 1 ? "mañana" : dayNames[nextDayIndex]
-        return `Abre ${dayName} a las ${nextSchedule.open1}`
-      }
-    }
-  }
-
-  return null
-}
-
 export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
   const [showMap, setShowMap] = useState(false)
   const [showBusinessHours, setShowBusinessHours] = useState(false)
   const storeBasePath = deriveStoreBasePathFromPathname(usePathname(), store.slug)
 
-  const storeIsOpen = isStoreOpen(store.business_hours, store.is_open)
-  const nextScheduleInfo = getNextScheduleInfo(store.business_hours, store.is_open)
+  const { isOpen: storeIsOpen, nextScheduleInfo, isLoading } = useStoreHours(
+    store.business_hours, 
+    store.is_open
+  )
 
   return (
     <>
@@ -199,11 +99,21 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
                 <Clock className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium">Horarios de Atención</p>
-                  <div className={`text-sm font-medium mb-1 ${storeIsOpen ? "text-green-600" : "text-red-600"}`}>
-                    {storeIsOpen ? <span>**Abierto** {nextScheduleInfo}</span> : "Cerrado"}
-                  </div>
-                  {!storeIsOpen && nextScheduleInfo && (
-                    <p className="text-xs text-muted-foreground mb-2">{nextScheduleInfo}</p>
+                  {isLoading ? (
+                    <div className="text-sm text-muted-foreground mb-1">Verificando horarios...</div>
+                  ) : (
+                    <>
+                      <div className={`text-sm font-medium mb-1 ${storeIsOpen ? "text-green-600" : "text-red-600"}`}>
+                        {storeIsOpen ? (
+                          <span>🟢 Abierto {nextScheduleInfo || ''}</span>
+                        ) : (
+                          <span>🔴 Cerrado</span>
+                        )}
+                      </div>
+                      {!storeIsOpen && nextScheduleInfo && (
+                        <p className="text-xs text-muted-foreground mb-2">{nextScheduleInfo}</p>
+                      )}
+                    </>
                   )}
                   {store.business_hours && (
                     <button onClick={() => setShowBusinessHours(true)} className="text-xs text-primary underline">
