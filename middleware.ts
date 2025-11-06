@@ -29,7 +29,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const isMainDomain = mainDomains.some((domain) => hostname === domain)
+  const isVercelPreviewDomain = hostname.endsWith(".vercel.app") && hostname.includes("-git-")
+  const isMainDomain = mainDomains.some((domain) => hostname === domain) || isVercelPreviewDomain
   const isLocalhost = hostname.includes("localhost") || hostname.startsWith("127.0.0.1")
 
   if (!isMainDomain) {
@@ -101,7 +102,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (url.pathname.startsWith("/store/") && isMainDomain && !isLocalhost) {
+  if (url.pathname.startsWith("/store/") && isMainDomain && !isLocalhost && !isVercelPreviewDomain) {
     const pathParts = url.pathname.split("/")
     if (pathParts.length >= 3) {
       const storeSlug = pathParts[2]
