@@ -231,7 +231,7 @@ const [step, setStep] = useState<'register' | 'email-confirmation' | 'subscripti
   }
 
   return (
-    <div className={`min-h-screen ${step === 'subscription' ? 'bg-gray-900' : 'bg-background'}`}>
+    <div className="min-h-screen bg-background">
       <AuthHeader />
 
       <div className="flex min-h-[calc(100vh-80px)] w-full items-start justify-center p-4 md:p-6">
@@ -369,15 +369,8 @@ const [step, setStep] = useState<'register' | 'email-confirmation' | 'subscripti
             </Card>
           </div>
         ) : (
-          // Paso 3: Suscripción con diseño moderno
-          <div className="w-full max-w-7xl">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-2 text-white">¡Cuenta creada exitosamente! 🎉</h1>
-              <p className="text-gray-300">
-                Ahora elige tu plan y comienza con 30 días completamente gratis
-              </p>
-            </div>
-
+          // Paso 3: Suscripción con diseño moderno de FoodyNow
+          <div className="w-full">
             {/* Sección de pricing moderna */}
             <ModernPricingSection 
               onSubscribe={handleSubscribe}
@@ -385,7 +378,7 @@ const [step, setStep] = useState<'register' | 'email-confirmation' | 'subscripti
             />
             
             {error && (
-              <div className="mt-8 max-w-md mx-auto text-sm text-red-400 bg-red-900/50 border border-red-700 rounded-lg p-4 text-center">
+              <div className="max-w-md mx-auto mt-8 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                 {error}
               </div>
             )}
