@@ -1,15 +1,42 @@
-# FoodyNow - Ecommerce PWA Multi-Tienda
+# 🍕 FoodyNow - SaaS Multi-Tienda Conversacional
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+**Plataforma SaaS de tiendas online conversacionales para negocios gastronómicos**
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/thefoody/v0-ecommerce-pwa)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/1UpW0ffhz3f)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://foodynowapp.vercel.app)
+[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Powered by Supabase](https://img.shields.io/badge/Powered%20by-Supabase-green?style=for-the-badge&logo=supabase)](https://supabase.com)
 
-## Overview
+## 🚀 Overview
 
-FoodyNow es una plataforma PWA multi-tienda que permite a cada comercio tener su propio subdominio personalizado. El sistema utiliza Next.js 15 con App Router y Supabase como base de datos.
+FoodyNow es una solución SaaS completa que permite a restaurantes y negocios gastronómicos crear tiendas online integradas con WhatsApp, pagos seguros con MercadoPago y herramientas de marketing digital. Cada comercio obtiene su propio subdominio personalizado y un panel de administración completo.
 
-## 🏗️ Arquitectura de Subdominios
+## � Características Principales
+
+### 🛍️ **Tienda Online Conversacional**
+- Tienda online personalizable con la marca del negocio
+- Integración completa con WhatsApp para ventas automáticas
+- Carrito de compras inteligente
+- Catálogo ilimitado de productos y categorías
+
+### 💳 **Pagos Seguros**
+- Integración con MercadoPago
+- Pagos certificados y seguros
+- Sin comisiones por transacción para el comercio
+- Soporte para todos los métodos de pago de Argentina
+
+### 📊 **Panel de Administración**
+- Dashboard completo con estadísticas en tiempo real
+- Gestión de productos, categorías e inventario
+- CRM integrado para gestión de clientes
+- Herramientas de marketing digital
+
+### 📱 **PWA & Experiencia Móvil**
+- Progressive Web App optimizada
+- Experiencia nativa en móviles
+- Notificaciones push automáticas
+- Funcionamiento offline
+
+## �🏗️ Arquitectura de Subdominios
 
 ### Funcionamiento
 
@@ -18,6 +45,16 @@ El sistema mapea automáticamente subdominios a tiendas específicas:
 - `pizzeria-don-mario.foodynow.com.ar` → `/store/pizzeria-don-mario`
 - `panaderia-central.foodynow.com.ar` → `/store/panaderia-central`
 - `localhost:3000/store/mi-tienda` → Desarrollo local
+
+### Stack Tecnológico
+
+- **Next.js 15.2.4** - React framework con App Router
+- **TypeScript** - Tipado estático
+- **Tailwind CSS + shadcn/ui** - Styling moderno
+- **Supabase** - Backend-as-a-Service (PostgreSQL + Auth + Real-time)
+- **MercadoPago API** - Procesamiento de pagos
+- **WhatsApp Business API** - Comunicación conversacional
+- **Vercel** - Hosting y deployment automático
 
 ### Componentes Clave
 
@@ -50,28 +87,50 @@ El sistema mapea automáticamente subdominios a tiendas específicas:
    CNAME: *.foodynow.com.ar → cname.vercel-dns.com
    \`\`\`
 
+## 🎯 Modelo de Negocio
+
+### **Plan Profesional**
+- **Precio**: $9.999/mes (ARS)
+- **Prueba gratuita**: 15 días
+- **Sin comisiones** por venta
+- **Todo incluido**: Tienda + WhatsApp + Pagos + Analytics
+
+### **Nuevo Flujo de Usuario**
+1. **Landing Page** → Información del producto y beneficios
+2. **Pricing** → Visualización de planes (15 días gratis) 
+3. **Registro** → Formulario con nombre, apellido, email y contraseña
+4. **Confirmación Email** → Verificación de cuenta
+5. **Panel Admin** → Acceso completo con popup de bienvenida MercadoPago
+
 ### Variables de Entorno Requeridas
 
 \`\`\`env
 # Supabase
-SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Opcional para revalidación
-REVALIDATE_SECRET=your-secret-key
+# MercadoPago (Producción - FoodyNow)
+MERCADO_PAGO_ACCESS_TOKEN=your_production_token
+NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY=your_production_public_key
 
-# WhatsApp Cloud API (Global - usando nombres existentes en Vercel)
+# MercadoPago (Tiendas - Separado)
+MERCADO_PAGO_STORES_ACCESS_TOKEN=your_stores_token
+NEXT_PUBLIC_MERCADO_PAGO_STORES_PUBLIC_KEY=your_stores_public_key
+
+# WhatsApp Business API
 WHATSAPP_BUSINESS_PHONE_NUMBER_ID=836468659544565
-WHATSAPP_BUSINESS_ACCESS_TOKEN=EAAT...
-WHATSAPP_BUSINESS_ACCOUNT_ID=123456789012345  # opcional
+WHATSAPP_BUSINESS_ACCESS_TOKEN=your_whatsapp_token
+WHATSAPP_BUSINESS_ACCOUNT_ID=123456789012345
 WHATSAPP_API_VERSION=v20.0
 
-# WhatsApp Webhook (solo para verificación)
+# WhatsApp Webhook
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=FoodyNow.2025.ButinofLatini
 WHATSAPP_APP_SECRET=143daf0a6e2123f35bc54656df2ed74d
+
+# Base URLs
+NEXT_PUBLIC_BASE_URL=https://foodynowapp.vercel.app
+REVALIDATE_SECRET=your-secret-key
 \`\`\`
 
 - `SUPABASE_SERVICE_ROLE_KEY` debe copiarse desde **Supabase → Project Settings → API → service_role**.
@@ -94,8 +153,29 @@ WHATSAPP_APP_SECRET=143daf0a6e2123f35bc54656df2ed74d
 ### Instalación
 
 \`\`\`bash
-npm install
-npm run dev
+# Clonar repositorio
+git clone https://github.com/latinidesign/foody_now_v0.git
+cd foody_now_v0
+
+# Instalar dependencias
+pnpm install
+
+# Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales
+
+# Ejecutar desarrollo
+pnpm dev
+\`\`\`
+
+### Comandos Principales
+
+\`\`\`bash
+pnpm dev          # Servidor de desarrollo
+pnpm build        # Build para producción  
+pnpm start        # Servidor de producción
+pnpm lint         # Linting con ESLint
+pnpm type-check   # Verificación de tipos TypeScript
 \`\`\`
 
 ### Probar Subdominios Localmente
