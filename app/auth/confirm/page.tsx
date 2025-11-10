@@ -44,7 +44,13 @@ function ConfirmEmailContent() {
         }
       } catch (error: any) {
         setStatus('error')
-        setMessage(error.message || 'Error confirmando el email')
+        
+        // Detectar diferentes tipos de error
+        if (error.message?.includes('expired') || error.message?.includes('invalid')) {
+          setMessage('El enlace de confirmación ha expirado o es inválido. Por favor, solicita un nuevo enlace.')
+        } else {
+          setMessage(error.message || 'Error confirmando el email')
+        }
       }
     }
 
@@ -127,19 +133,35 @@ function ConfirmEmailContent() {
           
           {status === 'error' && (
             <div className="text-center space-y-2">
-              <Button 
-                onClick={() => router.push('/auth/sign-up')}
-                className="w-full"
-              >
-                Volver al registro
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
-                Intentar nuevamente
-              </Button>
+              {message.includes('expirado') ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Los enlaces de confirmación expiran por seguridad. Puedes solicitar un nuevo enlace desde la página de registro.
+                  </p>
+                  <Button 
+                    onClick={() => router.push('/auth/resend-confirmation')}
+                    className="w-full"
+                  >
+                    Solicitar nuevo enlace
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    onClick={() => router.push('/auth/sign-up')}
+                    className="w-full"
+                  >
+                    Volver al registro
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="w-full"
+                  >
+                    Intentar nuevamente
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </CardContent>
