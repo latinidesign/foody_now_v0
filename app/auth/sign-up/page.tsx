@@ -21,6 +21,8 @@ export default function Page() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [repeatPassword, setRepeatPassword] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isCreatingSubscription, setIsCreatingSubscription] = useState(false)
@@ -159,6 +161,11 @@ const [step, setStep] = useState<'register' | 'email-confirmation' | 'subscripti
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            full_name: `${firstName} ${lastName}`.trim()
+          }
         },
       })
       
@@ -250,12 +257,36 @@ const [step, setStep] = useState<'register' | 'email-confirmation' | 'subscripti
                   <CardHeader className="text-center">
                     <CardTitle className="text-2xl">Crear cuenta</CardTitle>
                     <CardDescription>
-                      Registrate gratis y comienza tu prueba de 30 días
+                      Registrate gratis y comienza tu prueba de 15 días
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleSignUp}>
                       <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="firstName">Nombre</Label>
+                            <Input
+                              id="firstName"
+                              type="text"
+                              placeholder="Tu nombre"
+                              required
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label htmlFor="lastName">Apellido</Label>
+                            <Input
+                              id="lastName"
+                              type="text"
+                              placeholder="Tu apellido"
+                              required
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
+                            />
+                          </div>
+                        </div>
                         <div className="grid gap-2">
                           <Label htmlFor="email">Email</Label>
                           <Input

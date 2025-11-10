@@ -220,7 +220,7 @@ export default function SubscriptionPage() {
                         className="w-full text-lg py-6 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white"
                       >
                         <Store className="w-5 h-5 mr-2" />
-                        Comenzar ahora
+                        Quiero mi tienda
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
                     </Link>
@@ -236,7 +236,7 @@ export default function SubscriptionPage() {
             <div className="mt-12 text-center">
               <div className="inline-flex items-center gap-2 px-6 py-3 bg-accent/10 rounded-full border border-accent/20">
                 <Shield className="w-5 h-5 text-accent" />
-                <span className="text-sm font-medium">Garantía de satisfacción de 30 días</span>
+                <span className="text-sm font-medium">Prueba gratuita de 15 días</span>
               </div>
             </div>
           </div>

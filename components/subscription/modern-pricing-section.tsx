@@ -26,7 +26,7 @@ export function ModernPricingSection({ onSubscribe, isLoading }: ModernPricingSe
               ¡Cuenta creada exitosamente! <span className="text-lime-600">Ahora elige tu plan</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 text-pretty">
-              Comienza con 30 días gratis y accede a todas las herramientas profesionales de FoodyNow
+              Comienza con 15 días gratis y accede a todas las herramientas profesionales de FoodyNow
             </p>
           </div>
         </div>
@@ -46,7 +46,7 @@ export function ModernPricingSection({ onSubscribe, isLoading }: ModernPricingSe
                     </div>
                     <Badge className="mb-4 bg-green-100 text-green-800 hover:bg-green-100">
                       <Zap className="h-3 w-3 mr-1" />
-                      30 días GRATIS
+                      15 días GRATIS
                     </Badge>
                     <CardTitle className="text-3xl font-bold mb-2">Plan Profesional</CardTitle>
                     <CardDescription className="text-lg">Todo lo que necesitas para vender online</CardDescription>

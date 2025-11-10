@@ -43,6 +43,12 @@ export default function HomePage() {
               <Link href="/auth/login">
                 <Button variant="outline">Iniciar Sesión</Button>
               </Link>
+              <Link href="/subscriptions">
+                <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white">
+                  <Store className="w-4 h-4 mr-2" />
+                  Quiero mi tienda
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -64,7 +70,7 @@ export default function HomePage() {
                 {"TU TIENDA ONLINE conversacional. \nCon pagos garantizados por MercadoPago, la prestigiosa comunicación de WhatsApp, con carrito inteligente y notificaciones automáticas."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/auth/sign-up">
+                <Link href="/subscriptions">
                   <Button size="lg" className="text-lg px-8 py-4 bg-accent hover:bg-accent/90 text-accent-foreground">
                     <Store className="w-5 h-5 mr-2" />
                     Comenzá ahora
@@ -310,7 +316,7 @@ export default function HomePage() {
                   Únete a cientos de comercios que ya están modernizando su estrategia de comercialización con FOODYNOW
                   y aumentando sus ventas.
                 </p>
-                <Link href="/auth/sign-up">
+                <Link href="/subscriptions">
                   <Button size="lg" className="bg-white text-primary hover:bg-white/90 w-full">
                     <Store className="w-5 h-5 mr-2" />
                     Quiero mi tienda ahora
@@ -332,7 +338,7 @@ export default function HomePage() {
               WhatsApp y las herramientas de marketing digital.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/sign-up">
+              <Link href="/subscriptions">
                 <Button size="lg" className="text-lg px-8 py-4 bg-white text-primary hover:bg-white/90">
                   <Store className="w-5 h-5 mr-2" />
                   Quiero mi tienda
