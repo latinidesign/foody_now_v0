@@ -48,6 +48,7 @@ export async function updateSession(request: NextRequest) {
     "/login",
     "/auth",
     "/store",
+    "/subscriptions",
     "/api",
     "/manifest",
     "/sw",
