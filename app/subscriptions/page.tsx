@@ -51,7 +51,7 @@ export default function SubscriptionPage() {
               <Zap className="w-4 h-4 mr-1" />
               Potencia tu negocio
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground font-heading">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-primary font-heading">
               Elige el plan perfecto para tu <span className="text-lime-600">negocio gastronómico</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 text-pretty">
@@ -78,7 +78,7 @@ export default function SubscriptionPage() {
                     <CardDescription className="text-lg">Todo lo que necesitas para vender online</CardDescription>
                     <div className="mt-6">
                       <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-5xl font-bold text-primary">$9.999</span>
+                        <span className="text-5xl font-bold text-primary">$ 48.900</span>
                         <span className="text-muted-foreground">/mes</span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">Sin comisiones por venta</p>

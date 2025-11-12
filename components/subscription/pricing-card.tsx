@@ -40,7 +40,7 @@ export function PricingCard({ onSubscribe, isLoading }: PricingCardProps) {
         
         {/* Precio */}
         <div className="flex items-baseline justify-center gap-1 pt-4">
-          <span className="text-4xl font-bold text-primary">$29.99</span>
+          <span className="text-4xl font-bold text-primary">$48.900</span>
           <span className="text-sm text-muted-foreground">/mes</span>
         </div>
         
