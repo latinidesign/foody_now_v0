@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Obtener suscripción del usuario
     const { data: subscription, error: dbError } = await supabase
-      .from('subscriptions')
+      .from('user_subscriptions')
       .select('*')
       .eq('user_id', user.id)
       .single()
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
             // Actualizar estado en la base de datos si cambió
             if (mercadoPagoStatus !== subscription.status) {
               await supabase
-                .from('subscriptions')
+                .from('user_subscriptions')
                 .update({ 
                   status: mercadoPagoStatus,
                   updated_at: new Date().toISOString()

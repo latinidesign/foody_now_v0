@@ -1,39 +1,83 @@
--- Crear tabla de suscripciones
-CREATE TABLE IF NOT EXISTS public.subscriptions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  
-  -- Usuario asociado
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  
-  -- Información de MercadoPago
-  mercadopago_subscription_id TEXT UNIQUE,
-  mercadopago_preapproval_id TEXT UNIQUE,
-  mercadopago_payer_id TEXT,
-  
-  -- Estado de la suscripción
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'suspended', 'cancelled')),
-  
-  -- Información del plan
-  plan_id TEXT NOT NULL DEFAULT 'premium',
-  price DECIMAL(10,2) NOT NULL DEFAULT 48900.00,
-  currency TEXT NOT NULL DEFAULT 'ARS',
-  
-  -- Fechas importantes
-  trial_start_date TIMESTAMP WITH TIME ZONE,
-  trial_end_date TIMESTAMP WITH TIME ZONE,
-  subscription_start_date TIMESTAMP WITH TIME ZONE,
-  subscription_end_date TIMESTAMP WITH TIME ZONE,
-  next_payment_date TIMESTAMP WITH TIME ZONE,
-  cancelled_at TIMESTAMP WITH TIME ZONE,
-  
-  -- Información adicional
-  auto_renewal BOOLEAN DEFAULT true,
-  payment_method_id TEXT,
-  
-  UNIQUE(user_id)
-);
+-- PASO 1: Eliminar tabla existente si tiene conflictos (CUIDADO: Borra datos)
+-- Descomenta la siguiente línea solo si necesitas recrear la tabla completamente
+-- DROP TABLE IF EXISTS public.subscriptions CASCADE;
+
+-- PASO 2: Crear tabla de suscripciones de forma segura
+DO $$ 
+BEGIN
+  -- Verificar si la tabla existe
+  IF NOT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'subscriptions') THEN
+    -- Crear tabla nueva
+    CREATE TABLE public.subscriptions (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+      
+      -- Usuario asociado
+      user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+      
+      -- Información de MercadoPago
+      mercadopago_subscription_id TEXT UNIQUE,
+      mercadopago_preapproval_id TEXT UNIQUE,
+      mercadopago_payer_id TEXT,
+      
+      -- Estado de la suscripción
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'suspended', 'cancelled')),
+      
+      -- Información del plan
+      plan_id TEXT NOT NULL DEFAULT 'premium',
+      price DECIMAL(10,2) NOT NULL DEFAULT 48900.00,
+      currency TEXT NOT NULL DEFAULT 'ARS',
+      
+      -- Fechas importantes
+      trial_start_date TIMESTAMP WITH TIME ZONE,
+      trial_end_date TIMESTAMP WITH TIME ZONE,
+      subscription_start_date TIMESTAMP WITH TIME ZONE,
+      subscription_end_date TIMESTAMP WITH TIME ZONE,
+      next_payment_date TIMESTAMP WITH TIME ZONE,
+      cancelled_at TIMESTAMP WITH TIME ZONE,
+      
+      -- Información adicional
+      auto_renewal BOOLEAN DEFAULT true,
+      payment_method_id TEXT,
+      
+      UNIQUE(user_id)
+    );
+    
+    RAISE NOTICE 'Tabla subscriptions creada exitosamente';
+  ELSE
+    -- Si la tabla existe, verificar y agregar columnas faltantes
+    
+    -- Agregar user_id si no existe
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'subscriptions' AND column_name = 'user_id') THEN
+      ALTER TABLE public.subscriptions ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+      RAISE NOTICE 'Columna user_id agregada';
+    END IF;
+    
+    -- Agregar otras columnas importantes si no existen
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'subscriptions' AND column_name = 'status') THEN
+      ALTER TABLE public.subscriptions ADD COLUMN status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'suspended', 'cancelled'));
+      RAISE NOTICE 'Columna status agregada';
+    END IF;
+    
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'subscriptions' AND column_name = 'mercadopago_preapproval_id') THEN
+      ALTER TABLE public.subscriptions ADD COLUMN mercadopago_preapproval_id TEXT UNIQUE;
+      RAISE NOTICE 'Columna mercadopago_preapproval_id agregada';
+    END IF;
+    
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'subscriptions' AND column_name = 'price') THEN
+      ALTER TABLE public.subscriptions ADD COLUMN price DECIMAL(10,2) NOT NULL DEFAULT 48900.00;
+      RAISE NOTICE 'Columna price agregada';
+    END IF;
+    
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'subscriptions' AND column_name = 'plan_id') THEN
+      ALTER TABLE public.subscriptions ADD COLUMN plan_id TEXT NOT NULL DEFAULT 'premium';
+      RAISE NOTICE 'Columna plan_id agregada';
+    END IF;
+    
+    RAISE NOTICE 'Tabla subscriptions ya existe - columnas verificadas';
+  END IF;
+END $$;
 
 -- Crear índices para mejor rendimiento
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);

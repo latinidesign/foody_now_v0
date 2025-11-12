@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Verificar si ya tiene una suscripción activa
     const { data: existingSubscription } = await supabase
-      .from('subscriptions')
+      .from('user_subscriptions')
       .select('*')
       .eq('user_id', user.id)
       .in('status', ['active', 'pending'])
@@ -55,12 +55,12 @@ export async function POST(request: NextRequest) {
 
     // Crear suscripción en MercadoPago
     const subscriptionData = {
-      reason: process.env.SUBSCRIPTION_TITLE || 'Plan Premium FoodyNow',
+      reason: process.env.SUBSCRIPTION_TITLE || 'Suscripción FoodyNow',
       external_reference: `user_${user.id}_${Date.now()}`,
       payer_email: user.email,
       auto_recurring: {
-        frequency: 1,
-        frequency_type: 'months',
+        frequency: 15,
+        frequency_type: 'days',
         transaction_amount: parseFloat(process.env.SUBSCRIPTION_PRICE || '48900'),
         currency_id: 'ARS'
       },
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Guardar suscripción en la base de datos
     const { data: subscription, error: dbError } = await supabase
-      .from('subscriptions')
+      .from('user_subscriptions')
       .insert({
         user_id: user.id,
         mercadopago_preapproval_id: mercadoPagoData.id,
