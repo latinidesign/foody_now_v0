@@ -35,9 +35,9 @@ function ConfirmEmailContent() {
           setStatus('success')
           setMessage('¡Email confirmado exitosamente!')
           
-          // Redirigir al sign-up con parámetro confirmed después de 2 segundos
+          // Redirigir a onboarding después de 2 segundos
           setTimeout(() => {
-            router.push('/auth/sign-up?confirmed=true')
+            router.push('/onboarding')
           }, 2000)
         } else {
           throw new Error('Enlace de confirmación inválido')
@@ -82,7 +82,7 @@ function ConfirmEmailContent() {
               </div>
               <CardTitle className="text-2xl">¡Email confirmado!</CardTitle>
               <CardDescription>
-                Tu cuenta ha sido verificada exitosamente
+                Tu cuenta ha sido verificada exitosamente. Te redirigimos a la página de bienvenida...
               </CardDescription>
             </>
           )}

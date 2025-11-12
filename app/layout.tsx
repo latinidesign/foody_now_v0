@@ -10,6 +10,7 @@ const museoModerno = MuseoModerno({
   weight: ["300", "700"],
   variable: "--font-museo-moderno",
   display: "swap",
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
 })
 
 const openSans = Open_Sans({
@@ -17,6 +18,7 @@ const openSans = Open_Sans({
   weight: ["400", "600"],
   variable: "--font-open-sans",
   display: "swap",
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
 })
 
 export const metadata: Metadata = {
@@ -100,7 +102,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`font-sans ${openSans.variable} ${museoModerno.variable}`}>
+      <body className={`${openSans.variable} ${museoModerno.variable} font-sans antialiased`}>
         <PWAProvider>
           {children}
         </PWAProvider>
