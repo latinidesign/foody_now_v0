@@ -55,7 +55,7 @@ export default function AboutPageClient({ params }: AboutPageProps) {
     }
 
     fetchData()
-  }, [slug])
+  })
 
   const BusinessHoursSection = ({ store }: { store: any }) => {
     const [showHours, setShowHours] = useState(false)

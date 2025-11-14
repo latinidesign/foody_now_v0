@@ -22,29 +22,45 @@ export default async function StorePage({ params }: StorePageProps) {
     // Show demo data when Supabase is not available
     const demoStore = {
       id: "demo-store",
+      owner_id: "demo-owner",
       name: "Tienda Demo",
       slug: slug,
       description: "Tienda de demostración - Configura Supabase para datos reales",
-      logo_url: null,
-      banner_url: null,
+      logo_url: undefined,
+      banner_url: undefined,
       primary_color: "#2D5016",
-      whatsapp_phone: null,
+      whatsapp_phone: undefined,
       is_active: true,
+      delivery_radius: 10,
+      delivery_fee: 500,
+      min_order_amount: 1000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
 
     const demoCategories = [
       {
         id: "demo-cat-1",
+        store_id: "demo-store",
         name: "Productos Demo",
         description: "Categoría de demostración",
+        sort_order: 1,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         products: [
           {
             id: "demo-prod-1",
+            store_id: "demo-store",
+            category_id: "demo-cat-1",
             name: "Producto Demo",
             description: "Este es un producto de demostración. Configura Supabase para ver datos reales.",
             price: 1000,
             image_url: "/producto-demo.png",
             is_available: true,
+            sort_order: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
             product_options: [],
           },
         ],
@@ -84,14 +100,20 @@ export default async function StorePage({ params }: StorePageProps) {
 
     const placeholderStore = {
       id: "placeholder",
+      owner_id: "placeholder-owner",
       name: `Tienda ${slug}`,
       slug: slug,
       description: "Esta tienda está siendo configurada. Vuelve pronto.",
-      logo_url: null,
-      banner_url: null,
+      logo_url: undefined,
+      banner_url: undefined,
       primary_color: "#2D5016",
-      whatsapp_phone: null,
+      whatsapp_phone: undefined,
       is_active: true,
+      delivery_radius: 10,
+      delivery_fee: 500,
+      min_order_amount: 1000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
 
     return (

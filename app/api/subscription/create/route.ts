@@ -54,10 +54,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear suscripción en MercadoPago
+    // Para testing, usar email de prueba si es entorno de desarrollo
+    const isTestEnvironment = accessToken.startsWith('TEST-')
+    const payerEmail = isTestEnvironment && process.env.MERCADOPAGO_TEST_USER_EMAIL 
+      ? process.env.MERCADOPAGO_TEST_USER_EMAIL 
+      : user.email
+
     const subscriptionData = {
       reason: process.env.SUBSCRIPTION_TITLE || 'Plan Premium FoodyNow',
       external_reference: `user_${user.id}_${Date.now()}`,
-      payer_email: user.email,
+      payer_email: payerEmail,
       auto_recurring: {
         frequency: 1,
         frequency_type: 'months',
@@ -68,11 +74,18 @@ export async function POST(request: NextRequest) {
       notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
     }
 
-    const response = await fetch('https://api.mercadopago.com/preapproval', {
+    // Determinar la URL de la API según el entorno
+    const isProduction = process.env.NODE_ENV === 'production' && !accessToken.startsWith('TEST-')
+    const apiUrl = isProduction 
+      ? 'https://api.mercadopago.com/preapproval'
+      : 'https://api.mercadopago.com/preapproval'
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': `sub_${user.id}_${Date.now()}`
       },
       body: JSON.stringify(subscriptionData)
     })

@@ -3,388 +3,418 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  Store,
-  MessageCircle,
-  CreditCard,
-  TrendingUp,
-  Users,
-  Zap,
-  Shield,
-  Heart,
-  CheckCircle,
-  ArrowRight,
-  Smartphone,
-  BarChart3,
-} from "lucide-react"
+import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star } from 'lucide-react'
 
-export const revalidate = 0 // sin cache mientras desarrollás
+export default function VentasPage() {
+	return (
+		<div className="min-h-screen bg-background">
+			{/* Header */}
+			<header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+				<div className="container mx-auto px-4 py-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="flex shrink-0 items-center">
+								<Image
+									src="/foodynow_logo-wt.svg"
+									alt="FOODYNOW"
+									width={100}
+									height={45}
+									className="h-10 w-auto"
+									priority
+								/>
+							</div>
+						</div>
+						<div className="flex gap-2">
+							<Link href="/auth/login">
+								<Button variant="outline">Iniciar Sesión</Button>
+							</Link>
+							<Link href="/auth/sign-up">
+								<Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+									Comenzar
+								</Button>
+							</Link>
+						</div>
+					</div>
+				</div>
+			</header>
 
-export default function HomePage() {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex shrink-0 items-center">
-                <Image
-                  src="/foodynow_logo-wt.svg"
-                  alt="FOODYNOW"
-                  width={100}
-                  height={45}
-                  className="h-10 w-auto"
-                  priority
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Link href="/auth/login">
-                <Button variant="outline">Iniciar Sesión</Button>
-              </Link>
-              <Link href="/subscriptions">
-                <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white">
-                  <Store className="w-4 h-4 mr-2" />
-                  Quiero mi tienda
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+			{/* Hero Section */}
+			<section className="bg-gradient-to-br from-fuchsia-50 to-lime-50 py-16 md:py-24 lg:py-32">
+				<div className="container mx-auto px-4">
+					<div className="max-w-5xl mx-auto text-center">
+						<Badge className="mb-6 bg-accent text-accent-foreground border-accent">
+							Tecnología pensada para vos
+						</Badge>
+						<h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 text-foreground text-balance font-heading">
+							Impulsá tu negocio de alimentos con tecnología pensada para vos
+						</h1>
+						<p className="text-xl text-muted-foreground mb-8 text-pretty max-w-3xl mx-auto">
+							<span className="font-bold text-primary">FOODYNOW®</span> es la solución
+							digital para productores, emprendedores y comercios gastronómicos que
+							elaboran alimentos saludables, artesanales o de especialidad.
+							Simplificamos tus ventas, mejoramos tu comunicación con clientes y
+							maximizamos tus ganancias —sin comisiones ni intermediarios.
+						</p>
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<Link href="/auth/sign-up">
+								<Button
+									size="lg"
+									className="text-lg px-8 py-4 bg-accent hover:bg-accent/90 text-accent-foreground"
+								>
+									<Store className="w-5 h-5 mr-2" />
+									Comenzá ahora
+								</Button>
+							</Link>
+							<Link href="#beneficios">
+								<Button
+									variant="outline"
+									size="lg"
+									className="text-lg px-8 py-4 bg-transparent"
+								>
+									Ver más beneficios
+									<ArrowRight className="w-5 h-5 ml-2" />
+								</Button>
+							</Link>
+						</div>
+					</div>
+				</div>
+			</section>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-fuchsia-50 to-lime-50 py-16 md:py-24 lg:py-32 xl:py-48">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
-            <div className="text-center lg:text-left">
-              <Badge className="mb-6 bg-accent text-accent-foreground border-accent">
-                🚀 Revoluciona tu negocio alimentario
-              </Badge>
-              <h2 className="text-4xl md:text-6xl font-light mb-6 text-foreground text-balance font-heading">
-                <span className="font-bold text-lime-600">FOODYNOW</span>
-                <sup>®</sup> la solución moderna para una comercialización más eficiente.
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8 text-pretty">
-                {"TU TIENDA ONLINE conversacional. \nCon pagos garantizados por MercadoPago, la prestigiosa comunicación de WhatsApp, con carrito inteligente y notificaciones automáticas."}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/subscriptions">
-                  <Button size="lg" className="text-lg px-8 py-4 bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Store className="w-5 h-5 mr-2" />
-                    Comenzá ahora
-                  </Button>
-                </Link>
-                <Link href="#beneficios">
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-4 bg-transparent">
-                    Ver beneficios
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+			{/* Vende más y mejor Section */}
+			<section className="py-20">
+				<div className="container mx-auto px-4">
+					<div className="max-w-6xl mx-auto">
+						<div className="text-center mb-16">
+							<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
+								Vendé más y mejor, con tu propia tienda online
+							</h2>
+							<p className="text-lg text-muted-foreground max-w-3xl mx-auto text-pretty">
+								Creá tu tienda en minutos, conectada directamente con MercadoPago y
+								WhatsApp para brindar una experiencia de compra fluida, rápida y
+								segura.
+							</p>
+						</div>
 
-            <div className="flex justify-center items-center">
-              <Image
-                alt="FoodyNow Presentacion"
-                src="/mobile-header.png"
-                width={600}
-                height={800}
-                className="object-contain w-full h-auto max-w-md rounded-xl bg-gray-900/5 shadow-lg"
-                priority
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+							<Card className="text-center p-6">
+								<div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+									<CreditCard className="w-6 h-6 text-green-600" />
+								</div>
+								<h3 className="font-semibold mb-2">Pagos 100% seguros</h3>
+								<p className="text-sm text-muted-foreground">
+									Con todas las opciones de MercadoPago
+								</p>
+							</Card>
 
-      {/* Problema Section */}
-      <section className="py-20 bg-fuchsia-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h3 className="text-3xl mb-6 font-heading text-light font-normal">¿Por qué elegir FOODYNOW?</h3>
-            <p className="text-lg text-muted-foreground text-pretty">
-              En un entorno comercial dinámico, la eficiencia y la adaptabilidad son clave para el éxito, es por ello que, FOODYNOW surge como una solución innovadora y profesional para negocios que buscan optimizar su estrategia de comercialización aprovechando las últimas tecnologías digitales. Esto permite:
-            </p>
-          </div>
+							<Card className="text-center p-6">
+								<div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+									<MessageCircle className="w-6 h-6 text-blue-600" />
+								</div>
+								<h3 className="font-semibold mb-2">Atención directa</h3>
+								<p className="text-sm text-muted-foreground">
+									Por WhatsApp, sin apps extra ni complicaciones
+								</p>
+							</Card>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="text-center p-6">
-              <TrendingUp className="w-12 h-12 text-accent mx-auto mb-4" />
-              <h4 className="font-semibold mb-2">Optimizar la experiencia del cliente</h4>
-              <p className="text-sm text-muted-foreground">
-                ofrecer una experiencia de compra personalizada y eficiente aumenta la satisfacción y la fidelidad.
-              </p>
-            </Card>
+							<Card className="text-center p-6">
+								<div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+									<Package className="w-6 h-6 text-purple-600" />
+								</div>
+								<h3 className="font-semibold mb-2">Pedidos automatizados</h3>
+								<p className="text-sm text-muted-foreground">
+									Sin intervención manual
+								</p>
+							</Card>
 
-            <Card className="text-center p-6">
-              <Users className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h4 className="font-semibold mb-2">Aumentar la eficiencia operativa</h4>
-              <p className="text-sm text-muted-foreground">
-                Automatizar procesos de venta y gestión de clientes, libera tiempo para enfocarte en hacer crecer tu negocio y disponer de las herramientas de marketing digital.
-              </p>
-            </Card>
+							<Card className="text-center p-6">
+								<div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+									<Truck className="w-6 h-6 text-orange-600" />
+								</div>
+								<h3 className="font-semibold mb-2">Flexibilidad total</h3>
+								<p className="text-sm text-muted-foreground">
+									Entrega a domicilio o retiro en local
+								</p>
+							</Card>
+						</div>
+					</div>
+				</div>
+			</section>
 
-            <Card className="text-center p-6">
-              <Zap className="w-12 h-12 text-secondary mx-auto mb-4" />
-              <h4 className="font-semibold mb-2">Experiencia personalizada</h4>
-              <p className="text-sm text-muted-foreground">
-                Ofrece una experiencia adaptada que aumenta la satisfacción y fidelidad del cliente
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
+			{/* Por qué elegir FOODYNOW Section */}
+			<section id="beneficios" className="py-20 bg-fuchsia-50">
+				<div className="container mx-auto px-4">
+					<div className="max-w-6xl mx-auto">
+						<div className="text-center mb-16">
+							<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
+								¿Por qué elegir FOODYNOW?
+							</h2>
+						</div>
 
-      {/* Solución Section */}
-      <section id="beneficios" className="py-20 bg-lime-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h3 className="text-4xl font-bold mb-6">FOODYNOW está diseñado para atender a Pymes, Micro Pymes, artesanos y profesionales de la gastronomía con sus especialidades y exquisiteces.</h3>
-            <p className="text-lg text-muted-foreground text-pretty">
-              Todo el proceso de compra se realiza de forma automática, sin intervención humana: desde el primer contacto telefónico, el sistema permite que el usuario recorra todas las categorías, vea todos los productos y sus especificaciones con sus precios, vea ofertas del día y reciba sugerencias de productos más vendidos de la última semana. Luego el usuario decide si quiere que su pedido sea entregado a domicilio o retirado en el local. Al cerrar el pedido, se emite automáticamente enlace de pago de MercadoPago; se confirma el pago y, finalmente, se envía al usuario la confirmación de la recepción del pedido pagado, junto con el tiempo estimado de entrega.
-            </p>
-          </div>
+						<div className="grid lg:grid-cols-2 gap-8">
+							<Card className="p-8">
+								<div className="flex gap-4 mb-4">
+									<div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+										<TrendingUp className="w-6 h-6 text-accent" />
+									</div>
+									<div>
+										<h3 className="text-xl font-semibold mb-2">
+											Aumentá tu eficiencia operativa
+										</h3>
+										<p className="text-muted-foreground">
+											Automatizá ventas, cobros y gestión diaria. Ganá tiempo
+											para enfocarte en lo que sabés hacer: producir.
+										</p>
+									</div>
+								</div>
+							</Card>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Ventas automatizadas por WhatsApp</h4>
-                  <p className="text-muted-foreground">
-                    Gestiona pedidos, consultas y ventas directamente desde WhatsApp con respuestas automáticas
-                  </p>
-                </div>
-              </div>
+							<Card className="p-8">
+								<div className="flex gap-4 mb-4">
+									<div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+										<BarChart3 className="w-6 h-6 text-primary" />
+									</div>
+									<div>
+										<h3 className="text-xl font-semibold mb-2">
+											Control total de tus pedidos
+										</h3>
+										<p className="text-muted-foreground">
+											Usá el panel de gestión para hacer seguimiento en tiempo
+											real y enviar mensajes automatizados a tus clientes.
+										</p>
+									</div>
+								</div>
+							</Card>
 
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CreditCard className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Pagos seguros con MercadoPago</h4>
-                  <p className="text-muted-foreground">
-                    Facilita a tus clientes realizar pagos de manera segura sin salir de la aplicación.
-                  </p>
-                </div>
-              </div>
+							<Card className="p-8">
+								<div className="flex gap-4 mb-4">
+									<div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+										<Zap className="w-6 h-6 text-blue-600" />
+									</div>
+									<div>
+										<h3 className="text-xl font-semibold mb-2">
+											Datos que te ayudan a crecer
+										</h3>
+										<p className="text-muted-foreground">
+											Accedé a estadísticas clave para tomar mejores decisiones
+											comerciales.
+										</p>
+									</div>
+								</div>
+							</Card>
 
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <BarChart3 className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Marketing digital y CRM integrado</h4>
-                  <p className="text-muted-foreground">
-                    Gestiona relaciones con clientes y optimiza estrategias con herramientas profesionales
-                  </p>
-                </div>
-              </div>
-            </div>
+							<Card className="p-8">
+								<div className="flex gap-4 mb-4">
+									<div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+										<Users className="w-6 h-6 text-green-600" />
+									</div>
+									<div>
+										<h3 className="text-xl font-semibold mb-2">
+											Fidelizá a tus clientes
+										</h3>
+										<p className="text-muted-foreground">
+											Creá campañas personalizadas con promociones, beneficios y
+											fechas especiales.
+										</p>
+									</div>
+								</div>
+							</Card>
 
-            <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8">
-              <div className="bg-card rounded-xl p-6 shadow-lg">
-                <div className="flex items-center gap-3 mb-4">
-                  <Smartphone className="w-8 h-8 text-primary" />
-                  <h3 className="font-semibold">Tu tienda móvil</h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Catálogo de productos</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Carrito de compras</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Pagos integrados</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Notificaciones automáticas</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+							<Card className="p-8 lg:col-span-2 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+								<div className="flex gap-4 mb-4">
+									<div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+										<DollarSign className="w-6 h-6 text-accent-foreground" />
+									</div>
+									<div>
+										<h3 className="text-xl font-semibold mb-2">
+											Sin comisiones por venta
+										</h3>
+										<p className="text-muted-foreground">
+											Todo lo que vendés es tuyo. Sin sorpresas.
+										</p>
+									</div>
+								</div>
+							</Card>
+						</div>
+					</div>
+				</div>
+			</section>
 
-      {/* Valor Diferencial Section */}
-      <section className="py-20 bg-primary/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h3 className="text-4xl font-bold mb-6">¿Por qué elegir FOODYNOW?</h3>
-            <p className="text-lg text-muted-foreground">
-              Nos comprometemos a apoyar el crecimiento de tu negocio con beneficios únicos
-            </p>
-          </div>
+			{/* Ideal para comercios Section */}
+			<section className="py-20 bg-lime-50">
+				<div className="container mx-auto px-4">
+					<div className="max-w-5xl mx-auto text-center">
+						<div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+							<Store className="w-8 h-8 text-primary-foreground" />
+						</div>
+						<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
+							Ideal para comercios con alma
+						</h2>
+						<p className="text-lg text-muted-foreground mb-8 text-pretty">
+							FOODYNOW está pensado para <strong>productores</strong>,{" "}
+							<strong>cocineros</strong>, <strong>panaderías</strong>,{" "}
+							<strong>dietéticas</strong>, <strong>fábricas de pastas</strong>,{" "}
+							<strong>tiendas naturales</strong> y{" "}
+							<strong>emprendimientos gastronómicos</strong> que ofrecen productos
+							con valor agregado.
+						</p>
+						<div className="bg-card rounded-2xl p-8 shadow-lg">
+							<p className="text-xl font-semibold text-primary">
+								Si hacés comida real, nosotros hacemos que llegue mejor a tus
+								clientes.
+							</p>
+						</div>
+					</div>
+				</div>
+			</section>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="text-center p-8 border-2 hover:border-accent/50 transition-colors">
-              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <TrendingUp className="w-8 h-8 text-accent" />
-              </div>
-              <h4 className="text-xl font-semibold mb-4">Soporte publicitario completo</h4>
-              <p className="text-muted-foreground">
-                Te ayudamos a promocionar tu negocio y aumentar tu visibilidad con estrategias probadas
-              </p>
-            </Card>
+			{/* Proceso automatizado Section */}
+			<section className="py-20">
+				<div className="container mx-auto px-4">
+					<div className="max-w-6xl mx-auto">
+						<div className="text-center mb-16">
+							<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
+								Todo el proceso, automatizado
+							</h2>
+							<p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+								Desde el primer mensaje en redes sociales o WhatsApp, el cliente
+								puede:
+							</p>
+						</div>
 
-            <Card className="text-center p-8 border-2 hover:border-primary/50 transition-colors">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <h4 className="text-xl font-semibold mb-4">Sin comisiones</h4>
-              <p className="text-muted-foreground">
-                No cobramos comisiones por transacciones. Maximiza tus ganancias con cada venta
-              </p>
-            </Card>
+						<div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+							<div className="flex gap-4 items-start">
+								<div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+									<CheckCircle className="w-5 h-5 text-primary-foreground" />
+								</div>
+								<div>
+									<p className="font-medium">
+										Ver tus categorías y productos con todos sus detalles y
+										precios
+									</p>
+								</div>
+							</div>
 
-            <Card className="text-center p-8 border-2 hover:border-secondary/50 transition-colors">
-              <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Heart className="w-8 h-8 text-secondary" />
-              </div>
-              <h4 className="text-xl font-semibold mb-4">Fidelización de clientes</h4>
-              <p className="text-muted-foreground">
-                Herramientas especializadas para mejorar la retención y aumentar la lealtad de tus clientes
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
+							<div className="flex gap-4 items-start">
+								<div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+									<CheckCircle className="w-5 h-5 text-accent-foreground" />
+								</div>
+								<div>
+									<p className="font-medium">
+										Consultar el menú del día o recibir sugerencias destacadas
+									</p>
+								</div>
+							</div>
 
-      {/* Razones Profesionales Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h3 className="text-4xl font-bold mb-6">Razones profesionales para usar FOODYNOW</h3>
-              <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                Moderniza tu estrategia comercial y lleva tu negocio al siguiente nivel
-              </p>
-            </div>
+							<div className="flex gap-4 items-start">
+								<div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+									<CheckCircle className="w-5 h-5 text-secondary-foreground" />
+								</div>
+								<div>
+									<p className="font-medium">
+										Elegir método de entrega y pagar con seguridad
+									</p>
+								</div>
+							</div>
 
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle className="w-5 h-5 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold mb-2">Optimiza tu estrategia comercial</h4>
-                    <p className="text-muted-foreground">
-                      Llega a tus clientes de manera más directa y eficiente con herramientas modernas
-                    </p>
-                  </div>
-                </div>
+							<div className="flex gap-4 items-start">
+								<div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+									<CheckCircle className="w-5 h-5 text-primary-foreground" />
+								</div>
+								<div>
+									<p className="font-medium">
+										Recibir notificaciones del estado de su pedido
+									</p>
+								</div>
+							</div>
+						</div>
 
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle className="w-5 h-5 text-accent-foreground" />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold mb-2">Aumenta alcance y eficiencia</h4>
-                    <p className="text-muted-foreground">
-                      Automatiza ventas y gestiona clientes con herramientas profesionales de marketing
-                    </p>
-                  </div>
-                </div>
+						<div className="mt-12 bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8 border border-primary/20">
+							<div className="flex items-center justify-center gap-3 mb-6">
+								<Bell className="w-8 h-8 text-primary" />
+								<h3 className="text-2xl font-semibold">Experiencia completa</h3>
+							</div>
+							<p className="text-center text-muted-foreground max-w-2xl mx-auto">
+								El cliente recibe una experiencia fluida de principio a fin, con
+								actualizaciones automáticas en cada paso del proceso, desde la
+								selección hasta la entrega.
+							</p>
+						</div>
+					</div>
+				</div>
+			</section>
 
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle className="w-5 h-5 text-secondary-foreground" />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold mb-2">Personaliza la experiencia</h4>
-                    <p className="text-muted-foreground">
-                      Ofrece experiencias adaptadas a las necesidades de tus clientes en su plataforma favorita
-                    </p>
-                  </div>
-                </div>
-              </div>
+			{/* CTA Final Section */}
+			<section className="py-20 bg-gradient-to-r from-fuchsia-800 to-accent">
+				<div className="container mx-auto px-4 text-center">
+					<div className="max-w-4xl mx-auto text-white">
+						<Star className="w-16 h-16 mx-auto mb-6 opacity-90" />
+						<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
+							¿Listo para transformar tu negocio?
+						</h2>
+						<p className="text-xl mb-8 opacity-90 text-pretty">
+							Sumate a los comercios que ya están vendiendo más con FOODYNOW.
+							Tecnología pensada para vos, sin complicaciones ni comisiones.
+						</p>
+						<p className="text-2xl font-semibold mb-8">
+							Empezá hoy. Profesionalizá tu negocio y hacelo crecer.
+						</p>
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<Link href="/auth/sign-up">
+								<Button
+									size="lg"
+									className="text-lg px-8 py-4 bg-white text-primary hover:bg-white/90"
+								>
+									<Store className="w-5 h-5 mr-2" />
+									Crear mi tienda ahora
+								</Button>
+							</Link>
+							<Link href="/auth/login">
+								<Button
+									variant="outline"
+									size="lg"
+									className="text-lg px-8 py-4 border-white text-white hover:bg-white/10 bg-transparent"
+								>
+									Ya tengo cuenta
+								</Button>
+							</Link>
+						</div>
+					</div>
+				</div>
+			</section>
 
-              <div className="bg-gradient-to-br from-primary to-secondary p-8 rounded-2xl text-white">
-                <h4 className="text-2xl font-bold mb-6">¿Listo para transformar tu negocio?</h4>
-                <p className="mb-6 opacity-90">
-                  Únete a cientos de comercios que ya están modernizando su estrategia de comercialización con FOODYNOW
-                  y aumentando sus ventas.
-                </p>
-                <Link href="/subscriptions">
-                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 w-full">
-                    <Store className="w-5 h-5 mr-2" />
-                    Quiero mi tienda ahora
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Final Section */}
-      <section className="py-20 bg-gradient-to-r from-primary to-secondary">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto text-white">
-            <h3 className="text-4xl font-bold mb-6">FOODYNOW es la solución para negocios que buscan el futuro</h3>
-            <p className="text-xl mb-8 opacity-90">
-              Moderniza tu estrategia de comercialización, mejora la eficiencia y aumenta las ventas aprovechando
-              WhatsApp y las herramientas de marketing digital.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/subscriptions">
-                <Button size="lg" className="text-lg px-8 py-4 bg-white text-primary hover:bg-white/90">
-                  <Store className="w-5 h-5 mr-2" />
-                  Quiero mi tienda
-                </Button>
-              </Link>
-              <Link href="/auth/login">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="text-lg px-8 py-4 border-white text-white hover:bg-white/10 bg-transparent"
-                >
-                  Ya tengo cuenta
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t bg-card py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <Store className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold text-primary">FOODYNOW</span>
-            </div>
-            <p className="text-muted-foreground mb-6">
-              La plataforma moderna para comercialización eficiente en el segmento alimentario
-            </p>
-            <div className="flex justify-center gap-6 text-sm text-muted-foreground">
-              <Link href="/terms" className="hover:text-primary">
-                Términos de Servicio
-              </Link>
-              <Link href="/privacy" className="hover:text-primary">
-                Política de Privacidad
-              </Link>
-              <Link href="/contact" className="hover:text-primary">
-                Contacto
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
-  )
+			{/* Footer */}
+			<footer className="border-t bg-card py-12">
+				<div className="container mx-auto px-4">
+					<div className="max-w-4xl mx-auto text-center">
+						<div className="flex items-center justify-center gap-3 mb-6">
+							<Image
+								src="/foodynow_logo-wt.svg"
+								alt="FOODYNOW"
+								width={120}
+								height={50}
+								className="h-12 w-auto"
+							/>
+						</div>
+						<p className="text-muted-foreground mb-6">
+							La plataforma moderna para comercios gastronómicos con alma
+						</p>
+						<div className="flex justify-center gap-6 text-sm text-muted-foreground">
+							<Link href="/terms" className="hover:text-primary transition-colors">
+								Términos de Servicio
+							</Link>
+							<Link
+								href="/privacy"
+								className="hover:text-primary transition-colors"
+							>
+								Política de Privacidad
+							</Link>
+							<Link href="/landing" className="hover:text-primary transition-colors">
+								Inicio
+							</Link>
+						</div>
+					</div>
+				</div>
+			</footer>
+		</div>
+	)
 }

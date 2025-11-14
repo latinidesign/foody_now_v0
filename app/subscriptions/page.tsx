@@ -51,7 +51,7 @@ export default function SubscriptionPage() {
               <Zap className="w-4 h-4 mr-1" />
               Potencia tu negocio
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-primary font-heading">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-fuchsia-600 font-heading">
               Comenzá hoy mismo con <span className="text-lime-600">tu tienda online</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 text-pretty">
