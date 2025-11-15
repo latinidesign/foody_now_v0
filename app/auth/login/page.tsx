@@ -26,7 +26,7 @@ export default function Page() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
         options: {
@@ -34,7 +34,26 @@ export default function Page() {
         },
       })
       if (error) throw error
-      router.push("/admin")
+      
+      // Verificar si es primer ingreso (no tiene suscripción)
+      if (data.user) {
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .in('status', ['active', 'trial'])
+          .single()
+          
+        if (!subscription) {
+          // Primer ingreso, ir a setup
+          router.push("/admin/setup")
+        } else {
+          // Ya tiene suscripción, ir a admin
+          router.push("/admin")
+        }
+      } else {
+        router.push("/admin")
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
@@ -51,8 +70,8 @@ export default function Page() {
           <div className="flex flex-col gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
-                <CardDescription>Ingresá tu email y contraseña para iniciar sesión</CardDescription>
+                <CardTitle className="text-2xl">Bienvenido a FOODYNOW</CardTitle>
+                <CardDescription>Inicia sesión para ingresar al panel de administración de la tienda</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleLogin}>

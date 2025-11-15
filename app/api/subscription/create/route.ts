@@ -67,10 +67,10 @@ export async function POST(request: NextRequest) {
       auto_recurring: {
         frequency: 1,
         frequency_type: 'months',
-        transaction_amount: parseFloat(process.env.SUBSCRIPTION_PRICE || '48900'),
+        transaction_amount: parseFloat(process.env.SUBSCRIPTION_PRICE || '36000'),
         currency_id: 'ARS'
       },
-      back_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/subscription/success`,
+      back_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/settings`,
       notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
     }
 

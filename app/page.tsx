@@ -1,9 +1,9 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star } from 'lucide-react'
+import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star, Check } from 'lucide-react'
 
 export default function VentasPage() {
 	return (
@@ -136,6 +136,89 @@ export default function VentasPage() {
 								</p>
 							</Card>
 						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* Potencia tu negocio Section */}
+			<section className="py-20 bg-gradient-to-br from-fuchsia-50 to-lime-50">
+				<div className="container mx-auto px-4">
+					<div className="max-w-4xl mx-auto text-center mb-16">
+						<Badge className="mb-6 bg-fuchsia-600 text-white border-fuchsia-600">
+							<Zap className="w-4 h-4 mr-1" />
+							Potencia tu negocio
+						</Badge>
+						<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading text-fuchsia-600">
+							Comenzá hoy mismo con tu tienda virtual
+						</h2>
+						<p className="text-lg text-muted-foreground text-pretty">
+							Moderniza tu estrategia comercial con FOODYNOW y lleva tu negocio al siguiente nivel con herramientas profesionales
+						</p>
+					</div>
+
+					{/* Pricing Card */}
+					<div className="max-w-2xl mx-auto">
+						<Card className="relative overflow-hidden border-2 border-fuchsia-200 shadow-2xl">
+							<div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-lime-500/5"></div>
+							<CardHeader className="text-center relative z-10">
+								<div className="w-16 h-16 bg-fuchsia-100 rounded-full flex items-center justify-center mx-auto mb-4">
+									<Store className="w-8 h-8 text-fuchsia-600" />
+								</div>
+								<CardTitle className="text-2xl font-bold text-fuchsia-600 mb-2">TIENDA NOW</CardTitle>
+								<CardDescription className="text-lg mb-6">Todo lo que necesitas para vender online</CardDescription>
+								<div className="text-center">
+									<div className="flex items-baseline justify-center gap-2 mb-2">
+										<span className="text-4xl font-bold text-fuchsia-600">$ 36.000</span>
+										<span className="text-muted-foreground">ars /mes</span>
+									</div>
+									<p className="text-sm text-lime-600 font-medium">Sin comisiones por venta</p>
+								</div>
+							</CardHeader>
+							<CardContent className="relative z-10 px-8">
+								<div className="space-y-6">
+									<div>
+										<h4 className="font-semibold text-lg mb-4 flex items-center gap-2 text-fuchsia-600">
+											<MessageCircle className="w-5 h-5" />
+											Ventas y Comunicación
+										</h4>
+										<div className="space-y-3">
+											<div className="flex items-start gap-3">
+												<Check className="w-5 h-5 text-lime-600 flex-shrink-0 mt-0.5" />
+												<span className="text-sm">Tienda online personalizada con tu marca</span>
+											</div>
+											<div className="flex items-start gap-3">
+												<Check className="w-5 h-5 text-lime-600 flex-shrink-0 mt-0.5" />
+												<span className="text-sm">Integración con Redes y WhatsApp</span>
+											</div>
+											<div className="flex items-start gap-3">
+												<Check className="w-5 h-5 text-lime-600 flex-shrink-0 mt-0.5" />
+												<span className="text-sm">Catálogo ilimitado de productos</span>
+											</div>
+											<div className="flex items-start gap-3">
+												<Check className="w-5 h-5 text-lime-600 flex-shrink-0 mt-0.5" />
+												<span className="text-sm">Carrito de compras dinámico</span>
+											</div>
+											<div className="flex items-start gap-3">
+												<Check className="w-5 h-5 text-lime-600 flex-shrink-0 mt-0.5" />
+												<span className="text-sm">Notificaciones automáticas a clientes</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</CardContent>
+							<CardFooter className="relative z-10 pt-0 pb-8">
+								<Link href="/auth/sign-up" className="w-full">
+									<Button 
+										size="lg"
+										className="w-full text-lg py-6 bg-gradient-to-r from-fuchsia-600 to-lime-600 hover:from-fuchsia-700 hover:to-lime-700 text-white shadow-lg"
+									>
+										<Clock className="w-5 h-5 mr-2" />
+										Quiero probar por 15 días
+										<ArrowRight className="w-5 h-5 ml-2" />
+									</Button>
+								</Link>
+							</CardFooter>
+						</Card>
 					</div>
 				</div>
 			</section>

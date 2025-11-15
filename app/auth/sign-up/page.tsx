@@ -71,7 +71,7 @@ export default function Page() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Crear cuenta</CardTitle>
+              <CardTitle className="text-2xl">¿Listo para transformar tu negocio?</CardTitle>
               <CardDescription>
                 Registrate gratis y comienza tu prueba de 15 días
               </CardDescription>
@@ -144,6 +144,9 @@ export default function Page() {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creando cuenta..." : "Crear cuenta gratis"}
                   </Button>
+                </div>
+                <div className="mt-4 text-center text-sm text-muted-foreground">
+                  Te llegará un correo para verificar la cuenta, al aceptarlo podrás ingresar al panel de administración para comenzar a configurar tu tienda virtual.
                 </div>
                 <div className="mt-4 text-center text-sm">
                   ¿Ya tienes cuenta?{" "}
