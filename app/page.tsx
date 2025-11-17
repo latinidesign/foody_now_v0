@@ -210,7 +210,7 @@ export default function VentasPage() {
 								<Link href="/auth/sign-up" className="w-full">
 									<Button 
 										size="lg"
-										className="w-full text-lg py-6 bg-gradient-to-r from-fuchsia-600 to-lime-600 hover:from-fuchsia-700 hover:to-lime-700 text-white shadow-lg"
+										className="w-full text-lg py-6 bg-gradient-to-r from-fuchsia-700 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-700 text-white shadow-lg"
 									>
 										<Clock className="w-5 h-5 mr-2" />
 										Quiero probar por 15 días
@@ -340,8 +340,8 @@ export default function VentasPage() {
 							<strong>emprendimientos gastronómicos</strong> que ofrecen productos
 							con valor agregado.
 						</p>
-						<div className="bg-card rounded-2xl p-8 shadow-lg">
-							<p className="text-xl font-semibold text-primary">
+						<div className="bg-fuchsia-600 rounded-2xl p-8 shadow-lg">
+							<p className="text-xl font-semibold text-fuchsia-50">
 								Si hacés comida real, nosotros hacemos que llegue mejor a tus
 								clientes.
 							</p>
