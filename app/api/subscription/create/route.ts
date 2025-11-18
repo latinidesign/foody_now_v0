@@ -29,17 +29,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar si ya tiene una suscripción activa
+    // Verificar si ya tiene una suscripción activa o en trial
     const { data: existingSubscription } = await supabase
       .from('user_subscriptions')
       .select('*')
       .eq('user_id', user.id)
-      .in('status', ['active', 'pending'])
+      .in('status', ['active', 'trial', 'pending'])
       .single()
 
     if (existingSubscription) {
       return NextResponse.json(
-        { error: 'Ya tienes una suscripción activa o pendiente' },
+        { error: 'Ya tienes una suscripción activa, en período de prueba o pendiente' },
         { status: 400 }
       )
     }
@@ -69,6 +69,10 @@ export async function POST(request: NextRequest) {
         frequency_type: 'months',
         transaction_amount: parseFloat(process.env.SUBSCRIPTION_PRICE || '36000'),
         currency_id: 'ARS'
+      },
+      free_trial: {
+        frequency: 15,
+        frequency_type: 'days'
       },
       back_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/settings`,
       notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
@@ -101,16 +105,22 @@ export async function POST(request: NextRequest) {
 
     const mercadoPagoData: MercadoPagoPreApprovalResponse = await response.json()
 
+    // Calcular fechas de trial
+    const trialStartDate = new Date()
+    const trialEndDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 días
+
     // Guardar suscripción en la base de datos
     const { data: subscription, error: dbError } = await supabase
       .from('user_subscriptions')
       .insert({
         user_id: user.id,
         mercadopago_preapproval_id: mercadoPagoData.id,
-        status: 'pending',
+        status: 'trial',
         plan_id: 'premium',
-        price: parseFloat(process.env.SUBSCRIPTION_PRICE || '48900'),
-        currency: 'ARS'
+        price: parseFloat(process.env.SUBSCRIPTION_PRICE || '36000'),
+        currency: 'ARS',
+        trial_start_date: trialStartDate.toISOString(),
+        trial_end_date: trialEndDate.toISOString()
       })
       .select()
       .single()

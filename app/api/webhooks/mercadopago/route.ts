@@ -52,16 +52,21 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
     const mpData = await response.json()
     const newStatus = mapMercadoPagoStatus(mpData.status)
 
+    // Preparar datos de actualización
+    const updateData: any = {
+      status: newStatus,
+      updated_at: new Date().toISOString()
+    }
+
+    // Si cambió de trial a active, marcar cuando comenzó la suscripción paga
+    if (newStatus === 'active') {
+      updateData.subscription_start_date = new Date().toISOString()
+    }
+
     // Actualizar estado en la base de datos
     await supabase
-      .from('subscriptions')
-      .update({
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-        // Actualizar otros campos según sea necesario
-        next_payment_date: mpData.next_payment_date,
-        auto_renewal: mpData.auto_recurring?.transaction_amount ? true : false
-      })
+      .from('user_subscriptions')
+      .update(updateData)
       .eq('mercadopago_preapproval_id', preapprovalId)
 
     console.log(`Subscription ${preapprovalId} updated to status: ${newStatus}`)
@@ -73,8 +78,9 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
 function mapMercadoPagoStatus(mpStatus: string): string {
   switch (mpStatus) {
     case 'authorized':
+      return 'active'  // Trial terminado y primer pago procesado
     case 'pending':
-      return 'active'
+      return 'trial'   // En período de prueba
     case 'paused':
       return 'suspended'
     case 'cancelled':

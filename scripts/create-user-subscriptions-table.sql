@@ -17,11 +17,11 @@ CREATE TABLE IF NOT EXISTS public.user_subscriptions (
   
   -- Estado de la suscripción
   status TEXT NOT NULL DEFAULT 'pending' 
-    CHECK (status IN ('pending', 'active', 'suspended', 'cancelled')),
+    CHECK (status IN ('pending', 'trial', 'active', 'suspended', 'cancelled')),
   
   -- Información del plan
   plan_id TEXT NOT NULL DEFAULT 'premium',
-  price DECIMAL(10,2) NOT NULL DEFAULT 48900.00,
+  price DECIMAL(10,2) NOT NULL DEFAULT 36000.00,
   currency TEXT NOT NULL DEFAULT 'ARS',
   
   -- Fechas importantes
