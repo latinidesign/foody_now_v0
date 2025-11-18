@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { AuthHeader } from "@/components/auth/auth-header"
 import { Store, Check, CreditCard, ArrowRight, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function AdminSetupPage() {
   const [isCreatingSubscription, setIsCreatingSubscription] = useState(false)
@@ -90,9 +90,8 @@ export default function AdminSetupPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AuthHeader />
 
-      <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-4 md:p-6">
+      <div className="flex min-h-[calc(100vh-100px)] w-full items-center justify-center p-4 md:p-6">
         <div className="w-full max-w-2xl">
           <Card className="relative overflow-hidden border-2 border-fuchsia-200 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-lime-500/5"></div>
@@ -154,7 +153,7 @@ export default function AdminSetupPage() {
                 onClick={handleMercadoPagoSubscription}
                 disabled={isCreatingSubscription}
                 size="lg"
-                className="w-full text-lg py-6 bg-gradient-to-r from-fuchsia-600 to-lime-600 hover:from-fuchsia-700 hover:to-lime-700 text-white shadow-lg"
+                className="w-full text-lg py-6 bg-gradient-to-r from-fuchsia-800 to-fuchsia-600 hover:from-fuchsia-600 hover:to-fuchsia-800 text-white shadow-lg"
               >
                 <CreditCard className="w-5 h-5 mr-2" />
                 {isCreatingSubscription ? "Procesando..." : "Suscribite ahora!"}
