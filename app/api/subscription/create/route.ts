@@ -53,7 +53,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Crear suscripción en MercadoPago
+    // Usar plan existente de MercadoPago
+    const planId = process.env.MERCADOPAGO_PLAN_ID
+    if (!planId) {
+      return NextResponse.json(
+        { error: 'Plan de suscripción no configurado' },
+        { status: 500 }
+      )
+    }
+
     // Para testing, usar email de prueba si es entorno de desarrollo
     const isTestEnvironment = accessToken.startsWith('TEST-')
     const payerEmail = isTestEnvironment && process.env.MERCADOPAGO_TEST_USER_EMAIL 
@@ -61,28 +69,15 @@ export async function POST(request: NextRequest) {
       : user.email
 
     const subscriptionData = {
-      reason: process.env.SUBSCRIPTION_TITLE || 'Plan Premium FoodyNow',
+      preapproval_plan_id: planId,
       external_reference: `user_${user.id}_${Date.now()}`,
       payer_email: payerEmail,
-      auto_recurring: {
-        frequency: 1,
-        frequency_type: 'months',
-        transaction_amount: parseFloat(process.env.SUBSCRIPTION_PRICE || '36000'),
-        currency_id: 'ARS'
-      },
-      free_trial: {
-        frequency: 15,
-        frequency_type: 'days'
-      },
       back_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/settings`,
       notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
     }
 
-    // Determinar la URL de la API según el entorno
-    const isProduction = process.env.NODE_ENV === 'production' && !accessToken.startsWith('TEST-')
-    const apiUrl = isProduction 
-      ? 'https://api.mercadopago.com/preapproval'
-      : 'https://api.mercadopago.com/preapproval'
+    // Usar endpoint correcto para suscripciones con plan
+    const apiUrl = 'https://api.mercadopago.com/preapproval'
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -133,10 +128,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Retornar URL de pago
-    const checkoutUrl = process.env.NODE_ENV === 'production' 
-      ? mercadoPagoData.init_point 
-      : mercadoPagoData.sandbox_init_point
+    // Retornar URL de pago (siempre usar init_point para suscripciones con plan)
+    const checkoutUrl = mercadoPagoData.init_point
 
     return NextResponse.json({
       success: true,

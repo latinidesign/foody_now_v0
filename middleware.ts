@@ -33,6 +33,15 @@ export async function middleware(request: NextRequest) {
   const isMainDomain = mainDomains.some((domain) => hostname === domain) || isVercelPreviewDomain
   const isLocalhost = hostname.includes("localhost") || hostname.startsWith("127.0.0.1")
 
+  // Para localhost, permitir acceso directo sin reescritura
+  if (isLocalhost) {
+    try {
+      return await updateSession(request)
+    } catch (error) {
+      return NextResponse.next()
+    }
+  }
+
   if (!isMainDomain) {
     let storeSlug = ""
 
