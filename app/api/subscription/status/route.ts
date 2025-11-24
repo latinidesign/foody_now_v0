@@ -1,125 +1,81 @@
 import { createClient } from "@/lib/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const storeId = searchParams.get("storeId")
+
+    if (!storeId) {
+      return NextResponse.json({ 
+        error: "storeId requerido" 
+      }, { status: 400 })
+    }
+
     const supabase = await createClient()
-    
-    // Obtener el usuario autenticado
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Usuario no autenticado" },
-        { status: 401 }
-      )
-    }
 
-    // Obtener la tienda del usuario
-    const { data: store, error: storeError } = await supabase
-      .from("stores")
+    // Obtener suscripción con plan
+    const { data: subscription, error } = await supabase
+      .from("subscriptions")
       .select(`
-        id,
-        name,
-        subscription_id,
-        subscription_status,
-        subscription_expires_at,
-        subscriptions (
-          id,
-          status,
-          trial_started_at,
-          trial_ends_at,
-          paid_started_at,
-          paid_ends_at,
-          auto_renewal,
-          subscription_plans (
-            id,
-            name,
-            display_name,
-            price,
-            frequency,
-            features
-          )
-        )
+        *,
+        plan:subscription_plans(*)
       `)
-      .eq("user_id", user.id)
-      .single()
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-    if (storeError || !store) {
-      return NextResponse.json(
-        { error: "Tienda no encontrada" },
-        { status: 404 }
-      )
+    if (error) {
+      console.error("Error obteniendo suscripción:", error)
+      return NextResponse.json({ 
+        error: "Error consultando suscripción" 
+      }, { status: 500 })
     }
 
-    // Si no tiene suscripción, devolver estado sin suscripción
-    if (!store.subscription_id || !store.subscriptions || store.subscriptions.length === 0) {
+    if (!subscription) {
       return NextResponse.json({
-        success: true,
         hasSubscription: false,
-        store: {
-          id: store.id,
-          name: store.name
-        }
+        status: "none",
+        message: "No hay suscripción activa"
       })
     }
 
-    const subscription = store.subscriptions[0] // Tomar la primera (debería ser única)
-    const plan = subscription.subscription_plans?.[0] // Tomar el primer plan
-
     // Calcular días restantes
-    let daysLeft = 0
-    let isActive = false
-    let expiresAt: string | null = null
+    let daysRemaining = 0
+    const now = new Date()
 
-    if (subscription.status === 'trial' && subscription.trial_ends_at) {
+    if (subscription.status === "trial" && subscription.trial_ends_at) {
       const trialEnd = new Date(subscription.trial_ends_at)
-      const now = new Date()
-      if (trialEnd > now) {
-        daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-        isActive = true
-        expiresAt = subscription.trial_ends_at
-      }
-    } else if (subscription.status === 'active' && subscription.paid_ends_at) {
-      const paidEnd = new Date(subscription.paid_ends_at)
-      const now = new Date()
-      if (paidEnd > now) {
-        daysLeft = Math.ceil((paidEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-        isActive = true
-        expiresAt = subscription.paid_ends_at
-      }
+      daysRemaining = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    } else if (subscription.next_billing_date) {
+      const nextBilling = new Date(subscription.next_billing_date)
+      daysRemaining = Math.max(0, Math.ceil((nextBilling.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
     }
 
+    // Determinar si está activa
+    const isActive = ["trial", "active"].includes(subscription.status) && daysRemaining > 0
+
     return NextResponse.json({
-      success: true,
       hasSubscription: true,
-      isActive,
       subscription: {
         id: subscription.id,
         status: subscription.status,
-        daysLeft,
-        expiresAt,
-        autoRenewal: subscription.auto_renewal,
-        plan: plan ? {
-          id: plan.id,
-          name: plan.name,
-          displayName: plan.display_name,
-          price: Number(plan.price),
-          frequency: plan.frequency,
-          features: plan.features
-        } : null
-      },
-      store: {
-        id: store.id,
-        name: store.name
+        planName: subscription.plan?.display_name,
+        price: subscription.plan?.price,
+        trialEndsAt: subscription.trial_ends_at,
+        nextBillingDate: subscription.next_billing_date,
+        lastPaymentDate: subscription.last_payment_date,
+        daysRemaining,
+        isActive,
+        mercadopagoPreapprovalId: subscription.mercadopago_preapproval_id
       }
     })
 
   } catch (error) {
-    console.error("Error checking subscription status:", error)
-    return NextResponse.json(
-      { error: "Error interno del servidor" },
-      { status: 500 }
-    )
+    console.error("Error en status de suscripción:", error)
+    return NextResponse.json({ 
+      error: "Error interno del servidor" 
+    }, { status: 500 })
   }
 }

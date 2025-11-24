@@ -1,148 +1,147 @@
 import { createClient } from "@/lib/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 
-export const runtime = 'edge'
+const MERCADOPAGO_API_URL = "https://api.mercadopago.com"
 
-interface MercadoPagoPreApprovalResponse {
-  id: string
-  payer_id: number
-  status: string
-  init_point: string
-  sandbox_init_point: string
-  preapproval_plan_id: string
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
+    const { storeId, planId, cardToken, payerEmail } = await request.json()
     const supabase = await createClient()
-    
-    // Verificar autenticación
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Usuario no autenticado' },
-        { status: 401 }
-      )
+    // Validar datos requeridos
+    if (!storeId || !planId || !payerEmail) {
+      return NextResponse.json({ 
+        error: "Faltan datos requeridos: storeId, planId, payerEmail" 
+      }, { status: 400 })
     }
 
-    // Verificar si ya tiene una suscripción activa o en trial
-    const { data: existingSubscription } = await supabase
-      .from('user_subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .in('status', ['active', 'trial', 'pending'])
+    // Obtener plan
+    const { data: plan, error: planError } = await supabase
+      .from("subscription_plans")
+      .select("*")
+      .eq("id", planId)
       .single()
 
-    if (existingSubscription) {
-      return NextResponse.json(
-        { error: 'Ya tienes una suscripción activa, en período de prueba o pendiente' },
-        { status: 400 }
-      )
+    if (planError || !plan) {
+      return NextResponse.json({ 
+        error: "Plan no encontrado" 
+      }, { status: 404 })
     }
 
-    // Configurar MercadoPago
+    if (!plan.mercadopago_plan_id) {
+      return NextResponse.json({ 
+        error: "Plan no configurado en MercadoPago. Contacta al administrador." 
+      }, { status: 400 })
+    }
+
+    // Verificar que la tienda no tenga suscripción activa
+    const { data: existingSubscription } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("store_id", storeId)
+      .in("status", ["trial", "active"])
+      .maybeSingle()
+
+    if (existingSubscription) {
+      return NextResponse.json({ 
+        error: "La tienda ya tiene una suscripción activa" 
+      }, { status: 409 })
+    }
+
+    // Crear preapproval en MercadoPago
+    const preapproval = {
+      preapproval_plan_id: plan.mercadopago_plan_id,
+      reason: `Suscripción FoodyNow - ${plan.display_name}`,
+      payer_email: payerEmail,
+      back_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription/success`,
+      auto_recurring: {
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 año
+      }
+    }
+
+    // Agregar token de tarjeta si se proporciona
+    if (cardToken) {
+      preapproval.card_token_id = cardToken
+    }
+
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
     if (!accessToken) {
-      return NextResponse.json(
-        { error: 'Configuración de MercadoPago faltante' },
-        { status: 500 }
-      )
+      return NextResponse.json({ 
+        error: "Configuración de MercadoPago no disponible" 
+      }, { status: 500 })
     }
 
-    // Usar plan existente de MercadoPago
-    const planId = process.env.MERCADOPAGO_PLAN_ID
-    if (!planId) {
-      return NextResponse.json(
-        { error: 'Plan de suscripción no configurado' },
-        { status: 500 }
-      )
-    }
-
-    // Para testing, usar email de prueba si es entorno de desarrollo
-    const isTestEnvironment = accessToken.startsWith('TEST-')
-    const payerEmail = isTestEnvironment && process.env.MERCADOPAGO_TEST_USER_EMAIL 
-      ? process.env.MERCADOPAGO_TEST_USER_EMAIL 
-      : user.email
-
-    const subscriptionData = {
-      preapproval_plan_id: planId,
-      external_reference: `user_${user.id}_${Date.now()}`,
-      payer_email: payerEmail,
-      back_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/settings`,
-      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
-    }
-
-    // Usar endpoint correcto para suscripciones con plan
-    const apiUrl = 'https://api.mercadopago.com/preapproval'
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
+    const response = await fetch(`${MERCADOPAGO_API_URL}/preapproval`, {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'X-Idempotency-Key': `sub_${user.id}_${Date.now()}`
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(subscriptionData)
+      body: JSON.stringify(preapproval)
     })
 
+    const responseData = await response.json()
+
     if (!response.ok) {
-      const errorData = await response.text()
-      console.error('MercadoPago API Error:', errorData)
-      return NextResponse.json(
-        { error: 'Error creando suscripción en MercadoPago' },
-        { status: 500 }
-      )
+      console.error("Error creando preapproval:", responseData)
+      return NextResponse.json({ 
+        error: "Error creando suscripción en MercadoPago",
+        details: responseData 
+      }, { status: response.status })
     }
 
-    const mercadoPagoData: MercadoPagoPreApprovalResponse = await response.json()
+    // Crear suscripción local
+    const trialEndsAt = new Date()
+    trialEndsAt.setDate(trialEndsAt.getDate() + plan.trial_period_days)
 
-    // Calcular fechas de trial
-    const trialStartDate = new Date()
-    const trialEndDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 días
-
-    // Guardar suscripción en la base de datos
-    const { data: subscription, error: dbError } = await supabase
-      .from('user_subscriptions')
+    const { data: subscription, error: subscriptionError } = await supabase
+      .from("subscriptions")
       .insert({
-        user_id: user.id,
-        mercadopago_preapproval_id: mercadoPagoData.id,
-        status: 'trial',
-        plan_id: 'premium',
-        price: parseFloat(process.env.SUBSCRIPTION_PRICE || '36000'),
-        currency: 'ARS',
-        trial_start_date: trialStartDate.toISOString(),
-        trial_end_date: trialEndDate.toISOString()
+        store_id: storeId,
+        plan_id: planId,
+        status: "trial",
+        mercadopago_preapproval_id: responseData.id,
+        trial_started_at: new Date().toISOString(),
+        trial_ends_at: trialEndsAt.toISOString(),
+        auto_renewal: true
       })
       .select()
       .single()
 
-    if (dbError) {
-      console.error('Database Error:', dbError)
-      return NextResponse.json(
-        { error: 'Error guardando suscripción' },
-        { status: 500 }
-      )
+    if (subscriptionError) {
+      console.error("Error creando suscripción local:", subscriptionError)
+      return NextResponse.json({ 
+        error: "Error creando suscripción local" 
+      }, { status: 500 })
     }
 
-    // Retornar URL de pago (siempre usar init_point para suscripciones con plan)
-    const checkoutUrl = mercadoPagoData.init_point
+    // Actualizar tienda
+    const { error: storeUpdateError } = await supabase
+      .from("stores")
+      .update({
+        subscription_id: subscription.id,
+        subscription_status: "trial",
+        subscription_expires_at: trialEndsAt.toISOString()
+      })
+      .eq("id", storeId)
+
+    if (storeUpdateError) {
+      console.error("Error actualizando tienda:", storeUpdateError)
+    }
 
     return NextResponse.json({
       success: true,
-      checkout_url: checkoutUrl,
-      subscription_id: subscription.id,
-      mercadopago_id: mercadoPagoData.id
+      subscription: subscription,
+      init_point: responseData.init_point,
+      preapproval_id: responseData.id,
+      trial_days: plan.trial_period_days
     })
 
   } catch (error) {
-    console.error('Subscription creation error:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
+    console.error("Error creando suscripción:", error)
+    return NextResponse.json({ 
+      error: "Error interno del servidor" 
+    }, { status: 500 })
   }
 }
