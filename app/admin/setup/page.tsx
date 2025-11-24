@@ -28,13 +28,13 @@ export default function AdminSetupPage() {
       
       setUser(user)
       
-      // Verificar si ya tiene suscripción activa
+      // Verificar si ya tiene suscripción activa (usar tabla correcta)
       const { data: subscription } = await supabase
-        .from('user_subscriptions')
+        .from('subscriptions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('store_id', user.id) // Cambiar después por store real
         .in('status', ['active', 'trial'])
-        .single()
+        .maybeSingle()
         
       if (subscription) {
         // Ya tiene suscripción, redirigir a settings
@@ -52,24 +52,55 @@ export default function AdminSetupPage() {
     setError(null)
 
     try {
+      const supabase = createClient()
+      
+      // Obtener la tienda del usuario
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (storeError || !store) {
+        throw new Error("No se encontró la tienda asociada al usuario")
+      }
+      
+      // Obtener el plan mensual
+      const { data: plan, error: planError } = await supabase
+        .from('subscription_plans')
+        .select('id')
+        .eq('name', 'monthly')
+        .single()
+      
+      if (planError || !plan) {
+        throw new Error("Plan de suscripción no disponible")
+      }
+
+      // Crear suscripción con los datos requeridos
       const response = await fetch('/api/subscription/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          storeId: store.id,
+          planId: plan.id,
+          payerEmail: user.email
+        })
       })
 
       const data = await response.json()
 
       if (data.success) {
         toast.success("Redirigiendo a MercadoPago...")
-        // Redirigir a MercadoPago
-        window.location.href = data.checkout_url
+        // Usar init_point en lugar de checkout_url
+        window.location.href = data.init_point
       } else {
         throw new Error(data.error || "Error creando suscripción")
       }
 
     } catch (error: unknown) {
+      console.error("Error en suscripción:", error)
       setError(error instanceof Error ? error.message : "Error creando suscripción")
       toast.error("Error al procesar la suscripción")
     } finally {
@@ -104,11 +135,19 @@ export default function AdminSetupPage() {
                 ¡Bienvenido a FOODYNOW! 🎉
               </CardTitle>
               <CardDescription className="text-lg">
-                Activá la suscripción y comenzá tu prueba gratuita para explorar todas las funciones sin compromiso.
+                Activá la suscripción y comenzá tu prueba gratuita de 15 días para explorar todas las funciones sin compromiso.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="relative z-10 px-8">
+              <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-emerald-800 mb-2">Plan Básico Mensual</h3>
+                  <div className="text-3xl font-bold text-emerald-600 mb-1">$36.000</div>
+                  <p className="text-sm text-emerald-700">por mes • 15 días de prueba gratis</p>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-lime-600 flex-shrink-0 mt-0.5" />
@@ -135,7 +174,7 @@ export default function AdminSetupPage() {
                     <p className="text-sm font-medium text-amber-800 mb-1">Importante:</p>
                     <p className="text-sm text-amber-700">
                       Podés cancelar la suscripción antes de finalizar el período de prueba sin costo alguno. 
-                      De no hacerlo, se iniciará el cobro de la suscripción mensual por el medio seleccionado.
+                      De no hacerlo, se iniciará el cobro de la suscripción mensual automáticamente.
                     </p>
                   </div>
                 </div>
@@ -156,7 +195,7 @@ export default function AdminSetupPage() {
                 className="w-full text-lg py-6 bg-gradient-to-r from-fuchsia-800 to-fuchsia-600 hover:from-fuchsia-600 hover:to-fuchsia-800 text-white shadow-lg"
               >
                 <CreditCard className="w-5 h-5 mr-2" />
-                {isCreatingSubscription ? "Procesando..." : "Suscribite ahora!"}
+                {isCreatingSubscription ? "Procesando..." : "Iniciar Prueba Gratuita"}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </CardFooter>

@@ -10,9 +10,30 @@ ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS next_billing_date TIMESTAMP;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMP;
 
 -- Actualizar el tipo de estado para incluir nuevos estados
-ALTER TYPE subscription_status ADD VALUE IF NOT EXISTS 'past_due';
+DO $$ 
+BEGIN
+    ALTER TYPE subscription_status ADD VALUE IF NOT EXISTS 'past_due';
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
--- Actualizar plan existente con nuevos datos ($36000, 15 días trial)
+-- Primero verificar qué columnas existen y agregar las faltantes
+DO $$
+BEGIN
+    -- Agregar trial_period_days si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'subscription_plans' AND column_name = 'trial_period_days') THEN
+        ALTER TABLE subscription_plans ADD COLUMN trial_period_days INTEGER DEFAULT 30;
+    END IF;
+    
+    -- Agregar billing_frequency si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'subscription_plans' AND column_name = 'billing_frequency') THEN
+        ALTER TABLE subscription_plans ADD COLUMN billing_frequency VARCHAR(20) DEFAULT 'monthly';
+    END IF;
+END $$;
+
+-- Actualizar plan existente con nuevos datos ($36000, 15 días trial) - SIN LA "a" EXTRA
 UPDATE subscription_plans 
 SET 
   price = 36000,
@@ -68,7 +89,16 @@ CREATE TRIGGER trigger_sync_subscription_status
 ALTER TABLE subscription_payments ADD COLUMN IF NOT EXISTS billing_period_start TIMESTAMP;
 ALTER TABLE subscription_payments ADD COLUMN IF NOT EXISTS billing_period_end TIMESTAMP;
 
-COMMIT;
-
 -- Mostrar resumen de cambios
 SELECT 'Base de datos actualizada para Suscripciones con Planes Asociados' AS resultado;
+
+-- Mostrar plan actualizado
+SELECT 
+    name,
+    display_name,
+    price,
+    trial_period_days,
+    billing_frequency,
+    mercadopago_plan_id
+FROM subscription_plans 
+WHERE name = 'monthly';
