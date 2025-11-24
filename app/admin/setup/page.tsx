@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Store, Check, CreditCard, ArrowRight, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
-import Image from "next/image"
 
 export default function AdminSetupPage() {
   const [isCreatingSubscription, setIsCreatingSubscription] = useState(false)
@@ -28,17 +27,26 @@ export default function AdminSetupPage() {
       
       setUser(user)
       
-      // Verificar si ya tiene suscripción activa (usar tabla correcta)
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('store_id', user.id) // Cambiar después por store real
-        .in('status', ['active', 'trial'])
+      // Primero obtener la tienda del usuario
+      const { data: store } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', user.id) // ← Cambiar de user_id a owner_id
         .maybeSingle()
-        
-      if (subscription) {
-        // Ya tiene suscripción, redirigir a settings
-        router.push('/admin/settings')
+      
+      if (store) {
+        // Verificar si ya tiene suscripción activa usando el store_id correcto
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('store_id', store.id)
+          .in('status', ['active', 'trial'])
+          .maybeSingle()
+          
+        if (subscription) {
+          // Ya tiene suscripción, redirigir a settings
+          router.push('/admin/settings')
+        }
       }
     }
     
@@ -54,15 +62,43 @@ export default function AdminSetupPage() {
     try {
       const supabase = createClient()
       
-      // Obtener la tienda del usuario
-      const { data: store, error: storeError } = await supabase
+      // Obtener o crear la tienda del usuario automáticamente
+      let { data: store, error: storeError } = await supabase
         .from('stores')
         .select('id')
-        .eq('user_id', user.id)
-        .single()
-      
-      if (storeError || !store) {
-        throw new Error("No se encontró la tienda asociada al usuario")
+        .eq('owner_id', user.id) // ← Cambiar de user_id a owner_id
+        .maybeSingle()
+
+      // Si no existe la tienda, crearla automáticamente
+      if (!store) {
+        const { data: newStore, error: createStoreError } = await supabase
+          .from('stores')
+          .insert({
+            owner_id: user.id, // ← Cambiar de user_id a owner_id
+            name: `Mi Tienda FoodyNow`,
+            slug: `tienda-${Date.now()}`, // Slug único temporal
+            description: "Mi nueva tienda virtual",
+            phone: "",
+            address: "",
+            is_active: false // ← Eliminar status, solo usar is_active
+          })
+          .select('id')
+          .single()
+
+        if (createStoreError) {
+          throw new Error("Error creando la tienda: " + createStoreError.message)
+        }
+        
+        store = newStore
+        console.log("✅ Tienda creada automáticamente:", store.id)
+      }
+
+      if (storeError && storeError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        throw new Error("Error consultando la tienda: " + storeError.message)
+      }
+
+      if (!store) {
+        throw new Error("No se pudo crear la tienda")
       }
       
       // Obtener el plan mensual
@@ -93,7 +129,6 @@ export default function AdminSetupPage() {
 
       if (data.success) {
         toast.success("Redirigiendo a MercadoPago...")
-        // Usar init_point en lugar de checkout_url
         window.location.href = data.init_point
       } else {
         throw new Error(data.error || "Error creando suscripción")
@@ -121,7 +156,6 @@ export default function AdminSetupPage() {
 
   return (
     <div className="min-h-screen bg-background">
-
       <div className="flex min-h-[calc(100vh-100px)] w-full items-center justify-center p-4 md:p-6">
         <div className="w-full max-w-2xl">
           <Card className="relative overflow-hidden border-2 border-fuchsia-200 shadow-2xl">
@@ -142,8 +176,8 @@ export default function AdminSetupPage() {
             <CardContent className="relative z-10 px-8">
               <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-emerald-800 mb-2">Plan Básico Mensual</h3>
-                  <div className="text-3xl font-bold text-emerald-600 mb-1">$36.000</div>
+                  <h3 className="text-lg font-semibold text-emerald-800 mb-2">FoodyNow - Tienda Now</h3>
+                  <div className="text-3xl font-bold text-emerald-600 mb-1">$ 36.000</div>
                   <p className="text-sm text-emerald-700">por mes • 15 días de prueba gratis</p>
                 </div>
               </div>
