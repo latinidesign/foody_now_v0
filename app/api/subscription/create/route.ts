@@ -1,12 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { getSubscriptionService } from "@/lib/services/subscription-service"
-
-const MERCADOPAGO_API_URL = "https://api.mercadopago.com"
 
 export async function POST(request: Request) {
   try {
-    const { storeId, planId, cardToken, payerEmail } = await request.json()
+    const { storeId, planId, payerEmail } = await request.json()
     const supabase = await createClient()
 
     // Validar datos requeridos
@@ -49,60 +46,16 @@ export async function POST(request: Request) {
       }, { status: 409 })
     }
 
-    // Crear preapproval en MercadoPago
-    const preapproval: any = {
-      preapproval_plan_id: plan.mercadopago_plan_id,
-      reason: `Suscripción FoodyNow - ${plan.display_name}`,
-      payer_email: payerEmail,
-      back_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription/success`,
-      auto_recurring: {
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 año
-      }
-    }
-
-    // Agregar token de tarjeta si se proporciona
-    if (cardToken) {
-      preapproval.card_token_id = cardToken
-    }
-
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
-    if (!accessToken) {
-      return NextResponse.json({ 
-        error: "Configuración de MercadoPago no disponible" 
-      }, { status: 500 })
-    }
-
-    const response = await fetch(`${MERCADOPAGO_API_URL}/preapproval`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(preapproval)
-    })
-
-    const responseData = await response.json()
-
-    if (!response.ok) {
-      console.error("Error creando preapproval:", responseData)
-      return NextResponse.json({ 
-        error: "Error creando suscripción en MercadoPago",
-        details: responseData 
-      }, { status: response.status })
-    }
-
-    // Crear suscripción local
+    // Crear suscripción local primero (estado pending)
     const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + plan.trial_period_days)
+    trialEndsAt.setDate(trialEndsAt.getDate() + (plan.trial_period_days || 7))
 
     const { data: subscription, error: subscriptionError } = await supabase
       .from("subscriptions")
       .insert({
         store_id: storeId,
         plan_id: planId,
-        status: "trial",
-        mercadopago_preapproval_id: responseData.id,
+        status: "pending",
         trial_started_at: new Date().toISOString(),
         trial_ends_at: trialEndsAt.toISOString(),
         auto_renewal: true
@@ -117,12 +70,16 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
-    // Actualizar tienda
+    // Crear URL de checkout directa usando el plan de MercadoPago
+    const backUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/subscription/success?subscription_id=${subscription.id}`
+    const checkoutUrl = `https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=${plan.mercadopago_plan_id}&back_url=${encodeURIComponent(backUrl)}`
+
+    // Actualizar tienda con la suscripción
     const { error: storeUpdateError } = await supabase
       .from("stores")
       .update({
         subscription_id: subscription.id,
-        subscription_status: "trial",
+        subscription_status: "pending",
         subscription_expires_at: trialEndsAt.toISOString()
       })
       .eq("id", storeId)
@@ -134,9 +91,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       subscription: subscription,
-      init_point: responseData.init_point,
-      preapproval_id: responseData.id,
-      trial_days: plan.trial_period_days
+      init_point: checkoutUrl,
+      trial_days: plan.trial_period_days || 7
     })
 
   } catch (error) {

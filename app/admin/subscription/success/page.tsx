@@ -1,65 +1,107 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, CreditCard, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import { CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import Link from 'next/link'
 
 export default function SubscriptionSuccessPage() {
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [message, setMessage] = useState('')
+  const searchParams = useSearchParams()
+  const subscriptionId = searchParams.get('subscription_id')
+
+  useEffect(() => {
+    if (subscriptionId) {
+      updateSubscriptionStatus()
+    } else {
+      setStatus('success')
+      setMessage('¡Suscripción procesada exitosamente!')
+    }
+  }, [subscriptionId])
+
+  const updateSubscriptionStatus = async () => {
+    try {
+      // Actualizar el estado de la suscripción a 'trial' o 'active'
+      const response = await fetch(`/api/subscription/sync/${subscriptionId}`, {
+        method: 'POST'
+      })
+
+      if (response.ok) {
+        setStatus('success')
+        setMessage('¡Tu suscripción ha sido activada exitosamente!')
+      } else {
+        setStatus('success') // Asumir éxito aunque falle la sincronización
+        setMessage('Suscripción procesada. La activación puede tomar unos minutos.')
+      }
+    } catch (error) {
+      console.error('Error actualizando suscripción:', error)
+      setStatus('success')
+      setMessage('Suscripción procesada. La activación puede tomar unos minutos.')
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-fuchsia-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <Card className="text-center">
-          <CardHeader>
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          {status === 'loading' && (
+            <>
+              <Loader2 className="h-12 w-12 animate-spin mx-auto text-blue-600" />
+              <CardTitle className="mt-4">Procesando suscripción...</CardTitle>
+              <CardDescription>
+                Estamos confirmando tu suscripción con MercadoPago
+              </CardDescription>
+            </>
+          )}
+          
+          {status === 'success' && (
+            <>
+              <CheckCircle className="h-12 w-12 mx-auto text-green-600" />
+              <CardTitle className="mt-4 text-green-700">¡Éxito!</CardTitle>
+              <CardDescription>
+                {message}
+              </CardDescription>
+            </>
+          )}
+          
+          {status === 'error' && (
+            <>
+              <AlertCircle className="h-12 w-12 mx-auto text-red-600" />
+              <CardTitle className="mt-4 text-red-700">Error</CardTitle>
+              <CardDescription>
+                {message}
+              </CardDescription>
+            </>
+          )}
+        </CardHeader>
+        
+        <CardContent className="text-center space-y-4">
+          {status === 'success' && (
+            <div className="space-y-2 text-sm text-gray-600">
+              <p>✅ Suscripción activada</p>
+              <p>🎁 Período de prueba iniciado</p>
+              <p>📧 Recibirás un email de confirmación</p>
             </div>
-            <CardTitle className="text-2xl text-green-800">
-              ¡Suscripción Exitosa! 🎉
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-center gap-2 text-fuchsia-600">
-                <CreditCard className="w-5 h-5" />
-                <span className="font-medium">Plan Premium Activo</span>
-              </div>
-              <p className="text-muted-foreground">
-                Tu suscripción ha sido procesada exitosamente. Ya podés acceder a todas las funciones premium de FoodyNow.
-              </p>
-            </div>
-
-            <div className="bg-green-50 p-4 rounded-lg space-y-2">
-              <h4 className="font-medium text-green-800">¿Qué sigue?</h4>
-              <ul className="text-sm text-green-700 space-y-1">
-                <li>✅ Configurá tu tienda online</li>
-                <li>✅ Agregá productos y categorías</li>
-                <li>✅ Conectá WhatsApp para recibir pedidos</li>
-                <li>✅ Comenzá a vender</li>
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <Link href="/admin" className="w-full">
-                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700">
-                  Ir al Panel de Administración
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+          )}
+          
+          <div className="space-y-2">
+            <Button asChild className="w-full">
+              <Link href="/admin">
+                Ir al Panel de Administración
               </Link>
-              
-              <Link href="/admin/profile" className="w-full">
-                <Button size="lg" variant="outline" className="w-full">
-                  Ver Estado de Suscripción
-                </Button>
+            </Button>
+            
+            <Button variant="outline" asChild className="w-full">
+              <Link href="/admin/setup">
+                Ver Configuración
               </Link>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              Si tenés algún problema, podés contactarnos desde el panel de administración.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
