@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
+import { getSubscriptionService } from "@/lib/services/subscription-service"
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 interface MercadoPagoPreApprovalResponse {
   id: string

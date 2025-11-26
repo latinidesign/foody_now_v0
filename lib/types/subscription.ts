@@ -1,6 +1,12 @@
 // Tipos para el sistema de suscripciones
 
-export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'cancelled' | 'suspended'
+export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'cancelled' | 'suspended' | 'past_due'
+
+export interface Store {
+  id: string
+  name: string
+  slug: string
+}
 
 export type PaymentFrequency = 'monthly' | 'yearly' | 'one_time'
 

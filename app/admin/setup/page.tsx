@@ -105,7 +105,7 @@ export default function AdminSetupPage() {
       const { data: plan, error: planError } = await supabase
         .from('subscription_plans')
         .select('id')
-        .eq('name', 'monthly')
+        .eq('name', 'basic_monthly') // ← Cambiar de 'monthly' a 'basic_monthly'
         .single()
       
       if (planError || !plan) {

@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-
-const MERCADOPAGO_API_URL = "https://api.mercadopago.com"
+import { getSubscriptionService } from "@/lib/services/subscription-service"
 
 export async function POST(request: Request) {
   try {

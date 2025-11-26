@@ -1,52 +1,37 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { getSubscriptionService } from "@/lib/services/subscription-service"
 import { MercadoPagoWebhookEvent } from "@/lib/types/subscription"
-
-const MERCADOPAGO_API_URL = "https://api.mercadopago.com"
 
 export async function POST(request: Request) {
   try {
     const body: MercadoPagoWebhookEvent = await request.json()
-    const supabase = await createClient()
-
+    
     console.log("🔔 Webhook recibido:", {
       type: body.type,
       action: body.action,
       id: body.data?.id
     })
 
-    // Procesar según el tipo de evento
-    switch (body.type) {
-      case "preapproval":
-        return await handlePreapprovalEvent(body, supabase)
-      
-      case "payment":
-        return await handlePaymentEvent(body, supabase)
-      
-      default:
-        console.log(`ℹ️ Tipo de webhook no manejado: ${body.type}`)
-        return NextResponse.json({ received: true })
-    }
+    const subscriptionService = getSubscriptionService()
+    
+    // Procesar el webhook usando el servicio
+    await subscriptionService.handleWebhook(body)
 
-  } catch (error) {
+    return NextResponse.json({ 
+      received: true, 
+      processed: true 
+    })
+
+  } catch (error: any) {
     console.error("❌ Error procesando webhook:", error)
     return NextResponse.json({ 
-      error: "Error procesando webhook" 
+      error: "Error procesando webhook",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 })
   }
 }
 
-async function handlePreapprovalEvent(event: MercadoPagoWebhookEvent, supabase: any) {
-  try {
-    const preapprovalId = event.data.id
-    
-    // Obtener información del preapproval desde MP
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
-    const response = await fetch(`${MERCADOPAGO_API_URL}/preapproval/${preapprovalId}`, {
-      headers: {
-        "Authorization": `Bearer ${accessToken}`
-      }
-    })
+// Funciones auxiliares removidas - ahora se maneja en el servicio
 
     if (!response.ok) {
       console.error("Error obteniendo preapproval desde MP")
