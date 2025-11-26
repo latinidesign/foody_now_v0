@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { getSubscriptionService } from "@/lib/services/subscription-service"
 
+const MERCADOPAGO_API_URL = "https://api.mercadopago.com"
+
 export async function POST(request: Request) {
   try {
     const { storeId, planId, cardToken, payerEmail } = await request.json()
@@ -48,7 +50,7 @@ export async function POST(request: Request) {
     }
 
     // Crear preapproval en MercadoPago
-    const preapproval = {
+    const preapproval: any = {
       preapproval_plan_id: plan.mercadopago_plan_id,
       reason: `Suscripción FoodyNow - ${plan.display_name}`,
       payer_email: payerEmail,
