@@ -21,17 +21,75 @@ function ConfirmEmailContent() {
         // Los parámetros de confirmación vienen en la URL
         const token_hash = searchParams.get('token_hash')
         const type = searchParams.get('type')
+        const code = searchParams.get('code')
+        const error_code = searchParams.get('error_code')
+        const error_description = searchParams.get('error_description')
+        
+        const allParams = Object.fromEntries(searchParams.entries())
+        console.log('🔍 Confirmation params:', { token_hash, type, code, error_code, error_description, allParams })
+        
+        // Caso 1: Error explícito en la URL
+        if (error_code || error_description) {
+          throw new Error(`${error_description || error_code}`)
+        }
 
-        if (token_hash && type === 'email') {
-          const { error } = await supabase.auth.verifyOtp({
+        let confirmationSuccess = false
+
+        // Caso 2: Método moderno - exchangeCodeForSession con code
+        if (code) {
+          console.log('🔄 Intentando confirmación con code...')
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          
+          if (!error && data?.user) {
+            confirmationSuccess = true
+            console.log('✅ Confirmación exitosa con code')
+          } else {
+            console.log('❌ Error con code:', error?.message)
+          }
+        }
+        
+        // Caso 3: Método legacy - verifyOtp con token_hash
+        if (!confirmationSuccess && token_hash && type === 'email') {
+          console.log('🔄 Intentando confirmación con token_hash...')
+          const { data, error } = await supabase.auth.verifyOtp({
             token_hash,
             type: 'email'
           })
 
-          if (error) {
-            throw error
+          if (!error && data?.user) {
+            confirmationSuccess = true
+            console.log('✅ Confirmación exitosa con token_hash')
+          } else {
+            console.log('❌ Error con token_hash:', error?.message)
           }
+        }
 
+        // Caso 4: Verificar si el usuario ya está confirmado
+        if (!confirmationSuccess) {
+          console.log('🔄 Verificando sesión actual...')
+          const { data: { user }, error: userError } = await supabase.auth.getUser()
+          
+          if (user && user.email_confirmed_at) {
+            confirmationSuccess = true
+            console.log('✅ Usuario ya confirmado previamente')
+          } else if (user && !user.email_confirmed_at) {
+            // Usuario existe pero no está confirmado
+            throw new Error('Enlace de confirmación inválido o expirado')
+          }
+        }
+
+        // Caso 5: Verificar si hay una sesión activa válida sin parámetros
+        if (!confirmationSuccess && !code && !token_hash) {
+          console.log('🔄 Verificando sesión activa...')
+          const { data: { user }, error: userError } = await supabase.auth.getUser()
+          
+          if (user) {
+            console.log('✅ Usuario autenticado encontrado, asumiendo confirmación exitosa')
+            confirmationSuccess = true
+          }
+        }
+
+        if (confirmationSuccess) {
           setStatus('success')
           setMessage('¡Email confirmado exitosamente!')
           
@@ -40,16 +98,24 @@ function ConfirmEmailContent() {
             router.push('/onboarding')
           }, 2000)
         } else {
-          throw new Error('Enlace de confirmación inválido')
+          throw new Error('No se pudo procesar la confirmación. Verifica el enlace.')
         }
+        
       } catch (error: any) {
+        console.error('❌ Error en confirmación:', error)
         setStatus('error')
         
         // Detectar diferentes tipos de error
-        if (error.message?.includes('expired') || error.message?.includes('invalid')) {
-          setMessage('El enlace de confirmación ha expirado o es inválido. Por favor, solicita un nuevo enlace.')
+        if (error.message?.includes('expired') || error.message?.includes('invalid') || error.message?.includes('expirado') || error.message?.includes('inválido')) {
+          setMessage('El enlace de confirmación ha expirado o es inválido.')
+        } else if (error.message?.includes('already') || error.message?.includes('confirmado')) {
+          setStatus('success')
+          setMessage('Tu cuenta ya está confirmada.')
+          setTimeout(() => {
+            router.push('/onboarding')
+          }, 2000)
         } else {
-          setMessage(error.message || 'Error confirmando el email')
+          setMessage(`Error de confirmación: ${error.message || 'Hubo un problema confirmando tu email. Enlace de confirmación inválido'}`)
         }
       }
     }

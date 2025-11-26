@@ -21,6 +21,7 @@ export default function Page() {
   const [lastName, setLastName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
   const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -53,14 +54,73 @@ export default function Page() {
       
       toast.success("¡Cuenta creada! Revisa tu email para confirmar tu cuenta.")
       
-      // Redirigir a la página de confirmación
-      router.push('/confirm')
+      // Mostrar pantalla de confirmación de email enviado
+      setEmailSent(true)
+      
+      console.log('✅ Registro exitoso, email de confirmación enviado a:', email)
 
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Ocurrió un error")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AuthHeader />
+
+        <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-4 md:p-6">
+          <div className="w-full max-w-md">
+            <Card>
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <CardTitle className="text-2xl">¡Revisa tu email!</CardTitle>
+                <CardDescription>
+                  Hemos enviado un enlace de confirmación a <strong>{email}</strong>
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">📧 Pasos siguientes</h4>
+                  <ol className="text-sm text-blue-700 space-y-1">
+                    <li>1. Revisa tu bandeja de entrada</li>
+                    <li>2. Haz clic en el enlace de confirmación</li>
+                    <li>3. Completa la configuración de tu tienda</li>
+                  </ol>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Si no ves el email, revisa tu carpeta de spam.
+                  </p>
+                </div>
+                
+                <div className="text-center space-y-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setEmailSent(false)}
+                    className="w-full"
+                  >
+                    ← Volver al registro
+                  </Button>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    ¿Ya tienes cuenta?{" "}
+                    <Link href="/auth/login" className="underline underline-offset-4 text-primary">
+                      Inicia sesión
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
