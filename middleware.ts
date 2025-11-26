@@ -5,6 +5,25 @@ import { NextResponse } from "next/server"
 export const runtime = "experimental-edge"
 
 export async function middleware(request: NextRequest) {
+  // Manejar preflight OPTIONS requests para CORS
+  if (request.method === 'OPTIONS') {
+    const response = new Response(null, { status: 200 })
+    
+    // Configurar headers CORS para preflight
+    const origin = request.headers.get('origin')
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    
+    if (isDevelopment || (origin && origin.includes('.foodynow.com.ar'))) {
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+      response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      response.headers.set('Access-Control-Max-Age', '86400')
+    }
+    
+    return response
+  }
+
   const url = request.nextUrl.clone()
   const hostname = request.headers.get("host") || ""
 

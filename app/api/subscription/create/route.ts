@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       }, { status: 409 })
     }
 
-    // Crear suscripción local primero (estado pending)
+    // Crear suscripción local primero (estado trial)
     const trialEndsAt = new Date()
     trialEndsAt.setDate(trialEndsAt.getDate() + (plan.trial_period_days || 7))
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       .insert({
         store_id: storeId,
         plan_id: planId,
-        status: "pending",
+        status: "trial",
         trial_started_at: new Date().toISOString(),
         trial_ends_at: trialEndsAt.toISOString(),
         auto_renewal: true
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       .from("stores")
       .update({
         subscription_id: subscription.id,
-        subscription_status: "pending",
+        subscription_status: "trial",
         subscription_expires_at: trialEndsAt.toISOString()
       })
       .eq("id", storeId)
