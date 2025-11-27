@@ -36,9 +36,14 @@ function ConfirmContent() {
         
         // Mostrar información sobre el proceso
         setStatus('success')
-        setMessage('Tu email ha sido confirmado exitosamente. Ya puedes iniciar sesión.')
+        setMessage('Tu email ha sido confirmado exitosamente. Configuremos tu tienda.')
         
         console.log('✅ Confirmación procesada exitosamente')
+        
+        // Redirigir a setup después de 2 segundos
+        setTimeout(() => {
+          router.push('/admin/setup')
+        }, 2000)
         
       } catch (error: any) {
         console.error('❌ Error procesando confirmación:', error)

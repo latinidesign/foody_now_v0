@@ -87,7 +87,7 @@ http://localhost:3000/auth/sign-up
 ## 📋 **Estados Manejados Automáticamente**
 
 ### ✅ **Casos de Éxito**
-- Usuario confirma por primera vez → Redirige a `/onboarding`
+- Usuario confirma por primera vez → Redirige a `/admin/setup`
 - Usuario ya confirmado → Mensaje + redirige a `/admin`
 - Enlace de producción en localhost → Funciona correctamente
 

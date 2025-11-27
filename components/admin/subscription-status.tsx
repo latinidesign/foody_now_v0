@@ -217,7 +217,7 @@ export function SubscriptionStatus() {
         {/* Acciones */}
         <div className="pt-4 space-y-2">
           {subscriptionData.status === 'expired' && (
-            <Link href="/onboarding" className="w-full">
+            <Link href="/admin/setup" className="w-full">
               <Button className="w-full">
                 Suscribirse Ahora
               </Button>
@@ -225,7 +225,7 @@ export function SubscriptionStatus() {
           )}
           
           {subscriptionData.status === 'suspended' && (
-            <Link href="/onboarding" className="w-full">
+            <Link href="/admin/setup" className="w-full">
               <Button className="w-full" variant="outline">
                 Reactivar Suscripción
               </Button>
@@ -233,7 +233,7 @@ export function SubscriptionStatus() {
           )}
           
           {(subscriptionData.status === 'trial' || subscriptionData.isInTrial) && (
-            <Link href="/onboarding" className="w-full">
+            <Link href="/admin/setup" className="w-full">
               <Button className="w-full">
                 Convertir a Premium
               </Button>

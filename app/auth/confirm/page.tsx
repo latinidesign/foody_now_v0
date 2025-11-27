@@ -93,9 +93,9 @@ function ConfirmEmailContent() {
           setStatus('success')
           setMessage('¡Email confirmado exitosamente!')
           
-          // Redirigir a onboarding después de 2 segundos
+          // Redirigir a setup después de 2 segundos
           setTimeout(() => {
-            router.push('/onboarding')
+            router.push('/admin/setup')
           }, 2000)
         } else {
           throw new Error('No se pudo procesar la confirmación. Verifica el enlace.')
@@ -112,7 +112,7 @@ function ConfirmEmailContent() {
           setStatus('success')
           setMessage('Tu cuenta ya está confirmada.')
           setTimeout(() => {
-            router.push('/onboarding')
+            router.push('/admin/setup')
           }, 2000)
         } else {
           setMessage(`Error de confirmación: ${error.message || 'Hubo un problema confirmando tu email. Enlace de confirmación inválido'}`)
@@ -186,13 +186,13 @@ function ConfirmEmailContent() {
           {status === 'success' && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-4">
-                Serás redirigido automáticamente para continuar con la configuración de tu tienda...
+                Serás redirigido automáticamente para configurar tu tienda...
               </p>
               <Button 
-                onClick={() => router.push('/auth/sign-up?confirmed=true')}
+                onClick={() => router.push('/admin/setup')}
                 className="w-full"
               >
-                Continuar ahora
+                Configurar mi tienda ahora
               </Button>
             </div>
           )}

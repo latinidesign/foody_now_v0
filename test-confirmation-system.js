@@ -56,7 +56,7 @@ console.log('')
 console.log('Caso 2: Usuario hace clic en enlace válido')
 console.log('   ➜ Va a /auth/confirm')
 console.log('   ➜ Sistema intenta múltiples métodos de confirmación')
-console.log('   ➜ Muestra éxito y redirige a /onboarding')
+console.log('   ➜ Muestra éxito y redirige a /admin/setup')
 console.log('')
 
 console.log('Caso 3: Usuario ya está confirmado')
