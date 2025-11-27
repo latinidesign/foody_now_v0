@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         currency_id: 'ARS'
       },
       back_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/subscription/success`,
-      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
+      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhook/mercadopago`
     }
 
     const response = await fetch('https://api.mercadopago.com/preapproval', {
