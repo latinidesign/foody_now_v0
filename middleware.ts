@@ -1,10 +1,17 @@
 import { updateSession } from "@/lib/supabase/middleware"
+import { confirmationRedirectMiddleware } from "@/lib/middleware/confirmation-redirect"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 export const runtime = "experimental-edge"
 
 export async function middleware(request: NextRequest) {
+  // Verificar redirecciones de confirmación de email primero
+  const confirmationResponse = confirmationRedirectMiddleware(request)
+  if (confirmationResponse.status === 307 || confirmationResponse.status === 302) {
+    return confirmationResponse
+  }
+
   // Manejar preflight OPTIONS requests para CORS
   if (request.method === 'OPTIONS') {
     const response = new Response(null, { status: 200 })
