@@ -129,7 +129,7 @@ export async function POST(request: Request) {
   }
 
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "")
-  const notificationUrl = new URL(`${normalizedBaseUrl}/api/webhooks/mercadopago`)
+  const notificationUrl = new URL(`${normalizedBaseUrl}/api/webhook/mercadopago`)
   notificationUrl.searchParams.set("store_id", store.id)
   notificationUrl.searchParams.set("store_slug", store.slug)
 

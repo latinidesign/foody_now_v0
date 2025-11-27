@@ -40,7 +40,7 @@ console.log(`🏷️  Título: ${process.env.SUBSCRIPTION_TITLE || 'Plan Premium
 
 console.log('\n🌐 URLs:');
 console.log(`🏠 App URL: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}`);
-console.log(`🔔 Webhook: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`);
+console.log(`🔔 Webhook: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhook/mercadopago`);
 console.log(`↩️  Back URL: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/settings`);
 
 console.log('\n🔒 Entorno:');
