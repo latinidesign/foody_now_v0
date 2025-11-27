@@ -13,6 +13,7 @@ export default function AdminSetupPage() {
   const [isCreatingSubscription, setIsCreatingSubscription] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
+  const [planInfo, setPlanInfo] = useState<any>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -26,6 +27,18 @@ export default function AdminSetupPage() {
       }
       
       setUser(user)
+      
+      // Cargar información del plan
+      const { data: plan } = await supabase
+        .from('subscription_plans')
+        .select('id, price, trial_period_days, display_name, currency')
+        .eq('name', 'basic_monthly')
+        .eq('is_active', true)
+        .single()
+      
+      if (plan) {
+        setPlanInfo(plan)
+      }
       
       // Primero obtener la tienda del usuario
       const { data: store } = await supabase
@@ -101,11 +114,12 @@ export default function AdminSetupPage() {
         throw new Error("No se pudo crear la tienda")
       }
       
-      // Obtener el plan mensual
+      // Obtener el plan mensual con información completa
       const { data: plan, error: planError } = await supabase
         .from('subscription_plans')
-        .select('id')
-        .eq('name', 'basic_monthly') // ← Cambiar de 'monthly' a 'basic_monthly'
+        .select('id, price, trial_period_days, display_name')
+        .eq('name', 'basic_monthly')
+        .eq('is_active', true)
         .single()
       
       if (planError || !plan) {
@@ -169,7 +183,7 @@ export default function AdminSetupPage() {
                 ¡Bienvenido a FOODYNOW! 🎉
               </CardTitle>
               <CardDescription className="text-lg">
-                Activá la suscripción y comenzá tu prueba gratuita de 15 días para explorar todas las funciones sin compromiso.
+                Activá la suscripción y comenzá tu prueba gratuita de {planInfo?.trial_period_days || 14} días para explorar todas las funciones sin compromiso.
               </CardDescription>
             </CardHeader>
 
@@ -177,8 +191,12 @@ export default function AdminSetupPage() {
               <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-emerald-800 mb-2">FoodyNow - Tienda Now</h3>
-                  <div className="text-3xl font-bold text-emerald-600 mb-1">$ 36.000</div>
-                  <p className="text-sm text-emerald-700">por mes • 15 días de prueba gratis</p>
+                  <div className="text-3xl font-bold text-emerald-600 mb-1">
+                    $ {planInfo?.price ? planInfo.price.toLocaleString() : '36.000'}
+                  </div>
+                  <p className="text-sm text-emerald-700">
+                    por mes • {planInfo?.trial_period_days || 14} días de prueba gratis
+                  </p>
                 </div>
               </div>
 
