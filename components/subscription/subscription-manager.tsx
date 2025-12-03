@@ -179,10 +179,12 @@ export function SubscriptionManager({ storeId, userEmail }: SubscriptionManagerP
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      trial: { label: 'Trial', variant: 'secondary' as const },
-      active: { label: 'Activa', variant: 'default' as const },
+      trial: { label: 'Período de prueba', variant: 'secondary' as const },
+      pending: { label: 'Pendiente de pago', variant: 'outline' as const },
+      active: { label: 'Activa - Pago al día', variant: 'default' as const },
+      suspended: { label: 'Pausada', variant: 'secondary' as const },
+      past_due: { label: 'Suspendida - Pago vencido', variant: 'destructive' as const },
       cancelled: { label: 'Cancelada', variant: 'destructive' as const },
-      past_due: { label: 'Pausada', variant: 'outline' as const },
       expired: { label: 'Expirada', variant: 'destructive' as const }
     }
 

@@ -9,11 +9,11 @@ import { SubscriptionStatus } from "@/lib/types/subscription"
  */
 export function mapMercadoPagoStatus(mpStatus: string): SubscriptionStatus {
   const statusMap: Record<string, SubscriptionStatus> = {
-    'pending': 'trial',
-    'authorized': 'active',
-    'paused': 'suspended',
-    'cancelled': 'cancelled',
-    'finished': 'expired'
+    'pending': 'pending',        // 🔧 CORREGIDO: Pago no procesado
+    'authorized': 'active',      // ✅ Pago confirmado, suscripción activa
+    'paused': 'suspended',       // ✅ Pausada por el usuario
+    'cancelled': 'cancelled',    // ✅ Cancelada por usuario o merchant
+    'finished': 'expired'        // ✅ Terminada naturalmente
   }
 
   return statusMap[mpStatus] || 'cancelled'
@@ -87,13 +87,19 @@ export function getSubscriptionSummary(subscription: any): {
   let statusText = ''
   switch (subscription.status) {
     case 'trial':
-      statusText = daysLeft ? `Trial - ${daysLeft} días restantes` : 'Trial expirado'
+      statusText = daysLeft ? `Período de prueba - ${daysLeft} días restantes` : 'Período de prueba expirado'
+      break
+    case 'pending':
+      statusText = 'Pendiente de pago - Completar suscripción'
       break
     case 'active':
-      statusText = 'Suscripción activa'
+      statusText = 'Suscripción activa - Pago al día'
+      break
+    case 'suspended':
+      statusText = 'Suscripción pausada'
       break
     case 'past_due':
-      statusText = 'Pago vencido'
+      statusText = 'Suspendida - Pago vencido'
       break
     case 'cancelled':
       statusText = 'Suscripción cancelada'

@@ -1,6 +1,6 @@
 // Tipos para el sistema de suscripciones
 
-export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'cancelled' | 'suspended' | 'past_due'
+export type SubscriptionStatus = 'trial' | 'pending' | 'active' | 'expired' | 'cancelled' | 'suspended' | 'past_due'
 
 export interface Store {
   id: string
