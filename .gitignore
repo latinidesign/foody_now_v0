@@ -25,3 +25,35 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Temporary diagnostic and cleanup scripts
+# These are one-time use scripts and shouldn't be committed
+
+# Subscription cleanup scripts
+activate-pizzeria.js
+check-plan-config.js
+check-subscription-pizzeria.js
+clean-failed-payment*.js
+cleanup-orphaned-users.js
+debug-modal-issue.js
+deep-diagnostic-cleanup.js
+diagnostic-post-payment.js
+extend-subscription.js
+fix-failed-subscription.js
+fix-pizzeria-subscription.js
+intelligent-subscription-cleanup.js
+reset-pizzeria-subscription.js
+verify-reset-status.js
+
+# Analysis scripts
+mercadopago-states-guide.js
+states-analysis.js
+final-states-verification.js
+
+# Test scripts
+test-webhook-*.js
+check-git-status.js
+
+# Keep important permanent files:
+# - setup-subscriptions.js (permanent setup)
+# - process-*.js (permanent processing)
+# - test-complete-*.js (integration tests)
