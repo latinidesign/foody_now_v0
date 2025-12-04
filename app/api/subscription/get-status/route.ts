@@ -115,12 +115,16 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Mapear estados de MercadoPago a nuestros estados
+/**
+ * Mapea estados de MercadoPago Preapproval a estados internos de FoodyNow
+ * @see docs/ANALISIS-ESTADOS-SUSCRIPCION.md
+ */
 function mapMercadoPagoStatus(mpStatus: string): string {
   switch (mpStatus) {
     case 'authorized':
+      return 'active'     // ✅ Pago confirmado
     case 'pending':
-      return 'active'
+      return 'pending'    // 🔧 CORREGIDO: Esperando pago
     case 'paused':
       return 'suspended'
     case 'cancelled':

@@ -51,6 +51,13 @@ export function SubscriptionStatus() {
 
   const getStatusInfo = (status: string) => {
     switch (status) {
+      case 'pending':
+        return {
+          icon: <Clock className="w-5 h-5" />,
+          label: 'Pendiente de pago',
+          color: 'bg-yellow-100 text-yellow-800',
+          description: 'Tu suscripción está pendiente de confirmación de pago'
+        }
       case 'trial':
         return {
           icon: <Sparkles className="w-5 h-5" />,
@@ -64,6 +71,13 @@ export function SubscriptionStatus() {
           label: 'Activa',
           color: 'bg-green-100 text-green-800',
           description: 'Tu suscripción está activa y al día'
+        }
+      case 'past_due':
+        return {
+          icon: <AlertCircle className="w-5 h-5" />,
+          label: 'Pago vencido',
+          color: 'bg-orange-100 text-orange-800',
+          description: 'Tu suscripción tiene un pago pendiente vencido'
         }
       case 'suspended':
         return {

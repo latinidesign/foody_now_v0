@@ -361,10 +361,14 @@ export class FoodyNowSubscriptionService implements SubscriptionService {
     }
 
     // Mapear estado de MercadoPago a nuestro estado
+    // @see docs/ANALISIS-ESTADOS-SUSCRIPCION.md
     let newStatus: SubscriptionStatus
     switch (preapprovalData.status) {
       case 'authorized':
         newStatus = 'active'
+        break
+      case 'pending':
+        newStatus = 'pending'   // 🔧 AGREGADO: Pago no procesado
         break
       case 'paused':
         newStatus = 'suspended'
@@ -447,10 +451,14 @@ export class FoodyNowSubscriptionService implements SubscriptionService {
       const preapprovalData = await this.mpSDK.getPreapproval(subscription.mercadopago_preapproval_id)
       
       // Actualizar estado basado en MercadoPago
+      // @see docs/ANALISIS-ESTADOS-SUSCRIPCION.md
       let newStatus: SubscriptionStatus
       switch (preapprovalData.status) {
         case 'authorized':
           newStatus = 'active'
+          break
+        case 'pending':
+          newStatus = 'pending'   // 🔧 AGREGADO: Pago no procesado
           break
         case 'paused':
           newStatus = 'suspended'

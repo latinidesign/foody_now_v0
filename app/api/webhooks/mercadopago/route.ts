@@ -75,17 +75,28 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
   }
 }
 
+/**
+ * Mapea estados de MercadoPago Preapproval a estados internos de FoodyNow
+ * 
+ * Estados MercadoPago:
+ * - pending: Suscripción creada, esperando confirmación de pago
+ * - authorized: Pago confirmado, suscripción activa
+ * - paused: Pausada por usuario/merchant
+ * - cancelled: Cancelada definitivamente
+ * 
+ * @see docs/ANALISIS-ESTADOS-SUSCRIPCION.md
+ */
 function mapMercadoPagoStatus(mpStatus: string): string {
   switch (mpStatus) {
     case 'authorized':
-      return 'active'  // Trial terminado y primer pago procesado
+      return 'active'     // ✅ Pago confirmado, suscripción activa
     case 'pending':
-      return 'trial'   // En período de prueba
+      return 'pending'    // 🔧 CORREGIDO: Esperando confirmación de pago
     case 'paused':
-      return 'suspended'
+      return 'suspended'  // ✅ Pausada
     case 'cancelled':
-      return 'cancelled'
+      return 'cancelled'  // ✅ Cancelada
     default:
-      return 'pending'
+      return 'pending'    // Estado desconocido = pendiente
   }
 }
