@@ -227,6 +227,16 @@ export function SubscriptionManager({ storeId, userEmail }: SubscriptionManagerP
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Mensaje especial para estado pending */}
+            {currentSubscription.status === 'pending' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center mb-4">
+                <AlertCircle className="h-5 w-5 text-yellow-600 mx-auto mb-2" />
+                <p className="text-sm text-yellow-800 font-medium">
+                  El pago no se concretó. Revisa tu correo electrónico para instrucciones de MercadoPago y vuelve a intentar la suscripción.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Plan</label>
@@ -294,8 +304,8 @@ export function SubscriptionManager({ storeId, userEmail }: SubscriptionManagerP
         </Card>
       )}
 
-      {/* Planes disponibles */}
-      {(!currentSubscription || ['cancelled', 'expired'].includes(currentSubscription.status)) && (
+      {/* Planes disponibles: mostrar también si la suscripción está en estado pending */}
+      {(!currentSubscription || ['cancelled', 'expired', 'pending'].includes(currentSubscription.status)) && (
         <div>
           <h3 className="text-xl font-semibold mb-4">Planes Disponibles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

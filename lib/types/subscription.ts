@@ -31,7 +31,7 @@ export interface Subscription {
   id: string
   store_id: string
   plan_id: string
-  status: 'trial' | 'active' | 'cancelled' | 'past_due' | 'expired'
+  status: SubscriptionStatus
   mercadopago_preapproval_id?: string
   mercadopago_subscription_id?: string
   trial_started_at?: string

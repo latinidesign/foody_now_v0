@@ -174,7 +174,7 @@ export class FoodyNowSubscriptionService implements SubscriptionService {
         .insert({
           store_id: storeId,
           plan_id: planId,
-          status: 'trial' as SubscriptionStatus,
+          status: 'pending' as SubscriptionStatus,
           mercadopago_preapproval_id: preapproval.id,
           trial_started_at: trialStarted.toISOString(),
           trial_ends_at: trialEnds.toISOString(),

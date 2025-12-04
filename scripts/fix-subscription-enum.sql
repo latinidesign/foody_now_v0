@@ -35,6 +35,16 @@ EXCEPTION
         RAISE NOTICE 'ℹ️ Valor past_due ya existe en el enum';
 END $$;
 
+-- Paso 3b: Agregar 'post_due' al enum (si no existe)
+DO $$ 
+BEGIN
+    ALTER TYPE subscription_status ADD VALUE IF NOT EXISTS 'post_due';
+    RAISE NOTICE '✅ Valor post_due agregado al enum subscription_status';
+EXCEPTION
+    WHEN duplicate_object THEN 
+        RAISE NOTICE 'ℹ️ Valor post_due ya existe en el enum';
+END $$;
+
 -- Paso 4: Verificar que los valores fueron agregados
 SELECT 
   enumlabel as estado_disponible,
