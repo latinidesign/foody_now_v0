@@ -50,6 +50,8 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
     if (!response.ok) return
 
     const mpData = await response.json()
+    console.log(`📥 Webhook received: preapproval=${preapprovalId}, status=${mpData.status}`)
+    
     const newStatus = mapMercadoPagoStatus(mpData.status)
 
     // Preparar datos de actualización
@@ -68,6 +70,32 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
       .from('user_subscriptions')
       .update(updateData)
       .eq('mercadopago_preapproval_id', preapprovalId)
+
+    // 🆕 MARCAR trial_used cuando la suscripción se autoriza por primera vez
+    if (mpData.status === 'authorized') {
+      // Obtener la suscripción para encontrar el store_id
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('store_id')
+        .eq('mercadopago_preapproval_id', preapprovalId)
+        .single()
+      
+      if (subscription) {
+        // Marcar trial_used = true (solo si no estaba marcado)
+        const { error } = await supabase
+          .from('stores')
+          .update({
+            trial_used: true,
+            trial_used_at: new Date().toISOString()
+          })
+          .eq('id', subscription.store_id)
+          .eq('trial_used', false)  // Solo la primera vez
+        
+        if (!error) {
+          console.log(`✅ Store ${subscription.store_id}: trial_used marked as true`)
+        }
+      }
+    }
 
     console.log(`Subscription ${preapprovalId} updated to status: ${newStatus}`)
   } catch (error) {

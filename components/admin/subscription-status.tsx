@@ -231,28 +231,62 @@ export function SubscriptionStatus() {
         {/* Acciones */}
         <div className="pt-4 space-y-2">
           {subscriptionData.status === 'expired' && (
-            <Link href="/admin/setup" className="w-full">
-              <Button className="w-full">
-                Suscribirse Ahora
-              </Button>
-            </Link>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+              <h4 className="text-lg font-semibold text-red-800 mb-2">Suscripción Expirada</h4>
+              <p className="text-sm text-red-700 mb-4">
+                Tu período de prueba ha finalizado. Suscribite para seguir usando FoodyNow.
+              </p>
+              <Link href="/admin/subscription/plans" className="w-full">
+                <Button className="w-full">
+                  Ver Planes de Suscripción
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {subscriptionData.status === 'cancelled' && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <h4 className="text-lg font-semibold text-gray-800 mb-2">Suscripción Cancelada</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                Cancelaste tu suscripción. Podés volver a suscribirte en cualquier momento.
+              </p>
+              <Link href="/admin/subscription/plans" className="w-full">
+                <Button className="w-full" variant="outline">
+                  Renovar Suscripción
+                </Button>
+              </Link>
+            </div>
           )}
           
           {subscriptionData.status === 'suspended' && (
-            <Link href="/admin/setup" className="w-full">
-              <Button className="w-full" variant="outline">
-                Reactivar Suscripción
-              </Button>
-            </Link>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+              <h4 className="text-lg font-semibold text-yellow-800 mb-2">Volvé a activar tu cuenta</h4>
+              <p className="text-sm text-yellow-700 mb-4">
+                Podés volver a activar tu cuenta volviendo a suscribirte.
+              </p>
+              <Link href="/admin/subscription/plans" className="w-full">
+                <Button className="w-full" variant="outline">
+                  Reactivar Suscripción
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {subscriptionData.status === 'past_due' && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+              <h4 className="text-lg font-semibold text-orange-800 mb-2">Pago Pendiente</h4>
+              <p className="text-sm text-orange-700 mb-4">
+                Tu suscripción tiene un pago vencido. Actualizá tu medio de pago para continuar.
+              </p>
+              <Link href="/admin/subscription/plans" className="w-full">
+                <Button className="w-full">
+                  Actualizar Medio de Pago
+                </Button>
+              </Link>
+            </div>
           )}
           
-          {(subscriptionData.status === 'trial' || subscriptionData.isInTrial) && (
-            <Link href="/admin/setup" className="w-full">
-              <Button className="w-full">
-                Convertir a Premium
-              </Button>
-            </Link>
-          )}
+          {(subscriptionData.status === 'trial' || subscriptionData.isInTrial) && null}
         </div>
       </CardContent>
     </Card>

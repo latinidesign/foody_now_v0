@@ -1,5 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { 
+  MERCADOPAGO_PLANS, 
+  getPlanTypeByHistory, 
+  generateCheckoutUrl,
+  STATES_WITH_TRIAL_USED,
+  getTrialDays
+} from '@/lib/config/subscription-plans'
 
 export async function POST(request: Request) {
   try {
@@ -46,9 +53,26 @@ export async function POST(request: Request) {
       }, { status: 409 })
     }
 
+    // 🆕 PASO 1: Verificar si la tienda tiene historial de suscripciones
+    const { data: previousSubscriptions } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('store_id', storeId)
+      .in('status', STATES_WITH_TRIAL_USED)
+      .limit(1)
+
+    const hasUsedTrial = !!(previousSubscriptions && previousSubscriptions.length > 0)
+
+    // 🆕 PASO 2: Determinar plan correcto según historial
+    const planType = getPlanTypeByHistory(hasUsedTrial)
+    const mercadoPagoPlanId = MERCADOPAGO_PLANS[planType].id
+    const trialDays = getTrialDays(planType)
+
+    console.log(`🔍 Store ${storeId}: hasUsedTrial=${hasUsedTrial}, planType=${planType}, trialDays=${trialDays}`)
+
     // Crear suscripción local primero (estado pending)
     const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + (plan.trial_period_days || 7))
+    trialEndsAt.setDate(trialEndsAt.getDate() + trialDays)
 
     const { data: subscription, error: subscriptionError } = await supabase
       .from("subscriptions")
@@ -56,8 +80,8 @@ export async function POST(request: Request) {
         store_id: storeId,
         plan_id: planId,
         status: "pending",
-        trial_started_at: new Date().toISOString(),
-        trial_ends_at: trialEndsAt.toISOString(),
+        trial_started_at: trialDays > 0 ? new Date().toISOString() : null,
+        trial_ends_at: trialDays > 0 ? trialEndsAt.toISOString() : null,
         auto_renewal: true
       })
       .select()
@@ -70,9 +94,9 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
-    // Crear URL de checkout directa usando el plan de MercadoPago
+    // 🆕 PASO 3: Crear URL de checkout con el plan correcto
     const backUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/subscription/success?subscription_id=${subscription.id}`
-    const checkoutUrl = `https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=${plan.mercadopago_plan_id}&back_url=${encodeURIComponent(backUrl)}`
+    const checkoutUrl = generateCheckoutUrl(planType, backUrl)
 
     // Actualizar tienda con la suscripción
     const { error: storeUpdateError } = await supabase
@@ -92,7 +116,9 @@ export async function POST(request: Request) {
       success: true,
       subscription: subscription,
       init_point: checkoutUrl,
-      trial_days: plan.trial_period_days || 7
+      trial_days: trialDays,
+      plan_type: planType,  // Para debugging
+      has_used_trial: hasUsedTrial  // Para debugging
     })
 
   } catch (error) {
