@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
+import { SubscriptionGuard } from "@/components/admin/subscription-guard"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -22,7 +23,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminSidebar store={store} />
       <div className="lg:pl-64">
         <AdminHeader user={user} store={store} />
-        <main className="p-6">{children}</main>
+        <main className="p-6">
+          <SubscriptionGuard storeId={store?.id || null}>
+            {children}
+          </SubscriptionGuard>
+        </main>
       </div>
     </div>
   )

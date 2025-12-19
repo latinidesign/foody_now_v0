@@ -132,6 +132,25 @@ export default async function StorePage({ params }: StorePageProps) {
     )
   }
 
+  // 🔒 VERIFICAR SUSCRIPCIÓN DEL PROPIETARIO
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("status")
+    .eq("store_id", store.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Estados válidos para que la tienda esté activa
+  const validSubscriptionStatuses = ['trial', 'active']
+  const hasValidSubscription = subscription && validSubscriptionStatuses.includes(subscription.status)
+
+  // Si la suscripción no es válida, mostrar mensaje de suspensión
+  if (!hasValidSubscription) {
+    const { StoreSuspendedMessage } = await import("@/components/store/store-suspended-message")
+    return <StoreSuspendedMessage storeName={store.name} whatsappPhone={store.whatsapp_phone} />
+  }
+
   const { data: storeSettings } = await supabase
     .from("store_settings")
     .select("business_hours, is_open")
