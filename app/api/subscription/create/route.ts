@@ -13,21 +13,27 @@ export async function POST(request: Request) {
     const { storeId, planId, payerEmail } = await request.json()
     const supabase = await createClient()
 
+    console.log('📝 Datos recibidos:', { storeId, planId, payerEmail })
+
     // Validar datos requeridos
-    if (!storeId || !planId || !payerEmail) {
+    if (!storeId || !payerEmail) {
       return NextResponse.json({ 
-        error: "Faltan datos requeridos: storeId, planId, payerEmail" 
+        error: "Faltan datos requeridos: storeId, payerEmail" 
       }, { status: 400 })
     }
+
+    // El planId es opcional, si no se proporciona usamos 'monthly' por defecto
+    const selectedPlanId = planId || 'monthly'
 
     // Obtener plan
     const { data: plan, error: planError } = await supabase
       .from("subscription_plans")
       .select("*")
-      .eq("id", planId)
+      .eq("name", selectedPlanId) // Usar 'name' en vez de 'id'
       .single()
 
     if (planError || !plan) {
+      console.error('❌ Plan no encontrado:', { selectedPlanId, planError })
       return NextResponse.json({ 
         error: "Plan no encontrado" 
       }, { status: 404 })
@@ -39,29 +45,52 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Verificar que la tienda no tenga suscripción activa
-    const { data: existingSubscription } = await supabase
+    // Verificar suscripciones existentes
+    const { data: allSubscriptions } = await supabase
       .from("subscriptions")
       .select("*")
       .eq("store_id", storeId)
-      .in("status", ["trial", "active"])
-      .maybeSingle()
+      .order("created_at", { ascending: false })
 
-    if (existingSubscription) {
+    // Si tiene suscripción activa o trial, no puede crear otra
+    const activeSubscription = allSubscriptions?.find(sub => 
+      ['trial', 'active'].includes(sub.status)
+    )
+
+    if (activeSubscription) {
+      console.log('⚠️ Ya tiene suscripción activa:', activeSubscription.status)
       return NextResponse.json({ 
         error: "La tienda ya tiene una suscripción activa" 
       }, { status: 409 })
     }
 
-    // 🆕 PASO 1: Verificar si la tienda tiene historial de suscripciones
-    const { data: previousSubscriptions } = await supabase
-      .from('subscriptions')
-      .select('id')
-      .eq('store_id', storeId)
-      .in('status', STATES_WITH_TRIAL_USED)
-      .limit(1)
+    // 🔄 Si tiene suscripciones viejas en estados inválidos, las eliminamos
+    // para evitar el constraint de unique store_id
+    if (allSubscriptions && allSubscriptions.length > 0) {
+      console.log(`🗑️ Eliminando ${allSubscriptions.length} suscripción(es) antigua(s)...`)
+      
+      const oldSubscriptionIds = allSubscriptions.map(sub => sub.id)
+      const { error: deleteError } = await supabase
+        .from("subscriptions")
+        .delete()
+        .in('id', oldSubscriptionIds)
 
-    const hasUsedTrial = !!(previousSubscriptions && previousSubscriptions.length > 0)
+      if (deleteError) {
+        console.error('❌ Error eliminando suscripciones viejas:', deleteError)
+        // No bloqueamos el flujo, intentamos continuar
+      } else {
+        console.log('✅ Suscripciones antiguas eliminadas correctamente')
+      }
+    }
+
+    // 🆕 PASO 1: Verificar si la tienda tuvo suscripciones antes (trial_used en stores)
+    const { data: storeData } = await supabase
+      .from('stores')
+      .select('trial_used')
+      .eq('id', storeId)
+      .single()
+
+    const hasUsedTrial = storeData?.trial_used === true
 
     // 🆕 PASO 2: Determinar plan correcto según historial
     const planType = getPlanTypeByHistory(hasUsedTrial)
@@ -78,7 +107,7 @@ export async function POST(request: Request) {
       .from("subscriptions")
       .insert({
         store_id: storeId,
-        plan_id: planId,
+        plan_id: plan.id, // Usar el ID del plan de la base de datos
         status: "pending",
         trial_started_at: trialDays > 0 ? new Date().toISOString() : null,
         trial_ends_at: trialDays > 0 ? trialEndsAt.toISOString() : null,

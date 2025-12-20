@@ -76,35 +76,18 @@ export default function RenewSubscriptionPage() {
     setError(null)
 
     try {
-      const supabase = createClient()
-      
-      // Crear nueva suscripción (la API detectará automáticamente que NO debe tener trial)
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          storeId: store.id,
-          planId: process.env.NEXT_PUBLIC_MERCADOPAGO_PLAN_WITHOUT_TRIAL_ID,
-          payerEmail: user.email
-        })
+      console.log('🔄 Iniciando renovación de suscripción...', {
+        storeId: store.id,
+        userEmail: user.email
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success("Redirigiendo a MercadoPago para renovar tu suscripción...")
-        window.location.href = data.init_point
-      } else {
-        throw new Error(data.error || "Error renovando suscripción")
-      }
+      // Redirigir directamente a la página de planes que maneja la creación
+      window.location.href = '/admin/subscription/plans'
 
     } catch (err) {
       console.error("Error al renovar suscripción:", err)
       setError(err instanceof Error ? err.message : "Error desconocido")
       toast.error("Error al procesar la renovación")
-    } finally {
       setIsCreatingSubscription(false)
     }
   }
