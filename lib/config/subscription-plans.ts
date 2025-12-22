@@ -15,9 +15,9 @@ export const MERCADOPAGO_PLANS = {
   WITH_TRIAL: {
     id: process.env.NEXT_PUBLIC_MERCADOPAGO_PLAN_WITH_TRIAL_ID || '', // ⚠️ Configurar en .env
     name: 'Suscripción Mensual con Trial',
-    description: '7 días de prueba gratuita + Renovación mensual',
-    trial_days: 7,
-    price: 3000,
+    description: '14 días de prueba gratuita + Renovación mensual',
+    trial_days: 14,
+    price: 36000,
     currency: 'ARS',
     frequency: 1,
     frequency_type: 'months',
@@ -33,7 +33,7 @@ export const MERCADOPAGO_PLANS = {
     name: 'Suscripción Mensual (Renovación)',
     description: 'Renovación mensual sin período de prueba',
     trial_days: 0,
-    price: 3000,
+    price: 36000,
     currency: 'ARS',
     frequency: 1,
     frequency_type: 'months',

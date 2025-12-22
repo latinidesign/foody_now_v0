@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+Import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { StoreSettingsForm } from "@/components/admin/store-settings-form"
 
