@@ -66,7 +66,7 @@ export default function SubscriptionPlansPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           storeId: storeInfo.storeId,
-          planId: 'monthly',
+          planId: 'basic_monthly', // Cambiado de 'monthly' a 'basic_monthly'
           payerEmail: storeInfo.email
         })
       })
@@ -121,7 +121,7 @@ export default function SubscriptionPlansPage() {
 
         <CardContent className="space-y-6">
           <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-bold">$3.000</span>
+            <span className="text-5xl font-bold">$36.000</span>
             <span className="text-muted-foreground">/ mes</span>
           </div>
 

@@ -22,18 +22,21 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // El planId es opcional, si no se proporciona usamos 'monthly' por defecto
-    const selectedPlanId = planId || 'monthly'
+    // El planId puede ser un UUID o un nombre de plan
+    const selectedPlanId = planId || 'basic_monthly'
 
-    // Obtener plan
+    // Determinar si es UUID o nombre
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedPlanId)
+    
+    // Obtener plan por id o por name
     const { data: plan, error: planError } = await supabase
       .from("subscription_plans")
       .select("*")
-      .eq("name", selectedPlanId) // Usar 'name' en vez de 'id'
+      .eq(isUUID ? "id" : "name", selectedPlanId)
       .single()
 
     if (planError || !plan) {
-      console.error('❌ Plan no encontrado:', { selectedPlanId, planError })
+      console.error('❌ Plan no encontrado:', { selectedPlanId, isUUID, planError })
       return NextResponse.json({ 
         error: "Plan no encontrado" 
       }, { status: 404 })
