@@ -2,9 +2,20 @@ import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+//export async function PUT(request: NextRequest, context: any) {
+
   try {
     const storeData = await request.json()
     const supabase = await createClient()
+
+    const { id } = await params
+
+    if (!id || id === "undefined") {
+      return NextResponse.json(
+        { error: "Invalid store id: " + id },
+        { status: 400 }
+      )
+    }
 
     const { data: store, error } = await supabase
       .from("stores")
@@ -23,19 +34,37 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         min_order_amount: storeData.min_order_amount,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single()
+    
+
 
     if (error) {
-      console.error("Store update error:", error)
-      return NextResponse.json({ error: "Error al actualizar la tienda" }, { status: 500 })
-    }
+      console.error("Supabase update error:", error)
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: 400 }
+      )
+        /*if (error) {
+          console.error("Store update error:", error)
+          return NextResponse.json({ error: "Error al actualizar la tienda" }, { status: 500 })
+        }
 
-    return NextResponse.json({ store })
-  } catch (error) {
+        return NextResponse.json({ store })*/
+      }
+ } catch (error: any) {
     console.error("API error:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    console.error("UPDATE STORE ERROR:", error)
+
+  return NextResponse.json(
+    {
+      error: error.message,
+      details: error,
+    },
+    { status: 500 }
+  )
+    //return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
 

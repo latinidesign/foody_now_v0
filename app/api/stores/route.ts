@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
+  console.log("HIT STORES ROOT")
+
   try {
     const storeData = await request.json()
     const supabase = await createClient()

@@ -166,7 +166,13 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Error al actualizar la tienda")
+        const errorData = await response.json().catch(() => null)
+
+        console.error("Store update failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+        })
       }
 
       setSuccess("Configuración actualizada correctamente")
