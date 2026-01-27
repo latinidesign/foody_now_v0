@@ -15,6 +15,7 @@ import {
   Tags,
   ExternalLink,
   MessageCircle,
+  CreditCard,
   Bell,
   LifeBuoy,
   ChevronDown,
@@ -35,6 +36,7 @@ const navigation = [
   { name: "Estadísticas", href: "/admin/analytics", icon: BarChart3 },
   { name: "Notificaciones", href: "/admin/notifications", icon: Bell },
   { name: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
+  { name: "Suscripción", href: "/admin/subscription", icon: CreditCard },
   { name: "Configuración", href: "/admin/settings", icon: Settings },
 ]
 
@@ -128,6 +130,11 @@ export function AdminSidebar({ store }: AdminSidebarProps) {
             </Link>
           </div>
         )}
+
+        {/* Version Info */}
+        <div className="p-2 border-t text-center text-xs text-muted-foreground">
+          FoodyNow v0.1.1
+        </div>
       </div>
     </div>
   )

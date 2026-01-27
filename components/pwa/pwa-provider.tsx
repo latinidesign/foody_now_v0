@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect } from "react"
 
 export function PWAProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
+  /*useEffect(() => {
     // Esperar a que el DOM esté completamente cargado
     const registerSW = async () => {
       if ("serviceWorker" in navigator) {
@@ -46,4 +46,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return <>{children}</>
+  */  
+ console.log("PWAProvider activo pero sin registro de SW")
+ return <>{children}</>
 }

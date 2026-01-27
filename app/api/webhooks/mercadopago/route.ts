@@ -1,130 +1,148 @@
-import { createClient } from "@/lib/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
+import { MercadoPagoConfig, Payment } from "mercadopago"
+import { createAdminClient } from '@/lib/supabase/admin'
 
-export const runtime = 'edge'
+const mp = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN!,
+})
 
-export async function POST(request: NextRequest) {
+
+
+export async function POST(req: NextRequest) {
+  const supabase = createAdminClient()    
   try {
-    const body = await request.json()
-    console.log('MercadoPago webhook received:', body)
+    const body = await req.json()
+    console.log("MP Webhook received:", body)
 
-    // Verificar el webhook (opcional pero recomendado en producción)
-    const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET
-    if (webhookSecret) {
-      const signature = request.headers.get('x-signature')
-      // Aquí podrías verificar la firma del webhook
+    if (body.type !== "payment") {
+      return new Response(null, { status: 200 })
     }
 
-    // Procesar diferentes tipos de notificaciones
-    if (body.type === 'subscription_preapproval') {
-      await handleSubscriptionUpdate(body.data.id)
+    const paymentId = body.data?.id
+    if (!paymentId) {
+      console.warn("No payment id")
+      return new Response(null, { status: 200 })
     }
 
-    return NextResponse.json({ received: true })
-  } catch (error) {
-    console.error('Webhook error:', error)
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    )
-  }
-}
+    // Consultar pago en Mercado Pago
+    const paymentClient = new Payment(mp)
+    const payment = await paymentClient.get({ id: paymentId })
 
-async function handleSubscriptionUpdate(preapprovalId: string) {
-  try {
-    const supabase = await createClient()
+    const {
+      status,
+      external_reference,
+      transaction_amount,
+      payer,
+    } = payment
+
+    if (!external_reference) {
+      console.warn("Payment without external_reference")
+      return new Response(null, { status: 200 })
+    }
+
+    if(payment === null || payment === undefined) {
+      console.warn("Payment not found in Mercado Pago:", paymentId)
+      return new Response(null, { status: 200 })
+    }
+    console.log("Payment details:", payment)
+
+    // Buscar suscripción en Supabase para el usuario indicado en la external_reference
+    const parts = external_reference.split("_")
+
+    // ["user", "123", "plan", "basic_frequency", "1705948123456"]
+
+    const userIndex = parts.indexOf("user")
+    const planIndex = parts.indexOf("plan")
+
+    if (userIndex === -1 || planIndex === -1) {
+      console.warn("Invalid external_reference format:", external_reference)
+      return new Response(null, { status: 200 })
+    }
+
+    const userId = parts[userIndex + 1]
+    const planName = parts[planIndex + 1]
+    const planId = planName === "basic-monthly" ? "basic-monthly" : planName === "basic-quarterly" ? "basic-quarterly" : "basic-yearly"
     
-    // Obtener información actualizada de MercadoPago
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
-    if (!accessToken) return
+    const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .in("status", ["active", "pending"])
+    .maybeSingle()
 
-    const response = await fetch(
-      `https://api.mercadopago.com/preapproval/${preapprovalId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        }
-      }
-    )
 
-    if (!response.ok) return
-
-    const mpData = await response.json()
-    console.log(`📥 Webhook received: preapproval=${preapprovalId}, status=${mpData.status}`)
-    
-    const newStatus = mapMercadoPagoStatus(mpData.status)
-
-    // Preparar datos de actualización
-    const updateData: any = {
-      status: newStatus,
-      updated_at: new Date().toISOString()
+    if(subscription === null || subscription === undefined) {
+      console.log("No active subscription found for user:", userId)
     }
 
-    // Si cambió de trial a active, marcar cuando comenzó la suscripción paga
-    if (newStatus === 'active') {
-      updateData.subscription_start_date = new Date().toISOString()
-    }
+    if (status === "approved") {
 
-    // Actualizar estado en la base de datos
-    await supabase
-      .from('user_subscriptions')
-      .update(updateData)
-      .eq('mercadopago_preapproval_id', preapprovalId)
+      console.log("Processing approved payment for user:", userId, "plan:", planId)
 
-    // 🆕 MARCAR trial_used cuando la suscripción se autoriza por primera vez
-    if (mpData.status === 'authorized') {
-      // Obtener la suscripción para encontrar el store_id
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('store_id')
-        .eq('mercadopago_preapproval_id', preapprovalId)
-        .single()
-      
-      if (subscription) {
-        // Marcar trial_used = true (solo si no estaba marcado)
-        const { error } = await supabase
-          .from('stores')
-          .update({
-            trial_used: true,
-            trial_used_at: new Date().toISOString()
+      let subscriptionId = subscription?.id
+
+      if (!subscription) {
+        console.log("Creating new subscription for user:", userId)
+        let days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
+        // Crear nueva suscripción
+        const { data: newSubscription, error: insertError } = await supabase
+          .from("subscriptions")
+          .insert({
+            user_id: userId,
+            plan_name: planId,
+            status: "active",
+            paid_started_at: new Date().toISOString(),
+            paid_ends_at: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),  // su suman los dias que cubre el plan
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', subscription.store_id)
-          .eq('trial_used', false)  // Solo la primera vez
+          .select()
+          .single()
         
-        if (!error) {
-          console.log(`✅ Store ${subscription.store_id}: trial_used marked as true`)
-        }
+          if (insertError || !newSubscription) {
+            console.error("Failed to create subscription:", insertError)
+            return new Response(null, { status: 200 })
+          }
+
+          subscriptionId = newSubscription.id
+      } else {
+        console.log("Updating existing subscription for user:", userId)
+        // Actualizar suscripción existente para extender la fecha de fin, que es la duracion en dias desde el final del periodo anterior, indicado en paid_ends_at (esto es para cuando renueva una suscripcion ya activa). Si la suscripcion estaba vencida, se toma la fecha actual.
+        const currentEndDate = new Date(subscription.paid_ends_at)
+        const startDate = currentEndDate > new Date() ? currentEndDate : new Date()
+        let days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
+        const newEndDate = new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000)
+
+        await supabase
+          .from("subscriptions")
+          .update({
+            paid_ends_at: newEndDate.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", subscriptionId)
       }
+
+      // Guardar el pago
+      const { data: newSubscriptionPayment, error: insertError } = await supabase.from("subscription_payments").insert({
+        subscription_id: subscriptionId,
+        mercadopago_payment_id: paymentId,
+        amount: transaction_amount,
+        status: payment.status,
+        payer_email: payer?.email ?? null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+
+      if (insertError || !newSubscriptionPayment) {
+            console.error("Failed to create subscription payment:", insertError)
+            return new Response(null, { status: 200 })
+          }
     }
 
-    console.log(`Subscription ${preapprovalId} updated to status: ${newStatus}`)
-  } catch (error) {
-    console.error('Error updating subscription:', error)
-  }
-}
 
-/**
- * Mapea estados de MercadoPago Preapproval a estados internos de FoodyNow
- * 
- * Estados MercadoPago:
- * - pending: Suscripción creada, esperando confirmación de pago
- * - authorized: Pago confirmado, suscripción activa
- * - paused: Pausada por usuario/merchant
- * - cancelled: Cancelada definitivamente
- * 
- * @see docs/ANALISIS-ESTADOS-SUSCRIPCION.md
- */
-function mapMercadoPagoStatus(mpStatus: string): string {
-  switch (mpStatus) {
-    case 'authorized':
-      return 'active'     // ✅ Pago confirmado, suscripción activa
-    case 'pending':
-      return 'pending'    // 🔧 CORREGIDO: Esperando confirmación de pago
-    case 'paused':
-      return 'suspended'  // ✅ Pausada
-    case 'cancelled':
-      return 'cancelled'  // ✅ Cancelada
-    default:
-      return 'pending'    // Estado desconocido = pendiente
+    return new Response(null, { status: 200 })
+  } catch (error) {
+    console.error("Webhook error:", error)
+    return new Response(null, { status: 200 })
   }
 }

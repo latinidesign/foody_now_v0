@@ -36,10 +36,14 @@ export default function AdminSetupPage() {
         .in('status', ['active', 'trial'])
         .single()
         
+      /**
+       * Sin redirecciones raras por ahora, que el usuario elija donde navegar. La pantalla de suscripcion debe arrojar la info de la suscripcion si exsite o permitir crear una nueva pero no redirigir automaticamente.
+       */
+      /*
       if (subscription) {
         // Ya tiene suscripción, redirigir a settings
         router.push('/admin/settings')
-      }
+      } */
     }
     
     checkUser()

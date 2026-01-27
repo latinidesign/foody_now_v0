@@ -56,10 +56,14 @@ export default function AdminSetupPage() {
           .in('status', ['active', 'trial'])
           .maybeSingle()
           
-        if (subscription) {
-          // Ya tiene suscripción, redirigir a settings
-          router.push('/admin/settings')
-        }
+        /**
+       * Sin redirecciones raras por ahora, que el usuario elija donde navegar. La pantalla de suscripcion debe arrojar la info de la suscripcion si exsite o permitir crear una nueva pero no redirigir automaticamente.
+       */
+      /*
+      if (subscription) {
+        // Ya tiene suscripción, redirigir a settings
+        router.push('/admin/settings')
+      } */
       }
     }
     
@@ -183,7 +187,7 @@ export default function AdminSetupPage() {
                 ¡Bienvenido a FOODYNOW! 🎉
               </CardTitle>
               <CardDescription className="text-lg">
-                Activá la suscripción y comenzá tu prueba gratuita de {planInfo?.trial_period_days || 14} días para explorar todas las funciones sin compromiso.
+                Activá la suscripción y comenzá tu prueba gratuita de {planInfo?.trial_period_days || 15} días para explorar todas las funciones sin compromiso.
               </CardDescription>
             </CardHeader>
 
@@ -192,7 +196,7 @@ export default function AdminSetupPage() {
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-emerald-800 mb-2">FoodyNow - Tienda Now</h3>
                   <div className="text-3xl font-bold text-emerald-600 mb-1">
-                    $ {planInfo?.price ? planInfo.price.toLocaleString() : '36.000'}
+                    $ {planInfo?.price ? planInfo.price.toLocaleString() : '49.000'}
                   </div>
                   <p className="text-sm text-emerald-700">
                     por mes • {planInfo?.trial_period_days || 14} días de prueba gratis
@@ -225,8 +229,7 @@ export default function AdminSetupPage() {
                   <div>
                     <p className="text-sm font-medium text-amber-800 mb-1">Importante:</p>
                     <p className="text-sm text-amber-700">
-                      Podés cancelar la suscripción antes de finalizar el período de prueba sin costo alguno. 
-                      De no hacerlo, se iniciará el cobro de la suscripción mensual automáticamente.
+                      Al finalizar el período de prueba, no podrás seguir utilizando FoodyNow y los clientes no podrán acceder a tu tienda hasta que actives una suscripción paga.
                     </p>
                   </div>
                 </div>
