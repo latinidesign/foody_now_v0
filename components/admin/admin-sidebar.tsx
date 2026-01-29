@@ -133,7 +133,7 @@ export function AdminSidebar({ store }: AdminSidebarProps) {
 
         {/* Version Info */}
         <div className="p-2 border-t text-center text-xs text-muted-foreground">
-          FoodyNow v0.1.1
+          FoodyNow v0.1.11
         </div>
       </div>
     </div>

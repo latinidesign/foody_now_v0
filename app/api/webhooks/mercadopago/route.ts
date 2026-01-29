@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Guardar el pago
+      console.log("Recording payment for subscription:", subscriptionId)
       const { data: newSubscriptionPayment, error: insertError } = await supabase.from("subscription_payments").insert({
         subscription_id: subscriptionId,
         mercadopago_payment_id: paymentId,
@@ -133,10 +134,15 @@ export async function POST(req: NextRequest) {
         updated_at: new Date().toISOString(),
       })
 
-      if (insertError || !newSubscriptionPayment) {
-            console.error("Failed to create subscription payment:", insertError)
-            return new Response(null, { status: 200 })
-          }
+      if (insertError) {
+        if (insertError.code === "23505") {
+          // duplicate key → webhook reintentado
+          console.log("Payment already registered:", paymentId)
+        } else {
+          console.error("Failed to insert payment:", insertError)
+          throw insertError
+        }
+      }
     }
 
 

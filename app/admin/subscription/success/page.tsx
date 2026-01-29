@@ -18,7 +18,7 @@ export default function SuccessPage() {
 
       if (json.status === "active") {
         clearInterval(interval)
-        router.push("/admin")
+        router.push("/admin/subscription")
       }
     }, 3000)
 
@@ -31,7 +31,7 @@ export default function SuccessPage() {
       {loading ? (
         <p className="text-gray-600">Confirmando estado de tu suscripción…</p>
       ) : (
-        <p className="text-gray-600">Estado actual: {status}</p>
+        <p className="text-gray-600">Estado actual: {status == "active" ? "¡Activa!" : status == "pending" ? "Pendiente..." : "Rechazada. Puedes intentar nuevamente con otro medio de pago."}</p>
       )}
     </div>
   )

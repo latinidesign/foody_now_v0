@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 import { redirect } from 'next/navigation'
 import PlanCard from './PlanCard'
+import SubscribeButton from "./SubscribeButton"
 
 /* ============================
    Tipos (opcionales pero sanos)
@@ -23,7 +24,6 @@ type UserSubscription = {
   current_period_end: string
   current_period_start: string
   price: number
-  plan: SubscriptionPlan
 }
 
 /* ============================
@@ -42,15 +42,27 @@ export default async function SubscriptionPage() {
     redirect('/auth/login')
   }
 
-  /* Buscar suscripción activa del usuario */
+  /* Buscar suscripción activa del usuario (trae los datos del plan para mostrarlos) */
   const { data: activeSubscription } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
+  .from('subscriptions')
+  .select('*')
+  .eq('user_id', user.id)
+  .eq('status', 'active')
+  .maybeSingle()
+
+  let plan = null
+  if (activeSubscription) {
+    const { data } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('name', activeSubscription.plan_name)
+      .maybeSingle()
+    
+    plan = data
+  }
   
   console.log("Active subscription:", activeSubscription)
+  console.log("Subscription plan:", plan)
 
   /* Si NO tiene suscripción, buscar planes */
   let plans: SubscriptionPlan[] = []
@@ -82,7 +94,7 @@ export default async function SubscriptionPage() {
           USUARIO CON SUSCRIPCIÓN
       ============================ */}
       {activeSubscription ? (
-        <ActiveSubscriptionView subscription={activeSubscription} />
+        <ActiveSubscriptionView subscription={activeSubscription} plan={plan} user={user} />
       ) : (
         // Se muestran todos los planes disponibles
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mx-8">
@@ -99,10 +111,21 @@ export default async function SubscriptionPage() {
    Componentes de UI
 ============================ */
 function ActiveSubscriptionView({
+  user,
   subscription,
+  plan,
 }: {
+  user: any
+  plan: any
   subscription: any
 }) {
+  const paidEndsAt = new Date(subscription.paid_ends_at)
+  const now = new Date()
+
+  const diffMs = paidEndsAt.getTime() - now.getTime()
+  const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  const canRenew = daysLeft <= 7
+
   return (
     <div className="rounded-lg border p-6 space-y-6">
       <h2 className="text-xl font-semibold">
@@ -113,7 +136,7 @@ function ActiveSubscriptionView({
         <div>
           <p className="text-sm text-muted-foreground">Plan</p>
           <p className="font-medium">
-            {subscription.plan_name}
+            {plan.display_name}
           </p>
         </div>
 
@@ -122,7 +145,7 @@ function ActiveSubscriptionView({
             Precio
           </p>
           <p className="font-medium">
-            ${subscription.price}
+            ${plan.price}
           </p>
         </div>
 
@@ -131,12 +154,27 @@ function ActiveSubscriptionView({
             Activo hasta
           </p>
           <p className="font-medium">
-            {new Date(
-              subscription.paid_ends_at
-            ).toLocaleDateString()} {new Date(
-              subscription.paid_ends_at
-            ).toLocaleTimeString()}
+            {paidEndsAt.toLocaleDateString()}{" "}
+            {paidEndsAt.toLocaleTimeString()}
           </p>
+
+          {!canRenew ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Podrás renovar tu suscripción cuando falten 7 días o menos para el vencimiento.
+              <br />
+              <span className="font-medium">
+                Faltan {daysLeft} días.
+              </span>
+            </p>
+          ) : (
+            <div className="mt-3 space-y-2">
+              <p className="text-sm text-amber-600">
+                Tu suscripción vence pronto. Ya podés renovarla para no perder acceso.
+              </p>
+
+              <SubscribeButton plan={plan} user={user} text="Renovar suscripción" />
+            </div>
+          )}
         </div>
 
         <div>
@@ -153,10 +191,13 @@ function ActiveSubscriptionView({
         <h3 className="font-semibold mb-2">
           Beneficios incluidos
         </h3>
-        <ul className="list-disc pl-6 space-y-1 text-sm">
-          <li>Beneficio 1 (placeholder)</li>
-          <li>Beneficio 2 (placeholder)</li>
-          <li>Beneficio 3 (placeholder)</li>
+        <ul className="space-y-2 text-sm">
+          {plan.features.map((feature: string, i: number) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="text-green-500 mt-0.5">✔</span>
+              <span>{feature}</span>
+            </li>
+          ))}
         </ul>
       </section>
     </div>

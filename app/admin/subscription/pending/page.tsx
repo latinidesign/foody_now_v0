@@ -21,7 +21,7 @@ export default function PendingPage() {
       >
         Actualizar estado
       </button>
-      <p className="text-sm text-gray-500">Estado: {status}</p>
+      <p className="text-sm text-gray-500">Estado: {status === "pending" ? "Pendiente..." : status === "active" ? "Activa" : "Rechazada. Puedes intentar nuevamente con otro medio de pago."}</p>
     </div>
   )
 }

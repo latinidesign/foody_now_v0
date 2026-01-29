@@ -1,7 +1,7 @@
 // app/subscription/SubscribeButton.tsx
 "use client"
 
-export default function SubscribeButton({ plan, user }: { plan: any, user: any }) {
+export default function SubscribeButton({ plan, user, text }: { plan: any, user: any, text?: string }) {
   const handleSubscribe = async () => {
     console.log("Iniciar suscripción para plan:", plan.name)
 
@@ -26,7 +26,7 @@ export default function SubscribeButton({ plan, user }: { plan: any, user: any }
       onClick={handleSubscribe}
       className="w-full flex items-center justify-center gap-2 rounded-xl bg-fuchsia-600 py-3 text-white font-semibold hover:bg-fuchsia-700 transition"
     >
-      💳 Suscribirme
+      💳 {text || "Suscribirme"}
       <span>→</span>
     </button>
   )
