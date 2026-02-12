@@ -637,45 +637,15 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
             <CardTitle>Configuración de MercadoPago</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handlePaymentUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="mercadopagoPublicKey">Public Key de MercadoPago</Label>
-                <Input
-                  id="mercadopagoPublicKey"
-                  value={paymentSettings.mercadopagoPublicKey}
-                  onChange={(e) => setPaymentSettings({ ...paymentSettings, mercadopagoPublicKey: e.target.value })}
-                  placeholder="APP_USR-..."
-                />
-              </div>
+             <p>
+              Conectá tu cuenta de Mercado Pago para comenzar a cobrar
+            </p>
 
-              <div className="space-y-2">
-                <Label htmlFor="mercadopagoAccessToken">Access Token de MercadoPago</Label>
-                <div className="relative">
-                  <Input
-                    id="mercadopagoAccessToken"
-                    type={showToken ? "text" : "password"}
-                    value={paymentSettings.mercadopagoAccessToken}
-                    onChange={(e) => setPaymentSettings({ ...paymentSettings, mercadopagoAccessToken: e.target.value })}
-                    placeholder="APP_USR-..."
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2"
-                    onClick={() => setShowToken(!showToken)}
-                  >
-                    {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">Obtén tu Access Token desde tu cuenta de MercadoPago</p>
-              </div>
-
-              <Button type="submit" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Guardar Configuración de Pagos
-              </Button>
-            </form>
+            <a href="/api/mp/connect">
+              <button style={{ marginTop: 16 }}>
+                Conectar Mercado Pago
+              </button>
+            </a>
           </CardContent>
         </Card>
       </TabsContent>
