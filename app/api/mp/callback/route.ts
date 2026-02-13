@@ -14,16 +14,24 @@ export async function GET(req: Request) {
   const cookies = req.headers.get('cookie') || '';
   const stateCookie = cookies.match(/mp_oauth_state=([^;]+)/)?.[1];
   const codeVerifier = cookies.match(/mp_code_verifier=([^;]+)/)?.[1];
-  const storeId = cookies.match(/mp_store_id=([^;]+)/)?.[1];
+  const [storeId] = state.split("|")
+
 
   if (!storeId) {
     return NextResponse.json({ error: 'Missing store context' }, { status: 400 });
   }
 
+  const decodedStateCookie = stateCookie
+  ? decodeURIComponent(stateCookie)
+  : undefined;
 
-  if (!stateCookie || !codeVerifier || stateCookie !== state) {
-    return NextResponse.json({ error: 'Invalid OAuth state' }, { status: 400 });
-  }
+if (!decodedStateCookie || !codeVerifier || decodedStateCookie !== state) {
+  console.error('MP OAuth state mismatch', {
+    state,
+    decodedStateCookie
+  });
+  return NextResponse.json({ error: 'Invalid OAuth state' }, { status: 400 });
+}
 
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
@@ -34,7 +42,7 @@ export async function GET(req: Request) {
     code_verifier: codeVerifier,
   });
 
-  const res = await fetch('https://api.mercadopago.com.ar/oauth/token', {
+  const res = await fetch('https://api.mercadopago.com/oauth/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
@@ -93,11 +101,10 @@ export async function GET(req: Request) {
   }
 
   // Limpia las cookies de estado
-  const response = NextResponse.redirect('/admin/settings');
+  const response = NextResponse.redirect(process.env.APP_URL! + '/admin/settings?mp=connected');
   response.headers.set('Set-Cookie', [
     'mp_oauth_state=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
     'mp_code_verifier=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
-    'mp_store_id=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
   ].join(', '));
 
 

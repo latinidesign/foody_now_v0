@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +18,8 @@ import { LocationMap } from "@/components/store/location-map"
 interface StoreSettingsFormProps {
   store: Store
   settings: StoreSettings | null
+  mp: string
+  mp_account_id?: string
 }
 
 interface BusinessHours {
@@ -40,7 +42,27 @@ const DAYS = [
   { key: "sunday", label: "Domingo" },
 ]
 
-export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
+export function MpAlert() {
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false)
+    }, 4000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <div className="p-4 rounded-lg border border-green-300 bg-green-50 text-green-800">
+      Mercado Pago se vinculó correctamente.
+    </div>
+  )
+}
+
+export function StoreSettingsForm({ store, settings, mp, mp_account_id }: StoreSettingsFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -637,15 +659,28 @@ export function StoreSettingsForm({ store, settings }: StoreSettingsFormProps) {
             <CardTitle>Configuración de MercadoPago</CardTitle>
           </CardHeader>
           <CardContent>
-             <p>
-              Conectá tu cuenta de Mercado Pago para comenzar a cobrar
-            </p>
-
-            <a href="/api/mp/connect">
-              <button style={{ marginTop: 16 }}>
-                Conectar Mercado Pago
-              </button>
-            </a>
+            {mp === "connected" ? (
+              <div className="p-4 rounded-lg border border-green-300 bg-green-50 text-green-800">
+                <p className="font-bold mb-4">¡Cuenta conectada correctamente!</p>
+                <p className="text-sm">
+                  Usuario MP ID: {mp_account_id}
+                </p>
+                <p className="text-sm mt-2">
+                  Ya puedes empezar a recibir pagos a través de MercadoPago, directo a tu cuenta y sin comisiones. Si necesitas cambiar la cuenta vinculada,
+                  puedes contactarte con administración para reiniciar el proceso de vinculación de cuenta.
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg border border-blue-300 bg-blue-50 text-blue-800">
+                <p className="font-medium mb-10">Conectá tu cuenta de MercadoPago para empezar a cobrar con tu cuenta, automático y sin comisiones.</p>
+                <a
+                  href="/api/mp/connect"
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md"
+                >
+                  Conectar MercadoPago
+                </a>
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
