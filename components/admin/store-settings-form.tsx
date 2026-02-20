@@ -667,7 +667,7 @@ export function StoreSettingsForm({ store, settings, mp, mp_account_id }: StoreS
                 </p>
                 <p className="text-sm mt-2">
                   Ya puedes empezar a recibir pagos a través de MercadoPago, directo a tu cuenta y sin comisiones. Si necesitas cambiar la cuenta vinculada,
-                  puedes contactarte con administración para reiniciar el proceso de vinculación de cuenta.
+                  puedes contactarte con administración para reiniciar el proceso de vinculación.
                 </p>
               </div>
             ) : (

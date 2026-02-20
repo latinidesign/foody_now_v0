@@ -81,10 +81,10 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
         throw new Error("Error al crear el pago")
       }
 
-      const { initPoint, sessionId } = await paymentResponse.json()
+      const { initPoint, preferenceId } = await paymentResponse.json()
 
       try {
-        window.localStorage.setItem("foody_now.checkout_session", sessionId)
+        window.localStorage.setItem("foody_now.checkout_session (preferenceId): ", preferenceId)
       } catch (storageError) {
         console.warn("No se pudo guardar la sesión de pago localmente", storageError)
       }

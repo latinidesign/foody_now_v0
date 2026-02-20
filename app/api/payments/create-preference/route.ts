@@ -3,6 +3,8 @@ import { randomUUID } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getSubdomainFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
+import { getValidAccessToken } from "@/lib/mercadopago/SellerUtils"
+
 
 export const runtime = "nodejs"
 
@@ -95,19 +97,14 @@ export async function POST(request: Request) {
     return fail(403, "Store domain does not match order store")
   }
 
-  const { data: storeSettings, error: storeSettingsError } = await supabase
-    .from("store_settings")
-    .select("mercadopago_access_token, mercadopago_public_key")
-    .eq("store_id", store.id)
-    .single()
+  let accessToken: string
 
-  if (storeSettingsError) {
-    return fail(500, "Unable to load store payment configuration", storeSettingsError)
+  try {
+    accessToken = await getValidAccessToken(store.id)
+  } catch (tokenError) {
+    return fail(500, "No se pudo obtener token válido de MercadoPago", tokenError)
   }
 
-  if (!storeSettings?.mercadopago_access_token) {
-    return fail(400, "Store is missing Mercado Pago credentials")
-  }
 
   const { data: orderItems, error: itemsError } = await supabase
     .from("order_items")
@@ -122,10 +119,10 @@ export async function POST(request: Request) {
     return fail(400, "Order has no items")
   }
 
-  const baseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL
+  const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
 
   if (!baseUrl) {
-    return fail(500, "APP_BASE_URL environment variable is not configured")
+    return fail(500, "APP_URL environment variable is not configured")
   }
 
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "")
@@ -159,7 +156,7 @@ export async function POST(request: Request) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${storeSettings.mercadopago_access_token}`,
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify(preferencePayload),
   })
@@ -240,9 +237,9 @@ async function handleCheckoutSession(
     return fail(400, "MercadoPago no configurado para la tienda")
   }
 
-  const baseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL
+  const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
   if (!baseUrl) {
-    return fail(500, "APP_BASE_URL no está configurado")
+    return fail(500, "APP_URL no está configurado")
   }
 
   const externalReference = randomUUID()
@@ -268,13 +265,9 @@ async function handleCheckoutSession(
   }
 
   // Build tenant root URL
-  let tenantBase: string
-  if (baseUrl) {
-    const appUrl = new URL(baseUrl)
-    tenantBase = `${appUrl.protocol}//${store.slug}.${appUrl.hostname}`
-  } else {
-    tenantBase = `https://${store.slug}.localhost`
-  }
+  // Build tenant root URL usando path en vez de subdominio
+  const normalizedBaseUrl = baseUrl.replace(/\/$/, "")
+  const tenantBase = `${normalizedBaseUrl}/store/${store.slug}`
 
   const preferenceData = {
     items: items.map((item: any) => ({
@@ -297,7 +290,7 @@ async function handleCheckoutSession(
       pending: `${tenantBase}/?session_id=${checkoutSession.id}`,
     },
     auto_return: "approved",
-    notification_url: `${baseUrl}/api/payments/webhook?tenant=${store.slug}`,
+    notification_url: `${normalizedBaseUrl}/api/webhook/mercadopago?store_slug=${store.slug}`,
     external_reference: externalReference,
     statement_descriptor: "FOODY NOW",
     metadata: {
