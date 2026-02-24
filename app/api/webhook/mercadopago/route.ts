@@ -137,8 +137,8 @@ export async function POST(request: Request) {
 
   if (resolvedStoreId) {
     const { data: settings, error: settingsError } = await supabase
-      .from("store_settings")
-      .select("mercadopago_access_token")
+      .from("mp_accounts")
+      .select("access_token")
       .eq("store_id", resolvedStoreId)
       .single()
 
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
       fail("Unable to load store settings", settingsError)
     }
 
-    mercadopagoAccessToken = settings?.mercadopago_access_token ?? null
+    mercadopagoAccessToken = settings?.access_token ?? null
   }
 
   if (!resolvedStoreId) {
@@ -234,12 +234,12 @@ export async function POST(request: Request) {
 
   if (!mercadopagoAccessToken && resolvedStoreId) {
     const { data: settings } = await supabase
-      .from("store_settings")
-      .select("mercadopago_access_token")
+      .from("mp_accounts")
+      .select("access_token")
       .eq("store_id", resolvedStoreId)
       .single()
 
-    mercadopagoAccessToken = settings?.mercadopago_access_token ?? null
+    mercadopagoAccessToken = settings?.access_token ?? null
   }
 
   if (!paymentDetail && mercadopagoAccessToken) {
@@ -486,12 +486,12 @@ async function handleMerchantOrderWebhook(
 
   // Obtener credenciales de MercadoPago para consultar la merchant_order
   const { data: settings } = await supabase
-    .from("store_settings")
-    .select("mercadopago_access_token")
+    .from("mp_accounts")
+    .select("access_token")
     .eq("store_id", resolvedStoreId)
     .single()
 
-  if (!settings?.mercadopago_access_token) {
+  if (!settings?.access_token) {
     return fail("Store missing MercadoPago credentials", { storeId: resolvedStoreId })
   }
 
@@ -500,7 +500,7 @@ async function handleMerchantOrderWebhook(
   
   const merchantOrderResponse = await fetch(`https://api.mercadopago.com/merchant_orders/${merchantOrderId}`, {
     headers: {
-      Authorization: `Bearer ${settings.mercadopago_access_token}`,
+      Authorization: `Bearer ${settings.access_token}`,
     },
   })
 
@@ -531,7 +531,7 @@ async function handleMerchantOrderWebhook(
     // Obtener detalles completos del payment
     const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: {
-        Authorization: `Bearer ${settings.mercadopago_access_token}`,
+        Authorization: `Bearer ${settings.access_token}`,
       },
     })
 

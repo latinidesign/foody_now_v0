@@ -223,17 +223,17 @@ async function handleCheckoutSession(
     return fail(403, "La tienda no está activa")
   }
 
-  const { data: storeSettings, error: storeSettingsError } = await supabase
-    .from("store_settings")
-    .select("mercadopago_access_token")
+  const { data: mpAccount, error: mpAccountError } = await supabase
+    .from("mp_accounts")
+    .select("access_token")
     .eq("store_id", store.id)
     .single()
 
-  if (storeSettingsError) {
-    return fail(500, "No se pudo obtener la configuración de pagos", storeSettingsError)
+  if (mpAccountError) {
+    return fail(500, "No se pudo obtener la configuración de pagos", mpAccountError)
   }
 
-  if (!storeSettings?.mercadopago_access_token) {
+  if (!mpAccount?.access_token) {
     return fail(400, "MercadoPago no configurado para la tienda")
   }
 
@@ -284,6 +284,7 @@ async function handleCheckoutSession(
         number: orderData.customerPhone,
       },
     },
+    application_fee: 0,
     back_urls: {
       success: `${tenantBase}/?session_id=${checkoutSession.id}`,
       failure: `${tenantBase}/?session_id=${checkoutSession.id}`,
@@ -303,7 +304,7 @@ async function handleCheckoutSession(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${storeSettings.mercadopago_access_token}`,
+      Authorization: `Bearer ${mpAccount.access_token}`,
       "X-Idempotency-Key": `${Date.now()}-${externalReference}`,
     },
     body: JSON.stringify(preferenceData),
