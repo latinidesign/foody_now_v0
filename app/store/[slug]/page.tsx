@@ -3,6 +3,7 @@ import { StoreHeader } from "@/components/store/store-header"
 import { ProductCatalog } from "@/components/store/product-catalog"
 import { WhatsAppContact } from "@/components/store/whatsapp-contact"
 import { InstallPrompt } from "@/components/pwa/install-prompt"
+import { CheckoutSuccessModal } from "@/components/store/checkout-success-modal"
 
 interface StorePageProps {
   params: Promise<{ slug: string }>
@@ -189,6 +190,7 @@ export default async function StorePage({ params }: StorePageProps) {
       {store.whatsapp_phone && (
         <WhatsAppContact storeSlug={store.slug} storePhone={store.whatsapp_phone} storeName={store.name} />
       )}
+      <CheckoutSuccessModal />
     </div>
   )
 }
