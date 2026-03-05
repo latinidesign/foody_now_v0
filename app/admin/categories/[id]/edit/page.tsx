@@ -3,17 +3,18 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 
 interface EditCategoryPageProps {
-  params: {
-    id: string
-  }
+  params: Promise<{ id: string }>
 }
 
 export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
   const supabase = await createClient()
 
-  const { data: category, error } = await supabase.from("categories").select("*").eq("id", params.id).single()
+  const urlParams = await params
+
+  const { data: category, error } = await supabase.from("categories").select("*").eq("id", urlParams.id).single()  
 
   if (error || !category) {
+    console.log("Fetched category:", category, "Error:", error)
     notFound()
   }
 

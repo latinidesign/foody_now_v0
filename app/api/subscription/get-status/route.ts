@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Obtener suscripción del usuario
     const { data: subscription, error: dbError } = await supabase
-      .from('user_subscriptions')
+      .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
       .single()
@@ -90,6 +90,15 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.error('Error fetching MercadoPago status:', error)
       }
+    } else {
+      // Si no hay preapproval_id, asumir estado basado en fecha de expiración
+      const now = new Date()
+      const expiresAt = new Date(subscription.paid_ends_at)
+      if (now > expiresAt) {
+        mercadoPagoStatus = 'expired'
+      } else {
+        mercadoPagoStatus = 'active'
+      }
     }
 
     return NextResponse.json({
@@ -99,7 +108,7 @@ export async function GET(request: NextRequest) {
         status: mercadoPagoStatus,
         plan_id: subscription.plan_id,
         price: subscription.price,
-        currency: subscription.currency,
+        currency: subscription.currency || 'ARS',
         created_at: subscription.created_at,
         next_payment_date: subscription.next_payment_date,
         auto_renewal: subscription.auto_renewal

@@ -66,7 +66,8 @@ export default async function ProfilePage() {
 
       {/* Estado de Suscripción */}
       <div className="mt-6">
-        <SubscriptionStatus />
+        {/*
+        <SubscriptionStatus /> */}
       </div>
     </div>
   )

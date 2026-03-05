@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
+    const urlParams = await params
     const categoryData = await request.json()
 
     const { data, error } = await supabase
@@ -13,7 +14,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         description: categoryData.description || null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", urlParams.id)
       .select()
       .single()
 
@@ -29,11 +30,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
+    const urlParams = await params
 
-    const { error } = await supabase.from("categories").delete().eq("id", params.id)
+    const { error } = await supabase.from("categories").delete().eq("id", urlParams.id)
 
     if (error) {
       console.error("Category delete error:", error)

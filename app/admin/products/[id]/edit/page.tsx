@@ -3,13 +3,14 @@ import { redirect } from "next/navigation"
 import { ProductForm } from "@/components/admin/product-form"
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const supabase = await createClient()
+  const urlParams = await params
 
   const {
     data: { user },
@@ -41,7 +42,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         )
       )
     `)
-    .eq("id", params.id)
+    .eq("id", urlParams.id)
     .eq("store_id", store.id)
     .single()
 
