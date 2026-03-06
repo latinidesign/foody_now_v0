@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic" // evita SSG 404 por slugs no pre-generad
 export const revalidate = 0 // Sin cache para evitar problemas de subdominios
 
 export default async function StorePage({ params }: StorePageProps) {
+  console.log(`[DEBUG] Cargando tienda con params:`, await params)
   const { slug } = await params
   const supabase = await createClient().catch((error) => {
     console.warn(`[store][slug:${slug}] Supabase client unavailable, falling back to demo data`, error)
@@ -135,16 +136,21 @@ export default async function StorePage({ params }: StorePageProps) {
 
   // 🔒 VERIFICAR SUSCRIPCIÓN DEL PROPIETARIO
   const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("status")
-    .eq("store_id", store.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  .from("subscriptions")
+  .select("paid_ends_at")
+  .eq("store_id", store.id)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle()
 
-  // Estados válidos para que la tienda esté activa
-  const validSubscriptionStatuses = ['trial', 'active']
-  const hasValidSubscription = subscription && validSubscriptionStatuses.includes(subscription.status)
+  let hasValidSubscription = true
+
+  if (subscription) {
+    const now = new Date()
+    const paidEndsAt = new Date(subscription.paid_ends_at)
+
+    hasValidSubscription = paidEndsAt > now
+  }
 
   // Si la suscripción no es válida, mostrar mensaje de suspensión
   if (!hasValidSubscription) {

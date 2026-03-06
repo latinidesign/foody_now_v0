@@ -84,11 +84,22 @@ export async function POST(req: NextRequest) {
       if (!subscription) {
         console.log("Creating new subscription for user:", userId)
         let days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
+
+        const { data: store } = await supabase
+          .from("stores")
+          .select("id")
+          .eq("owner_id", userId)
+          .maybeSingle()
+
+        const storeId = store?.id ?? null
+
+
         // Crear nueva suscripción
         const { data: newSubscription, error: insertError } = await supabase
           .from("subscriptions")
           .insert({
             user_id: userId,
+            store_id: storeId,
             plan_name: planId,
             status: "active",
             paid_started_at: new Date().toISOString(),
