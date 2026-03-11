@@ -1,9 +1,16 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { MuseoModerno, Open_Sans } from "next/font/google"
+
 import { Toaster } from "sonner"
 import { PWAProvider } from "@/components/pwa/pwa-provider"
 import "./globals.css"
+
+import { MuseoModerno, Open_Sans, Noto_Sans as V0_Font_Noto_Sans, Roboto_Mono as V0_Font_Roboto_Mono, Noto_Serif as V0_Font_Noto_Serif } from 'next/font/google'
+
+// Initialize fonts
+const _notoSans = V0_Font_Noto_Sans({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
+const _robotoMono = V0_Font_Roboto_Mono({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700"] })
+const _notoSerif = V0_Font_Noto_Serif({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
 
 const museoModerno = MuseoModerno({
   subsets: ["latin"],
