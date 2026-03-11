@@ -4,13 +4,15 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { StoreOnboardingForm } from "@/components/admin/store-onboarding-form"
+import { TrialAlert } from "@/components/admin/trial-alert"
 import { AuthHeader } from "@/components/auth/auth-header"
 
-export default function AdminSettingsPage() {
+export default function OnboardingPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [store, setStore] = useState<any | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userCreatedAt, setUserCreatedAt] = useState<string>("")
 
   useEffect(() => {
     let mounted = true
@@ -27,6 +29,7 @@ export default function AdminSettingsPage() {
       }
 
       setIsAuthenticated(true)
+      setUserCreatedAt(user.created_at || new Date().toISOString())
 
       const { data: storeData } = await supabase
         .from("stores")
@@ -42,7 +45,7 @@ export default function AdminSettingsPage() {
         return
       }
 
-      // Si NO está onboarded o no existe → mostrar formulario de onboarding
+      // Si NO está onboarded o no existe → mostrar settings
       setStore(storeData ?? null)
       setLoading(false)
     }
@@ -67,13 +70,14 @@ export default function AdminSettingsPage() {
       <AuthHeader />
       <div className="p-6">
         <div className="max-w-4xl mx-auto space-y-6">
+          <TrialAlert createdAt={userCreatedAt} />
           <div>
             <h1 className="text-3xl font-bold">
               {store ? "Completar configuración" : "Crear tu tienda"}
             </h1>
             <p className="text-muted-foreground">
               {store
-                ? "Completa los detalles básicos de tu tienda para continuar"
+                ? "Completa los detalles de tu tienda para continuar"
                 : "Configura tu tienda para comenzar a recibir pedidos"}
             </p>
           </div>

@@ -18,8 +18,8 @@ export default async function ProductsPage() {
 
   const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
 
-  if (!store) {
-    redirect("/admin/setup")
+  if (!store || !store.is_onboarded) {
+    redirect("/onboarding")
   }
 
   const { data: products } = await supabase

@@ -3,10 +3,9 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
-import { SubscriptionGuard } from "@/components/admin/subscription-guard"
 import { TrialAlert } from "@/components/admin/trial-alert"
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function StoreSettingsLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
   const {
@@ -17,12 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/auth/login")
   }
 
-  const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
-
-  // Si no hay tienda o no está onboarded, redirigir a onboarding
-  if (!store || !store.is_onboarded) {
-    redirect("/onboarding")
-  }
+  // Obtener tienda solo para pasar al sidebar, sin redirigir si no existe
+  const { data: store } = await supabase
+    .from("stores")
+    .select("*")
+    .eq("owner_id", user.id)
+    .maybeSingle()
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,9 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminHeader user={user} store={store} />
         <main className="p-6">
           <TrialAlert createdAt={user.created_at || new Date().toISOString()} />
-          <SubscriptionGuard storeId={store?.id || null}>
-            {children}
-          </SubscriptionGuard>
+          {children}
         </main>
       </div>
     </div>

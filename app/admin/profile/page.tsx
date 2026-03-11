@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="pt-4">
-            <Link href="/admin/settings">
+            <Link href="/store-settings">
               <Button>Configurar Tienda</Button>
             </Link>
           </div>

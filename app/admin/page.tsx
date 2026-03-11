@@ -18,8 +18,8 @@ export default async function AdminDashboard() {
   // Get user's store
   const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
 
-  if (!store) {
-    redirect("/admin/setup")
+  if (!store || !store.is_onboarded) {
+    redirect("/admin/settings")
   }
 
   // Get dashboard data

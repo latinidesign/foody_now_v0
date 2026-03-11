@@ -19,8 +19,8 @@ export default async function NotificationsPage() {
     .eq("owner_id", user.id)
     .single()
 
-  if (!store) {
-    redirect("/admin/setup")
+  if (!store || !store.is_onboarded) {
+    redirect("/onboarding")
   }
 
   return (

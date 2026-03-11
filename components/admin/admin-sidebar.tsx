@@ -37,7 +37,7 @@ const navigation = [
   { name: "Notificaciones", href: "/admin/notifications", icon: Bell },
   { name: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
   { name: "Suscripción", href: "/admin/subscription", icon: CreditCard },
-  { name: "Configuración", href: "/admin/settings", icon: Settings },
+  { name: "Configuración", href: "/store-settings", icon: Settings },
 ]
 
 export function AdminSidebar({ store }: AdminSidebarProps) {

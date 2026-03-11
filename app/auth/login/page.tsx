@@ -35,24 +35,23 @@ export default function Page() {
       })
       if (error) throw error
       
-      // Verificar si es primer ingreso (no tiene suscripción)
+      // Verificar si es primer ingreso (no tiene onboarding completo)
       if (data.user) {
-        const { data: subscription } = await supabase
-          .from('user_subscriptions')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .in('status', ['active', 'trial'])
-          .single()
+        const { data: store } = await supabase
+          .from('stores')
+          .select('id, is_onboarded')
+          .eq('owner_id', data.user.id)
+          .maybeSingle()
           
-        if (!subscription) {
-          // Primer ingreso, ir a setup
-          router.push("/admin/setup")
-        } else {
-          // Ya tiene suscripción, ir a admin
+        if (store?.is_onboarded) {
+          // Ya completó onboarding, ir a admin
           router.push("/admin")
+        } else {
+          // Primer ingreso o sin onboarding completo, ir a onboarding
+          router.push("/onboarding")
         }
       } else {
-        router.push("/admin")
+        router.push("/onboarding")
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
