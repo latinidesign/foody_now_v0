@@ -6,7 +6,7 @@ Este SDK proporciona una implementación completa para manejar suscripciones de 
 
 ## Estructura
 
-```
+\`\`\`
 lib/
 ├── payments/providers/
 │   └── mercadopago-subscriptions.ts    # SDK principal de MercadoPago
@@ -27,13 +27,13 @@ app/api/subscription/
 ├── store/[storeId]/manage/route.ts    # Pausar/reanudar
 ├── sync/[subscriptionId]/route.ts     # Sincronizar
 └── webhook-new/route.ts               # Webhooks
-```
+\`\`\`
 
 ## Instalación y Configuración
 
 ### 1. Variables de Entorno
 
-```env
+\`\`\`env
 # MercadoPago
 MERCADOPAGO_ACCESS_TOKEN=your_access_token_here
 MERCADOPAGO_CLIENT_ID=your_client_id_here
@@ -41,7 +41,7 @@ MERCADOPAGO_CLIENT_SECRET=your_client_secret_here
 
 # App
 NEXT_PUBLIC_APP_URL=https://yourapp.com
-```
+\`\`\`
 
 ### 2. Dependencias
 
@@ -55,7 +55,7 @@ El SDK utiliza las siguientes dependencias que ya están instaladas:
 
 ### Crear una Suscripción
 
-```typescript
+\`\`\`typescript
 import { getSubscriptionService } from '@/lib/services/subscription-service'
 
 const subscriptionService = getSubscriptionService()
@@ -70,11 +70,11 @@ const result = await subscriptionService.createSubscription({
 
 // Redirigir al checkout
 window.location.href = result.initPoint
-```
+\`\`\`
 
 ### Gestionar Suscripciones
 
-```typescript
+\`\`\`typescript
 // Obtener suscripción actual
 const subscription = await subscriptionService.getSubscription('store_123')
 
@@ -89,11 +89,11 @@ await subscriptionService.cancelSubscription('store_123')
 
 // Sincronizar con MercadoPago
 await subscriptionService.syncSubscriptionStatus('subscription_123')
-```
+\`\`\`
 
 ### Crear Planes
 
-```typescript
+\`\`\`typescript
 const plan = await subscriptionService.createPlan({
   name: 'basic',
   display_name: 'Plan Básico',
@@ -103,7 +103,7 @@ const plan = await subscriptionService.createPlan({
   features: ['Feature 1', 'Feature 2'],
   is_active: true
 })
-```
+\`\`\`
 
 ## API Endpoints
 
@@ -112,31 +112,31 @@ const plan = await subscriptionService.createPlan({
 Crea una nueva suscripción.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "storeId": "store_123",
   "planId": "plan_456",
   "payerEmail": "usuario@email.com",
   "cardToken": "card_token_123"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "subscription": { ... },
   "init_point": "https://mercadopago.com/checkout/...",
   "preapproval_id": "preapproval_123"
 }
-```
+\`\`\`
 
 ### GET /api/subscription/plans-new
 
 Obtiene todos los planes disponibles.
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "plans": [
@@ -151,14 +151,14 @@ Obtiene todos los planes disponibles.
     }
   ]
 }
-```
+\`\`\`
 
 ### GET /api/subscription/store/[storeId]
 
 Obtiene información de la suscripción de una tienda.
 
 **Response:**
-```json
+\`\`\`json
 {
   "subscription": { ... },
   "active": true,
@@ -167,7 +167,7 @@ Obtiene información de la suscripción de una tienda.
     "daysLeft": 10
   }
 }
-```
+\`\`\`
 
 ### DELETE /api/subscription/store/[storeId]
 
@@ -178,11 +178,11 @@ Cancela la suscripción de una tienda.
 Pausa o reanuda una suscripción.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "action": "pause" // o "resume"
 }
-```
+\`\`\`
 
 ### POST /api/subscription/sync/[subscriptionId]
 
@@ -196,14 +196,14 @@ Endpoint para recibir webhooks de MercadoPago.
 
 ### SubscriptionManager
 
-```tsx
+\`\`\`tsx
 import { SubscriptionManager } from '@/components/subscription/subscription-manager'
 
 <SubscriptionManager 
   storeId="store_123"
   userEmail="usuario@email.com"
 />
-```
+\`\`\`
 
 El componente incluye:
 - Lista de planes disponibles
@@ -240,7 +240,7 @@ Eventos a suscribirse:
 
 ### Validación
 
-```typescript
+\`\`\`typescript
 import { validateSubscriptionParams } from '@/lib/utils/subscription-utils'
 
 const validation = validateSubscriptionParams({
@@ -252,33 +252,33 @@ const validation = validateSubscriptionParams({
 if (!validation.isValid) {
   console.log(validation.errors)
 }
-```
+\`\`\`
 
 ### Formateo
 
-```typescript
+\`\`\`typescript
 import { formatPrice, formatBillingDate } from '@/lib/utils/subscription-utils'
 
 const priceText = formatPrice(36000) // "$36.000"
 const dateText = formatBillingDate("2024-01-15") // "15 de enero de 2024"
-```
+\`\`\`
 
 ### Estados
 
-```typescript
+\`\`\`typescript
 import { isSubscriptionActive, getTrialDaysLeft } from '@/lib/utils/subscription-utils'
 
 const isActive = isSubscriptionActive('trial', '2024-01-30')
 const daysLeft = getTrialDaysLeft('2024-01-30')
-```
+\`\`\`
 
 ## Testing
 
 Ejecutar tests del SDK:
 
-```bash
+\`\`\`bash
 node test-sdk-subscriptions.js
-```
+\`\`\`
 
 Este script verifica:
 - Configuración de variables de entorno
@@ -290,7 +290,7 @@ Este script verifica:
 
 El SDK incluye manejo robusto de errores:
 
-```typescript
+\`\`\`typescript
 import { handleSubscriptionError } from '@/lib/utils/subscription-utils'
 
 try {
@@ -299,18 +299,18 @@ try {
   const errorInfo = handleSubscriptionError(error)
   console.log(errorInfo.userMessage) // Mensaje amigable para el usuario
 }
-```
+\`\`\`
 
 ## Monitoreo y Logs
 
 El SDK incluye logging detallado:
 
-```typescript
+\`\`\`typescript
 // Los logs incluyen:
 console.log('[SDK] Creando suscripción...', { storeId, planId })
 console.log('[WebHook] Procesando evento:', { type, id })
 console.error('[Error] Fallo en MercadoPago:', error)
-```
+\`\`\`
 
 ## Seguridad
 

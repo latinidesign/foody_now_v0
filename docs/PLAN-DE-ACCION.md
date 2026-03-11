@@ -48,10 +48,10 @@
 ### 1️⃣ ALTA PRIORIDAD (Implementar HOY)
 
 #### A. Agregar control de trial
-```bash
+\`\`\`bash
 # En Supabase SQL Editor:
 # Ejecutar: scripts/add-trial-used-to-stores.sql
-```
+\`\`\`
 
 **Resultado:**
 - ✅ Campo `trial_used` agregado a `stores`
@@ -65,7 +65,7 @@
 
 **Archivo:** `app/api/subscription/create/route.ts`
 
-```typescript
+\`\`\`typescript
 // AGREGAR ANTES DE CREAR SUSCRIPCIÓN:
 
 // 1. Verificar si la tienda tiene historial de suscripciones
@@ -90,7 +90,7 @@ console.log(`🔍 Store ${storeId}: hasUsedTrial=${hasUsedTrial}, plan=${mercado
 
 // 3. Crear suscripción con el plan correcto y sin trial_days si es renovación
 const trialDays = hasUsedTrial ? 0 : 7
-```
+\`\`\`
 
 **Ver análisis completo:** `docs/ANALISIS-RENOVACIONES-SIN-TRIAL.md`
 
@@ -98,7 +98,7 @@ const trialDays = hasUsedTrial ? 0 : 7
 
 **Archivo:** `app/api/webhooks/mercadopago/route.ts`
 
-```typescript
+\`\`\`typescript
 // AGREGAR EN handleSubscriptionUpdate():
 
 // Cuando la suscripción pasa a authorized, marcar trial_used
@@ -120,7 +120,7 @@ if (mpData.status === 'authorized') {
       .eq('trial_used', false)  // Solo la primera vez
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -130,7 +130,7 @@ if (mpData.status === 'authorized') {
 
 **Archivo:** `app/api/webhooks/mercadopago/route.ts`
 
-```typescript
+\`\`\`typescript
 // REEMPLAZAR mapMercadoPagoStatus():
 
 async function mapMercadoPagoStatus(
@@ -158,13 +158,13 @@ async function mapMercadoPagoStatus(
       return 'pending'
   }
 }
-```
+\`\`\`
 
 #### E. Agregar webhooks de pagos
 
 **Archivo:** `app/api/webhooks/mercadopago/route.ts`
 
-```typescript
+\`\`\`typescript
 // AGREGAR EN POST():
 
 export async function POST(request: NextRequest) {
@@ -204,7 +204,7 @@ async function handleInvoicePayment(invoiceId: string) {
       .eq('mercadopago_preapproval_id', invoice.preapproval_id)
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -226,10 +226,10 @@ async function handleInvoicePayment(invoiceId: string) {
 
 ### Opción 1: Consulta SQL (Recomendado)
 
-```bash
+\`\`\`bash
 # En Supabase SQL Editor:
 # Ejecutar: scripts/diagnostico-estados-suscripciones.sql
-```
+\`\`\`
 
 Esto mostrará:
 - 📊 Resumen de estados
@@ -240,7 +240,7 @@ Esto mostrará:
 
 ### Opción 2: Endpoint API (Crear)
 
-```typescript
+\`\`\`typescript
 // app/api/admin/subscription-stats/route.ts
 export async function GET() {
   const { data: stats } = await supabase.rpc('get_subscription_stats')
@@ -253,7 +253,7 @@ export async function GET() {
     cancelled: stats.cancelled
   })
 }
-```
+\`\`\`
 
 ---
 
@@ -342,12 +342,12 @@ Si necesitas ayuda:
 
 ## 🎯 Próximo Paso INMEDIATO
 
-```bash
+\`\`\`bash
 # 1. Ir a Supabase SQL Editor
 # 2. Copiar contenido de: scripts/add-trial-used-to-stores.sql
 # 3. Ejecutar
 # 4. Verificar resultado
-```
+\`\`\`
 
 **Tiempo estimado:** 5 minutos  
 **Impacto:** CRÍTICO ⭐⭐⭐

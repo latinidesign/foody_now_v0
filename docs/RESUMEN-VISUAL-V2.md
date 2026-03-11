@@ -7,7 +7,7 @@
 
 ## 🎯 Modelo de 3 Capas + Control de Trial
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────┐
 │                   CAPA 0: CONTROL DE TRIAL                  │
 │  (NUEVO: Prevenir abuso + Renovaciones sin trial)          │
@@ -70,7 +70,7 @@
 │  charged_back         →  Suspender acceso                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -78,7 +78,7 @@
 
 ### Escenario 1: Usuario NUEVO (Primera vez)
 
-```
+\`\`\`
 ┌─────────────────────┐
 │  Usuario se crea    │
 │  trial_used = false │
@@ -134,13 +134,13 @@
       │         │
       ▼         ▼
    active    past_due
-```
+\`\`\`
 
 ---
 
 ### Escenario 2: Usuario con Suscripción EXPIRADA (Renovación)
 
-```
+\`\`\`
 ┌─────────────────────┐
 │  Usuario existente  │
 │  Estado: expired    │
@@ -202,13 +202,13 @@
 │ Usuario ACTIVO           │
 │ Sin trial, pagó inmediato│
 └──────────────────────────┘
-```
+\`\`\`
 
 ---
 
 ### Escenario 3: Usuario CANCELADO que vuelve (Renovación)
 
-```
+\`\`\`
 ┌─────────────────────┐
 │  Usuario existente  │
 │  Estado: cancelled  │
@@ -238,13 +238,13 @@
 │ Estado: cancelled →      │
 │         active           │
 └──────────────────────────┘
-```
+\`\`\`
 
 ---
 
 ### Escenario 4: Usuario SUSPENDIDO (Reactivación)
 
-```
+\`\`\`
 ┌─────────────────────┐
 │  Usuario existente  │
 │  Estado: suspended  │
@@ -274,13 +274,13 @@
 │ Estado: suspended →      │
 │         active           │
 └──────────────────────────┘
-```
+\`\`\`
 
 ---
 
 ## 🎨 Estados Visuales en UI
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │  Estado          │  Badge     │  Mensaje al Usuario      │
 ├──────────────────────────────────────────────────────────┤
@@ -292,11 +292,11 @@
 │  cancelled       │  🔴 Rojo    │ "Cancelada"             │
 │  expired         │  ⚪ Gris    │ "Expirada"              │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### Botones de Acción según Estado
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────┐
 │  Estado      │  Botón Visible        │  Destino             │
 ├─────────────────────────────────────────────────────────────┤
@@ -308,7 +308,7 @@
 │  suspended   │  "Reactivar"          │  /admin/plans        │ 🆕
 │  past_due    │  "Actualizar Pago"    │  /admin/plans        │ 🆕
 └─────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **⚠️ IMPORTANTE:** Todos los botones de renovación/reactivación ahora van a `/admin/plans` en lugar de link directo a MP. La API decide automáticamente qué plan usar.
 
@@ -316,7 +316,7 @@
 
 ## 🧬 Arquitectura de Archivos
 
-```
+\`\`\`
 foody_now_v0/
 │
 ├── lib/
@@ -362,13 +362,13 @@ foody_now_v0/
     ├── ANALISIS-RENOVACIONES-SIN-TRIAL.md        🆕
     ├── PLAN-DE-ACCION.md                         ✅
     └── RESUMEN-VISUAL-V2.md                      🆕 Este archivo
-```
+\`\`\`
 
 ---
 
 ## 🔐 Variables de Entorno Necesarias
 
-```bash
+\`\`\`bash
 # .env.local
 
 # Plan con trial de 7 días (para usuarios nuevos)
@@ -383,7 +383,7 @@ MERCADOPAGO_ACCESS_TOKEN="[TU_ACCESS_TOKEN]"
 
 # App URL
 NEXT_PUBLIC_APP_URL="https://tudominio.com"
-```
+\`\`\`
 
 ---
 
@@ -400,30 +400,30 @@ NEXT_PUBLIC_APP_URL="https://tudominio.com"
 | Volver | active → cancelled | ✅ SÍ | WITHOUT_TRIAL | 0 |
 
 **Regla simple:**
-```typescript
+\`\`\`typescript
 const hasUsedTrial = await checkSubscriptionHistory(storeId)
 // hasUsedTrial = true si existe CUALQUIER suscripción en estados:
 // trial, active, expired, cancelled, suspended, past_due
 
 const plan = hasUsedTrial ? 'WITHOUT_TRIAL' : 'WITH_TRIAL'
-```
+\`\`\`
 
 ---
 
 ## 🧪 Testing Manual
 
 ### Test 1: Usuario nuevo (debe ver trial)
-```bash
+\`\`\`bash
 1. Crear nuevo usuario/tienda
 2. Ir a /admin/subscription
 3. Click "Suscribirme"
 4. Verificar en MP: debe mostrar "7 días de prueba gratuita"
 5. Autorizar suscripción
 6. Verificar DB: trial_used = true
-```
+\`\`\`
 
 ### Test 2: Usuario expirado (NO debe ver trial)
-```bash
+\`\`\`bash
 1. Tener usuario con estado "expired"
 2. Verificar DB: trial_used = true
 3. Click "Ver Planes"
@@ -431,16 +431,16 @@ const plan = hasUsedTrial ? 'WITHOUT_TRIAL' : 'WITH_TRIAL'
 5. Verificar en MP: NO debe mostrar trial, pago inmediato
 6. Pagar
 7. Verificar: estado cambia a "active"
-```
+\`\`\`
 
 ### Test 3: Usuario cancelado que vuelve (NO debe ver trial)
-```bash
+\`\`\`bash
 1. Usuario con estado "cancelled"
 2. Click "Renovar Suscripción"
 3. Verificar en MP: plan sin trial
 4. Pagar
 5. Estado: cancelled → active
-```
+\`\`\`
 
 ---
 
@@ -467,7 +467,7 @@ const plan = hasUsedTrial ? 'WITHOUT_TRIAL' : 'WITH_TRIAL'
 ## ⚠️ Puntos Críticos de Validación
 
 ### ✅ Checkpoint 1: Después de migración SQL
-```sql
+\`\`\`sql
 -- Verificar que trial_used existe
 SELECT column_name, data_type 
 FROM information_schema.columns 
@@ -478,18 +478,18 @@ WHERE table_name = 'stores'
 SELECT id, name, trial_used, trial_used_at 
 FROM stores 
 WHERE trial_used = true;
-```
+\`\`\`
 
 ### ✅ Checkpoint 2: Después de modificar API
-```bash
+\`\`\`bash
 # Verificar logs al crear suscripción
 # Debe mostrar:
 🔍 Store abc123: hasUsedTrial=false, plan=WITH_TRIAL
 🔍 Store xyz789: hasUsedTrial=true, plan=WITHOUT_TRIAL
-```
+\`\`\`
 
 ### ✅ Checkpoint 3: En producción
-```sql
+\`\`\`sql
 -- Monitorear renovaciones
 SELECT 
   s.store_id,
@@ -501,7 +501,7 @@ FROM subscriptions s
 JOIN stores st ON st.id = s.store_id
 WHERE s.created_at > NOW() - INTERVAL '1 day'
 ORDER BY s.created_at DESC;
-```
+\`\`\`
 
 ---
 

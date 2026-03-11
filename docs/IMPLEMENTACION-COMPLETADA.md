@@ -31,13 +31,13 @@ Los siguientes archivos ya han sido creados/modificados:
 
 **En Supabase SQL Editor:**
 
-```sql
+\`\`\`sql
 -- Copiar y ejecutar: scripts/add-trial-used-to-stores.sql
-```
+\`\`\`
 
 **O ejecutar directamente este código:**
 
-```sql
+\`\`\`sql
 -- Agregar campos
 ALTER TABLE stores 
   ADD COLUMN IF NOT EXISTS trial_used BOOLEAN DEFAULT FALSE,
@@ -62,43 +62,43 @@ WHERE id IN (
   FROM subscriptions 
   WHERE status IN ('trial', 'active', 'cancelled', 'expired', 'suspended', 'past_due')
 );
-```
+\`\`\`
 
 ### 2️⃣ Verificar Migración
 
 **Ejecutar script de diagnóstico:**
 
-```sql
+\`\`\`sql
 -- Copiar y ejecutar: scripts/diagnostico-post-migracion.sql
-```
+\`\`\`
 
 **Verificación rápida:**
 
-```sql
+\`\`\`sql
 SELECT column_name FROM information_schema.columns
 WHERE table_name = 'stores' AND column_name = 'trial_used';
 -- Debe retornar 1 fila
-```
+\`\`\`
 
 ### 3️⃣ Reiniciar Servidor de Desarrollo
 
-```bash
+\`\`\`bash
 # Detener el servidor (Ctrl+C)
 # Volver a iniciar para cargar las nuevas variables de entorno
 pnpm dev
 # o
 npm run dev
-```
+\`\`\`
 
 ### 4️⃣ Verificar Variables de Entorno
 
 Abrir `.env.local` y confirmar que estén estas líneas:
 
-```bash
+\`\`\`bash
 # Debe estar presente:
 NEXT_PUBLIC_MERCADOPAGO_PLAN_WITH_TRIAL_ID=921acee62b484deaa5120e39733ab2ee
 NEXT_PUBLIC_MERCADOPAGO_PLAN_WITHOUT_TRIAL_ID=946bf6e3186741b5b7b8accbbdf646a5
-```
+\`\`\`
 
 ---
 
@@ -106,11 +106,11 @@ NEXT_PUBLIC_MERCADOPAGO_PLAN_WITHOUT_TRIAL_ID=946bf6e3186741b5b7b8accbbdf646a5
 
 ### Test 1: Verificar que no hay errores de compilación
 
-```bash
+\`\`\`bash
 pnpm build
 # o
 npm run build
-```
+\`\`\`
 
 **Resultado esperado:** Build exitoso sin errores
 
@@ -125,9 +125,9 @@ npm run build
 1. Desde una cuenta de prueba, ir a `/admin/subscription/plans`
 2. Click en "Suscribirme Ahora"
 3. Verificar en la consola del navegador:
-   ```
+   \`\`\`
    ✅ Suscripción creada: { plan_type: 'WITH_TRIAL', trial_days: 7, ... }
-   ```
+   \`\`\`
 4. **NO COMPLETAR el pago** en MercadoPago
 
 ---
@@ -149,7 +149,7 @@ Marcar cuando esté completo:
 ## 🎯 Cómo Funciona Ahora
 
 ### Usuario Nuevo (Primera vez)
-```
+\`\`\`
 Usuario → /admin/subscription/plans → Click "Suscribirme"
   ↓
 API detecta: hasUsedTrial = false
@@ -157,10 +157,10 @@ API detecta: hasUsedTrial = false
 Selecciona: Plan CON trial (7 días)
   ↓
 Redirige a MercadoPago con plan: 921acee62b484deaa5120e39733ab2ee
-```
+\`\`\`
 
 ### Usuario Expirado (Renovación)
-```
+\`\`\`
 Usuario → /admin/subscription/plans → Click "Suscribirme"
   ↓
 API detecta: hasUsedTrial = true (tiene historial)
@@ -168,7 +168,7 @@ API detecta: hasUsedTrial = true (tiene historial)
 Selecciona: Plan SIN trial (pago inmediato)
   ↓
 Redirige a MercadoPago con plan: 946bf6e3186741b5b7b8accbbdf646a5
-```
+\`\`\`
 
 ---
 
@@ -177,11 +177,11 @@ Redirige a MercadoPago con plan: 946bf6e3186741b5b7b8accbbdf646a5
 ### Error: "Cannot find module subscription-plans"
 
 **Solución:**
-```bash
+\`\`\`bash
 # Reiniciar el servidor
 # Ctrl+C y volver a ejecutar:
 pnpm dev
-```
+\`\`\`
 
 ### Error: "trial_used column does not exist"
 
@@ -207,7 +207,7 @@ Para más detalles, consultar:
 
 Cuando todo funcione en desarrollo:
 
-```bash
+\`\`\`bash
 # 1. Commit
 git add .
 git commit -m "feat: Implementar control de trial y renovaciones sin trial"
@@ -221,7 +221,7 @@ git push origin main
 
 # 4. Verificar deployment
 # Vercel/Railway/etc completará el build automáticamente
-```
+\`\`\`
 
 ---
 

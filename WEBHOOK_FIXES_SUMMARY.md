@@ -29,10 +29,10 @@
 #### ⚠️  ACCIÓN REQUERIDA EN VERCEL:
 
 1. **Actualizar Variables de Entorno en Vercel:**
-   ```
+   \`\`\`
    APP_BASE_URL=https://foodynow.com.ar
    NEXT_PUBLIC_APP_URL=https://foodynow.com.ar
-   ```
+   \`\`\`
 
 2. **Redesplegar la aplicación** después de actualizar las variables
 
@@ -45,10 +45,10 @@
 
 ### 📊 Archivos Verificados (Todos Correctos)
 
-```bash
+\`\`\`bash
 # Búsqueda confirmó que todas las referencias apuntan al endpoint correcto
 grep -r "api/webhook/mercadopago" app/ --include="*.ts"
-```
+\`\`\`
 
 **Resultado**: 12 coincidencias, todas apuntando al endpoint correcto `/api/webhook/mercadopago`
 
@@ -82,11 +82,11 @@ grep -r "api/webhook/mercadopago" app/ --include="*.ts"
 Creados scripts para reactivar la tienda:
 
 1. **`activate-pizzeria.js`**: Extiende suscripción por 30 días
-   ```javascript
+   \`\`\`javascript
    subscription_status: 'trial'
    subscription_expires_at: +30 días
    is_active: true
-   ```
+   \`\`\`
 
 2. **`test-webhook-now.js`**: Prueba directa del webhook
 

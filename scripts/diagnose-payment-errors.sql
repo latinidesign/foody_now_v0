@@ -35,5 +35,3 @@ WHERE s.slug = 'pizzeria-don-mario'
   AND o.status = 'pending'
 ORDER BY o.created_at DESC
 LIMIT 3;
-
-

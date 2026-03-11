@@ -38,7 +38,7 @@ Se implementaron los **3 bloques críticos** del sistema de control de acceso ba
 - ✅ Validación: redirige a /admin si ya tiene suscripción activa
 
 **Preview**:
-```
+\`\`\`
 ┌────────────────────────────────────────┐
 │     Renueva tu Suscripción             │
 │  Tu suscripción ha expirado...         │
@@ -54,7 +54,7 @@ Se implementaron los **3 bloques críticos** del sistema de control de acceso ba
 │  $36.000/mes                            │
 │  [Renovar Suscripción] 🔒              │
 └────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -82,14 +82,14 @@ Se implementaron los **3 bloques críticos** del sistema de control de acceso ba
 - ✅ No renderiza contenido si no está permitido
 
 #### Integración en Layout:
-```tsx
+\`\`\`tsx
 <SubscriptionGuard storeId={store?.id || null}>
   {children}
 </SubscriptionGuard>
-```
+\`\`\`
 
 **Flujo de validación**:
-```
+\`\`\`
 Usuario accede a /admin/products
     ↓
 SubscriptionGuard detecta pathname
@@ -103,7 +103,7 @@ Consulta subscription desde Supabase
 ¿Tiene subscription record?
     ↓ SÍ (expirada)
 Redirect → /admin/renew
-```
+\`\`\`
 
 ---
 
@@ -116,7 +116,7 @@ Redirect → /admin/renew
 **Características implementadas**:
 
 #### Validación en Store Page:
-```typescript
+\`\`\`typescript
 // Después de obtener la tienda
 const { data: subscription } = await supabase
   .from("subscriptions")
@@ -135,7 +135,7 @@ if (!hasValidSubscription) {
     whatsappPhone={store.whatsapp_phone} 
   />
 }
-```
+\`\`\`
 
 #### `StoreSuspendedMessage` Component:
 - ✅ Diseño centrado con Card
@@ -147,7 +147,7 @@ if (!hasValidSubscription) {
 - ✅ Responsive y bien diseñado
 
 **Preview del mensaje**:
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │         ⚠️                          │
 │  Tienda Temporalmente Suspendida    │
@@ -160,7 +160,7 @@ if (!hasValidSubscription) {
 │                                     │
 │  Si eres el propietario...          │
 └─────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -195,16 +195,16 @@ if (!hasValidSubscription) {
 ## 🧪 TESTING RECOMENDADO
 
 ### Test Manual 1: Usuario Nuevo
-```
+\`\`\`
 1. Crear cuenta nueva
 2. Intentar acceder a /admin
    ✅ Debe redirigir a /admin/setup
 3. No debe poder acceder a /admin/products
    ✅ Guard detecta y redirige a /setup
-```
+\`\`\`
 
 ### Test Manual 2: Usuario con Suscripción Expirada
-```
+\`\`\`
 1. Usuario con subscription.status = 'expired'
 2. Intentar acceder a /admin
    ✅ Debe redirigir a /admin/renew
@@ -212,25 +212,25 @@ if (!hasValidSubscription) {
    ✅ Debe mostrar botón "Renovar Suscripción"
 4. Click en botón
    ✅ Debe redirigir a MercadoPago (plan sin trial)
-```
+\`\`\`
 
 ### Test Manual 3: Tienda Pública Suspendida
-```
+\`\`\`
 1. Tienda con subscription.status = 'cancelled'
 2. Acceder a https://mitienda.foodynow.com.ar
    ✅ Debe mostrar mensaje de suspensión
 3. Ver botón de WhatsApp
    ✅ Debe abrir chat de WhatsApp
-```
+\`\`\`
 
 ### Test Manual 4: Usuario con Suscripción Activa
-```
+\`\`\`
 1. Usuario con subscription.status = 'active'
 2. Acceder a /admin/products
    ✅ Debe permitir acceso
 3. Tienda pública debe estar visible
    ✅ Catálogo funciona normalmente
-```
+\`\`\`
 
 ---
 
@@ -260,11 +260,11 @@ Existen DOS flags:
 - `subscriptions.status` (enum) - Estado de pago
 
 **Ambos deben ser válidos** para que la tienda esté online:
-```typescript
+\`\`\`typescript
 const isStoreOnline = 
   store.is_active === true && 
   ['trial', 'active'].includes(subscription.status)
-```
+\`\`\`
 
 ---
 

@@ -27,13 +27,13 @@
 ### Implementación Actual
 
 **TypeScript (`lib/types/subscription.ts`):**
-```typescript
+\`\`\`typescript
 export type SubscriptionStatus = 
   'trial' | 'pending' | 'active' | 'expired' | 'cancelled' | 'suspended' | 'past_due'
-```
+\`\`\`
 
 **Mapeo en Webhook (`app/api/webhooks/mercadopago/route.ts`):**
-```typescript
+\`\`\`typescript
 function mapMercadoPagoStatus(mpStatus: string): string {
   switch (mpStatus) {
     case 'authorized': return 'active'     // ⚠️ PROBLEMA: No considera trial
@@ -43,7 +43,7 @@ function mapMercadoPagoStatus(mpStatus: string): string {
     default:           return 'pending'
   }
 }
-```
+\`\`\`
 
 ### 🔴 Problema Identificado #1: Estado "trial" vs "authorized"
 
@@ -53,12 +53,12 @@ function mapMercadoPagoStatus(mpStatus: string): string {
 - MP usa `'authorized'` para suscripciones activas (con o sin trial)
 
 **Mapeo incorrecto:**
-```typescript
+\`\`\`typescript
 case 'authorized': return 'active'  // ❌ Pierde información del trial
-```
+\`\`\`
 
 **Mapeo correcto recomendado:**
-```typescript
+\`\`\`typescript
 case 'authorized': {
   // Detectar si está en trial comparando fechas
   const now = new Date()
@@ -67,7 +67,7 @@ case 'authorized': {
   
   return isTrial ? 'trial' : 'active'  // ✅
 }
-```
+\`\`\`
 
 ### 📋 Comparación de Estados
 
@@ -87,11 +87,11 @@ case 'authorized': {
 ### ⚠️ Problema Crítico: Falta control de "trial_used"
 
 **Estado actual en DB:**
-```sql
+\`\`\`sql
 -- Tabla stores NO tiene estos campos:
 trial_used BOOLEAN DEFAULT FALSE       -- ❌ FALTA
 trial_used_at TIMESTAMP NULL           -- ❌ FALTA
-```
+\`\`\`
 
 **Scripts revisados:**
 - ✅ `scripts/subscription-system.sql` - Define estructura base
@@ -102,7 +102,7 @@ trial_used_at TIMESTAMP NULL           -- ❌ FALTA
 
 #### A. Crear migración SQL:
 
-```sql
+\`\`\`sql
 -- scripts/add-trial-used-to-stores.sql
 
 -- Agregar campos para control de trial por comercio
@@ -135,12 +135,12 @@ COMMENT ON COLUMN stores.trial_used IS
 
 COMMENT ON COLUMN stores.trial_used_at IS 
   'Fecha en que se marcó trial_used = true (primera autorización de suscripción)';
-```
+\`\`\`
 
 #### B. Actualizar TypeScript:
 
 **Tipo Store (`lib/types/subscription.ts`):**
-```typescript
+\`\`\`typescript
 export interface Store {
   id: string
   name: string
@@ -148,7 +148,7 @@ export interface Store {
   trial_used: boolean         // ✅ AGREGAR
   trial_used_at?: string      // ✅ AGREGAR
 }
-```
+\`\`\`
 
 ---
 
@@ -177,7 +177,7 @@ Actualmente, FoodyNow:
 
 ### 🎯 Lógica Recomendada
 
-```typescript
+\`\`\`typescript
 // En webhook handler
 async function handleInvoicePayment(invoiceId: string) {
   const invoice = await mp.getInvoice(invoiceId)
@@ -210,7 +210,7 @@ async function handleInvoicePayment(invoiceId: string) {
       .eq('id', subscription.id)
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -219,16 +219,16 @@ async function handleInvoicePayment(invoiceId: string) {
 ### Prioridad ALTA (Críticas)
 
 #### 1. Agregar control de `trial_used` ⭐⭐⭐
-```bash
+\`\`\`bash
 # Ejecutar en Supabase SQL Editor
 psql < scripts/add-trial-used-to-stores.sql
-```
+\`\`\`
 
 #### 2. Actualizar lógica de creación de suscripción ⭐⭐⭐
 
 **Archivo:** `app/api/subscription/create/route.ts`
 
-```typescript
+\`\`\`typescript
 // ANTES DE CREAR SUSCRIPCIÓN
 const { data: store } = await supabase
   .from('stores')
@@ -242,13 +242,13 @@ const planToUse = store.trial_used
   : planId                         // Plan con trial
 
 // Luego crear suscripción con planToUse
-```
+\`\`\`
 
 #### 3. Marcar `trial_used` en webhook ⭐⭐⭐
 
 **Archivo:** `app/api/webhooks/mercadopago/route.ts`
 
-```typescript
+\`\`\`typescript
 async function handleSubscriptionUpdate(preapprovalId: string) {
   // ... código existente ...
   
@@ -273,7 +273,7 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
     }
   }
 }
-```
+\`\`\`
 
 ### Prioridad MEDIA
 
@@ -281,7 +281,7 @@ async function handleSubscriptionUpdate(preapprovalId: string) {
 
 **Archivo:** `app/api/webhooks/mercadopago/route.ts`
 
-```typescript
+\`\`\`typescript
 async function mapMercadoPagoStatus(
   mpStatus: string, 
   preapproval: any
@@ -305,13 +305,13 @@ async function mapMercadoPagoStatus(
       return 'pending'
   }
 }
-```
+\`\`\`
 
 #### 5. Agregar webhooks de pagos ⭐⭐
 
 **Archivo:** `app/api/webhooks/mercadopago/route.ts`
 
-```typescript
+\`\`\`typescript
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -330,7 +330,7 @@ export async function POST(request: NextRequest) {
     // ...
   }
 }
-```
+\`\`\`
 
 ### Prioridad BAJA
 
@@ -338,7 +338,7 @@ export async function POST(request: NextRequest) {
 
 Crear endpoint para consultar estados:
 
-```typescript
+\`\`\`typescript
 // app/api/admin/subscription-stats/route.ts
 export async function GET() {
   const stats = await supabase.rpc('get_subscription_stats')
@@ -352,7 +352,7 @@ export async function GET() {
     trial_used_stores: stats.trial_used
   })
 }
-```
+\`\`\`
 
 ---
 
@@ -360,7 +360,7 @@ export async function GET() {
 
 Para identificar estados actuales de usuarios, ejecutar en Supabase:
 
-```sql
+\`\`\`sql
 -- Estados actuales de suscripciones
 SELECT 
   s.status,
@@ -396,7 +396,7 @@ SELECT column_name, data_type, is_nullable
 FROM information_schema.columns
 WHERE table_name = 'stores' 
   AND column_name IN ('trial_used', 'trial_used_at');
-```
+\`\`\`
 
 ---
 

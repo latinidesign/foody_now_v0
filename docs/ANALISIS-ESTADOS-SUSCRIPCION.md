@@ -43,7 +43,7 @@ Los webhooks notifican cambios en el estado de la preapproval:
 ### 1. Mapeo Incorrecto en Webhook (`app/api/webhooks/mercadopago/route.ts`)
 
 **Actual (INCORRECTO):**
-```typescript
+\`\`\`typescript
 function mapMercadoPagoStatus(mpStatus: string): string {
   switch (mpStatus) {
     case 'authorized':
@@ -58,7 +58,7 @@ function mapMercadoPagoStatus(mpStatus: string): string {
       return 'pending'
   }
 }
-```
+\`\`\`
 
 **Error:** Cuando MercadoPago reporta `pending` (pago no procesado), el sistema asigna `trial` en lugar de `pending`.
 
@@ -66,10 +66,10 @@ function mapMercadoPagoStatus(mpStatus: string): string {
 
 En `app/api/subscription/create/route.ts` y `lib/services/subscription-service.ts`:
 
-```typescript
+\`\`\`typescript
 // Se asigna 'trial' ANTES de confirmar el pago
 status: "trial"
-```
+\`\`\`
 
 **Error:** Si el pago falla, la tienda queda con estado `trial` cuando debería ser `pending`.
 
@@ -77,7 +77,7 @@ status: "trial"
 
 El enum `subscription_status` en PostgreSQL **NO incluye `pending`**:
 
-```sql
+\`\`\`sql
 CREATE TYPE subscription_status AS ENUM (
   'trial',      -- ✅
   'active',     -- ✅
@@ -87,14 +87,14 @@ CREATE TYPE subscription_status AS ENUM (
   -- ❌ FALTA: 'pending'
   -- ❌ FALTA: 'past_due'
 );
-```
+\`\`\`
 
 ### 4. Inconsistencia entre TypeScript y Base de Datos
 
 `lib/types/subscription.ts`:
-```typescript
+\`\`\`typescript
 export type SubscriptionStatus = 'trial' | 'pending' | 'active' | 'expired' | 'cancelled' | 'suspended' | 'past_due'
-```
+\`\`\`
 
 TypeScript tiene `pending` y `past_due`, pero el enum de DB no los soporta.
 
@@ -104,15 +104,15 @@ TypeScript tiene `pending` y `past_due`, pero el enum de DB no los soporta.
 
 ### Paso 1: Actualizar Enum en PostgreSQL
 
-```sql
+\`\`\`sql
 -- Agregar valores faltantes al enum
 ALTER TYPE subscription_status ADD VALUE IF NOT EXISTS 'pending';
 ALTER TYPE subscription_status ADD VALUE IF NOT EXISTS 'past_due';
-```
+\`\`\`
 
 ### Paso 2: Corregir Mapeo en Webhook
 
-```typescript
+\`\`\`typescript
 function mapMercadoPagoStatus(mpStatus: string): string {
   switch (mpStatus) {
     case 'authorized':
@@ -127,11 +127,11 @@ function mapMercadoPagoStatus(mpStatus: string): string {
       return 'pending'    // Estado desconocido = pendiente
   }
 }
-```
+\`\`\`
 
 ### Paso 3: Flujo Correcto de Creación
 
-```
+\`\`\`
 1. Usuario inicia suscripción
 2. Crear suscripción local con status = 'pending'
 3. Redirigir a MercadoPago
@@ -140,7 +140,7 @@ function mapMercadoPagoStatus(mpStatus: string): string {
    - Si pending → mantener 'pending'
    - Si cancelled → cambiar a 'cancelled'
 5. Trial comienza DESPUÉS de pago confirmado (si el plan tiene trial)
-```
+\`\`\`
 
 ### Paso 4: Flujo con Trial
 
@@ -155,7 +155,7 @@ Para planes con período de prueba gratuito:
 
 ## 📋 Matriz de Transiciones de Estado
 
-```
+\`\`\`
 ┌─────────┐   pago ok    ┌─────────┐   trial end   ┌─────────┐
 │ pending │──────────────►│  trial  │───────────────►│ active  │
 └────┬────┘              └────┬────┘               └────┬────┘
@@ -171,7 +171,7 @@ Para planes con período de prueba gratuito:
                                                   ┌───────────┐
                                                   │ cancelled │
                                                   └───────────┘
-```
+\`\`\`
 
 ---
 
@@ -205,10 +205,10 @@ Las tiendas que crearon suscripción con pago fallido tienen:
 - Deberían tener `subscription_status = 'pending'`
 
 Para corregir (después de agregar `pending` al enum):
-```sql
+\`\`\`sql
 UPDATE stores 
 SET subscription_status = 'pending'
 WHERE subscription_status = 'trial' 
   AND subscription_id IS NOT NULL
   AND (subscription_expires_at IS NULL OR subscription_expires_at < NOW());
-```
+\`\`\`

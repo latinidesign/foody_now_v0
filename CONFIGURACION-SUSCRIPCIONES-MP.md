@@ -15,7 +15,7 @@ FoodyNow tiene **UN ÚNICO PRECIO** y **DOS PLANES** de suscripción mensual:
 
 **Para:** Nuevos usuarios que nunca han tenido una suscripción activa
 
-```typescript
+\`\`\`typescript
 {
   id: '921acee62b484deaa5120e39733ab2ee',
   nombre: 'Suscripción Mensual con Trial',
@@ -26,7 +26,7 @@ FoodyNow tiene **UN ÚNICO PRECIO** y **DOS PLANES** de suscripción mensual:
   frecuencia: 1,
   tipo_frecuencia: 'months'
 }
-```
+\`\`\`
 
 **Características:**
 - ✅ 14 días de prueba gratuita
@@ -40,7 +40,7 @@ FoodyNow tiene **UN ÚNICO PRECIO** y **DOS PLANES** de suscripción mensual:
 
 **Para:** Usuarios que ya usaron el período de prueba
 
-```typescript
+\`\`\`typescript
 {
   id: '946bf6e3186741b5b7b8accbbdf646a5',
   nombre: 'Suscripción Mensual (Renovación)',
@@ -51,7 +51,7 @@ FoodyNow tiene **UN ÚNICO PRECIO** y **DOS PLANES** de suscripción mensual:
   frecuencia: 1,
   tipo_frecuencia: 'months'
 }
-```
+\`\`\`
 
 **Características:**
 - ❌ Sin período de prueba
@@ -65,11 +65,11 @@ FoodyNow tiene **UN ÚNICO PRECIO** y **DOS PLANES** de suscripción mensual:
 
 El sistema selecciona automáticamente el plan correcto según el historial:
 
-```typescript
+\`\`\`typescript
 function getPlanTypeByHistory(hasUsedTrial: boolean): PlanType {
   return hasUsedTrial ? 'WITHOUT_TRIAL' : 'WITH_TRIAL'
 }
-```
+\`\`\`
 
 **Estados que indican trial usado:**
 - `trial` - Actualmente en período de prueba
@@ -85,7 +85,7 @@ function getPlanTypeByHistory(hasUsedTrial: boolean): PlanType {
 
 ### Plan Activo en `subscription_plans`
 
-```sql
+\`\`\`sql
 {
   id: '20e79e7c-3ee9-4027-b7ae-c30488bf5dca',
   name: 'basic_monthly',
@@ -96,13 +96,13 @@ function getPlanTypeByHistory(hasUsedTrial: boolean): PlanType {
   mercadopago_plan_id: '921acee62b484deaa5120e39733ab2ee',
   is_active: true
 }
-```
+\`\`\`
 
 ---
 
 ## ⚙️ Variables de Entorno Necesarias
 
-```bash
+\`\`\`bash
 # .env.local
 
 # Plan con trial (14 días)
@@ -113,7 +113,7 @@ MERCADOPAGO_ACCESS_TOKEN=APP_USR-xxxxx...
 
 # URL de la aplicación
 NEXT_PUBLIC_APP_URL=https://foodynow.com.ar
-```
+\`\`\`
 
 ---
 
@@ -135,14 +135,14 @@ NEXT_PUBLIC_APP_URL=https://foodynow.com.ar
 ## 🔗 URLs de Checkout
 
 ### Con Trial (Nuevos usuarios)
-```
+\`\`\`
 https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=921acee62b484deaa5120e39733ab2ee&back_url=[URL_ENCODED]
-```
+\`\`\`
 
 ### Sin Trial (Renovaciones)
-```
+\`\`\`
 https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=946bf6e3186741b5b7b8accbbdf646a5&back_url=[URL_ENCODED]
-```
+\`\`\`
 
 ---
 
@@ -162,13 +162,13 @@ https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=946bf6
 
 Para verificar que todo está correctamente configurado:
 
-```bash
+\`\`\`bash
 # Ejecutar script de verificación
 node show-mp-config.js
 
 # O consultar directamente en la base de datos
 # Copiar y ejecutar: view-all-mp-subscriptions.sql
-```
+\`\`\`
 
 ---
 

@@ -39,4 +39,4 @@ $$;
 
 drop trigger if exists trg_touch_payments on public.payments;
 create trigger trg_touch_payments before update on public.payments
-for each row execute function public.touch_updated_at(); 
+for each row execute function public.touch_updated_at();

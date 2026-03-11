@@ -36,17 +36,17 @@
 ### 1. Componente UI (`subscription-status.tsx`)
 
 **✅ LO QUE ESTÁ BIEN:**
-```tsx
+\`\`\`tsx
 {subscriptionData.status === 'suspended' && (
   <Link href={"https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=946bf6e3186741b5b7b8accbbdf646a5"}>
     <Button>Reactivar Suscripción</Button>
   </Link>
 )}
-```
+\`\`\`
 - Ya tiene el link al plan sin trial para `suspended`
 
 **❌ LO QUE FALTA:**
-```tsx
+\`\`\`tsx
 // Estado EXPIRED no tiene botón de renovación
 {subscriptionData.status === 'expired' && (
   // Solo muestra mensaje, NO botón de renovación ❌
@@ -54,21 +54,21 @@
 
 // Estado CANCELLED no tiene opción de renovación
 // Estado PAST_DUE no tiene opción de renovación
-```
+\`\`\`
 
 ### 2. API de Creación (`/api/subscription/create/route.ts`)
 
 **❌ PROBLEMA CRÍTICO:**
-```typescript
+\`\`\`typescript
 // Siempre usa el mismo plan que recibe en planId
 const checkoutUrl = `https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=${plan.mercadopago_plan_id}`
 
 // NO verifica si la tienda ya usó trial ❌
 // NO selecciona automáticamente plan sin trial ❌
-```
+\`\`\`
 
 **✅ LO QUE DEBERÍA HACER:**
-```typescript
+\`\`\`typescript
 // 1. Verificar si la tienda tiene historial de suscripciones
 const { data: previousSubscriptions } = await supabase
   .from('subscriptions')
@@ -83,7 +83,7 @@ const hasUsedTrial = previousSubscriptions && previousSubscriptions.length > 0
 const planToUse = hasUsedTrial 
   ? '946bf6e3186741b5b7b8accbbdf646a5'  // Plan SIN trial
   : plan.mercadopago_plan_id              // Plan CON trial
-```
+\`\`\`
 
 ---
 
@@ -94,15 +94,15 @@ const planToUse = hasUsedTrial
 #### Opción A: Usar campo `trial_used` (Recomendado)
 
 **Ventaja:** Control explícito por comercio
-```sql
+\`\`\`sql
 -- Ya preparado en: scripts/add-trial-used-to-stores.sql
 ALTER TABLE stores 
   ADD COLUMN trial_used BOOLEAN DEFAULT FALSE,
   ADD COLUMN trial_used_at TIMESTAMP NULL;
-```
+\`\`\`
 
 **Uso en código:**
-```typescript
+\`\`\`typescript
 const { data: store } = await supabase
   .from('stores')
   .select('trial_used')
@@ -110,12 +110,12 @@ const { data: store } = await supabase
   .single()
 
 const shouldUseTrial = !store.trial_used
-```
+\`\`\`
 
 #### Opción B: Consultar historial (Alternativa temporal)
 
 **Ventaja:** No requiere migración inmediata
-```typescript
+\`\`\`typescript
 const { data: subscriptions } = await supabase
   .from('subscriptions')
   .select('id')
@@ -124,13 +124,13 @@ const { data: subscriptions } = await supabase
   .limit(1)
 
 const hasUsedTrial = subscriptions && subscriptions.length > 0
-```
+\`\`\`
 
 ### Fase 2: Configuración de Planes
 
 **Crear constantes centralizadas:**
 
-```typescript
+\`\`\`typescript
 // lib/config/subscription-plans.ts
 
 export const MERCADOPAGO_PLANS = {
@@ -162,11 +162,11 @@ export function getMercadoPagoPlanId(planType: PlanType): string {
 export function getPlanBySubscriptionHistory(hasUsedTrial: boolean): PlanType {
   return hasUsedTrial ? 'WITHOUT_TRIAL' : 'WITH_TRIAL'
 }
-```
+\`\`\`
 
 ### Fase 3: Modificar API `/api/subscription/create`
 
-```typescript
+\`\`\`typescript
 // app/api/subscription/create/route.ts
 
 import { MERCADOPAGO_PLANS, getPlanBySubscriptionHistory } from '@/lib/config/subscription-plans'
@@ -237,11 +237,11 @@ export async function POST(request: Request) {
     plan_type: planType  // Para debugging
   })
 }
-```
+\`\`\`
 
 ### Fase 4: Actualizar UI (`subscription-status.tsx`)
 
-```tsx
+\`\`\`tsx
 // components/admin/subscription-status.tsx
 
 export function SubscriptionStatus() {
@@ -323,13 +323,13 @@ export function SubscriptionStatus() {
     </Card>
   )
 }
-```
+\`\`\`
 
 **IMPORTANTE:** Los botones ahora van a `/admin/subscription/plans` en lugar de link directo a MP, para que la API decida automáticamente qué plan usar.
 
 ### Fase 5: Crear página de selección de planes
 
-```typescript
+\`\`\`typescript
 // app/admin/subscription/plans/page.tsx
 
 'use client'
@@ -412,7 +412,7 @@ export default function SubscriptionPlansPage() {
     </div>
   )
 }
-```
+\`\`\`
 
 ---
 
@@ -486,7 +486,7 @@ export default function SubscriptionPlansPage() {
 
 ### Validación 1: Prevenir múltiples trials
 
-```typescript
+\`\`\`typescript
 // En /api/subscription/create/route.ts
 
 // Bloquear si intenta usar plan con trial habiendo ya usado trial
@@ -496,11 +496,11 @@ if (hasUsedTrial && requestedPlanId === PLAN_CON_TRIAL_ID) {
     suggested_plan: MERCADOPAGO_PLANS.WITHOUT_TRIAL.id
   }, { status: 400 })
 }
-```
+\`\`\`
 
 ### Validación 2: Detectar fraude
 
-```typescript
+\`\`\`typescript
 // Verificar que no se haya creado otra tienda para obtener trial de nuevo
 const { data: stores } = await supabase
   .from('stores')
@@ -523,7 +523,7 @@ if (stores.length > 1) {
     return MERCADOPAGO_PLANS.WITHOUT_TRIAL.id
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -561,7 +561,7 @@ if (stores.length > 1) {
 
 ## 📊 Queries de Diagnóstico
 
-```sql
+\`\`\`sql
 -- Ver tiendas con suscripciones expiradas que necesitan renovación
 SELECT 
   s.id as store_id,
@@ -596,7 +596,7 @@ SELECT
 FROM stores
 GROUP BY owner_id
 HAVING COUNT(*) > 1;
-```
+\`\`\`
 
 ---
 
@@ -617,18 +617,18 @@ HAVING COUNT(*) > 1;
 ### ¿Por qué no usar link directo en botones?
 
 **Antes (❌ PROBLEMA):**
-```tsx
+\`\`\`tsx
 <Link href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=946bf6e3...">
   <Button>Renovar</Button>
 </Link>
-```
+\`\`\`
 
 **Ahora (✅ SOLUCIÓN):**
-```tsx
+\`\`\`tsx
 <Link href="/admin/subscription/plans">
   <Button>Renovar</Button>
 </Link>
-```
+\`\`\`
 
 **Razón:**
 - La API debe decidir qué plan usar

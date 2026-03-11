@@ -156,5 +156,3 @@ export async function createPaymentPreference(
     preference_id: data.id
   }
 }
-
-
