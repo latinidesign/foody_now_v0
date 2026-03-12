@@ -3,6 +3,7 @@ import { randomUUID } from "crypto"
 import { getTenantSlugFromHost } from "@/lib/tenant"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { type NextRequest, NextResponse } from "next/server"
+import { getValidAccessToken } from "@/lib/mercadopago/SellerUtils"
 
 export const runtime = "nodejs"
 
@@ -55,23 +56,17 @@ export async function POST(request: NextRequest) {
     return fail(403, "La tienda no está activa")
   }
 
-  const { data: storeSettings, error: storeSettingsError } = await supabase
-    .from("store_settings")
-    .select("mercadopago_access_token")
-    .eq("store_id", store.id)
-    .single()
+  let accessToken: string
 
-  if (storeSettingsError) {
-    return fail(500, "No se pudo obtener la configuración de pagos", storeSettingsError)
-  }
-
-  if (!storeSettings?.mercadopago_access_token) {
-    return fail(400, "MercadoPago no configurado para la tienda")
+  try {
+    accessToken = await getValidAccessToken(store.id)
+  } catch (tokenError) {
+    return fail(500, "No se pudo obtener token válido de MercadoPago", tokenError)
   }
 
   const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
     headers: {
-      Authorization: `Bearer ${storeSettings.mercadopago_access_token}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   })
 
@@ -184,25 +179,6 @@ export async function POST(request: NextRequest) {
       return fail(500, "No se pudo crear la orden del pago", orderError)
     }
 
-    const sessionItems = Array.isArray(session.items) ? session.items : []
-
-    if (sessionItems.length > 0) {
-      const orderItems = sessionItems.map((item: any) => ({
-        order_id: order.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity,
-        selected_options: item.selectedOptions ?? null,
-      }))
-
-      const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
-
-      if (itemsError) {
-        return fail(500, "No se pudieron registrar los productos de la orden", itemsError)
-      }
-    }
-
     await updateSession({
       status: payment.status,
       payment_status: mappedPaymentStatus,
@@ -214,6 +190,28 @@ export async function POST(request: NextRequest) {
       delivery_fee: null,
       total: null,
     })
+
+    const sessionItems = Array.isArray(session.items) ? session.items : []
+
+    if (sessionItems.length > 0) {
+      const orderItems = sessionItems.map((item: any) => {
+        const productId = item.id.split(":")[0]
+        return {
+          order_id: order.id,
+          product_id: productId,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+          selected_options: item.selectedOptions ?? null,
+        }
+      })
+
+      const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
+
+      if (itemsError) {
+        return fail(500, "No se pudieron registrar los productos de la orden", itemsError)
+      }
+    }
 
     if (process.env.NEXT_PUBLIC_APP_URL) {
       try {
