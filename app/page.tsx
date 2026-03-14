@@ -39,46 +39,61 @@ export default function VentasPage() {
 			</header>
 
 			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-fuchsia-50 to-fuchsia-200 py-16 md:py-24 lg:py-32">
-				<div className="container mx-auto px-4">
-					<div className="max-w-5xl mx-auto text-center">
-						<Badge className="mb-6 bg-accent text-accent-foreground border-accent text-lg px-8 py-4 rounded-full">
-							Tecnología pensada para vos
-						</Badge>
-						<h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 text-foreground text-balance font-heading">
-							Impulsá tu negocio de alimentos con tecnología pensada para vos
-						</h1>
-						<p className="text-xl text-muted-foreground mb-8 text-pretty max-w-3xl mx-auto">
-							<span className="font-bold text-lime-600">FOODYNOW<sup>®</sup></span> es la solución
-							digital para productores, emprendedores y comercios gastronómicos que
-							elaboran alimentos saludables, artesanales o de especialidad.</p>
-						<p className="text-xl text-muted-foreground mb-8 text-pretty max-w-3xl mx-auto">Simplificamos tus ventas, mejoramos tu comunicación con clientes y
-							maximizamos tus ganancias —sin comisiones ni intermediarios—.
-						</p>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Link href="/auth/sign-up">
-								<Button
-									size="lg"
-									className="text-lg px-8 py-4 bg-accent hover:bg-accent/90 text-accent-foreground"
-								>
-									<Store className="w-5 h-5 mr-2" />
-									Comenzá ahora
-								</Button>
-							</Link>
-							<Link href="#beneficios">
-								<Button
-									variant="outline"
-									size="lg"
-									className="text-lg px-8 py-4 bg-transparent"
-								>
-									Ver más beneficios
-									<ArrowRight className="w-5 h-5 ml-2" />
-								</Button>
-							</Link>
-						</div>
-					</div>
-				</div>
-			</section>
+			<section className="relative py-16 md:py-24 lg:py-32 overflow-hidden">
+  {/* Background Image */}
+  <div 
+    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    style={{
+      backgroundImage: "url('/hero-bg.png')",
+      backgroundPosition: "right center"
+    }}
+  >
+    {/* Overlay para mejorar legibilidad del texto */}
+    <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-50/95 via-fuchsia-50/80 to-transparent"></div>
+  </div>
+
+  {/* Content */}
+  <div className="container mx-auto px-4 relative z-10">
+    <div className="max-w-2xl">
+      <Badge className="mb-4 md:mb-6 bg-accent text-accent-foreground border-accent text-sm md:text-lg px-4 md:px-8 py-2 md:py-4 rounded-full">
+        Sistema para negocios de comida saludable
+      </Badge>
+      <h1 className="text-3xl md:text-5xl lg:text-6xl font-light mb-4 md:mb-6 text-foreground font-heading leading-tight">
+        La tecnología que tu negocio gastronómico necesita
+      </h1>
+      <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 text-pretty">
+        <span className="font-bold text-lime-600">FOODYNOW<sup>®</sup></span> es la solución
+        digital para productores, emprendedores y comercios gastronómicos que
+        elaboran alimentos saludables y con alma.
+      </p>
+      <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 text-pretty">
+        Organizá tus pedidos, simplificá tu comunicación con clientes y hacé crecer tu negocio.<br />
+        <strong>Sin comisiones. Sin intermediarios.</strong>
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+        <Link href="/auth/sign-up">
+          <Button
+            size="lg"
+            className="w-full sm:w-auto text-base md:text-lg px-6 md:px-8 py-5 md:py-6 bg-accent hover:bg-accent/80 text-accent-foreground"
+          >
+            <Store className="w-5 h-5 mr-2" />
+            Comenzá ahora
+          </Button>
+        </Link>
+        <Link href="#beneficios">
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto text-base md:text-lg px-6 md:px-8 py-5 md:py-6 bg-lime-200 hover:bg-lime-300 text-lime-700 hover:text-lime-900"
+          >
+            Ver más beneficios
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
 
 			{/* Vende más y mejor Section */}
 			<section className="bg-gradient-to-br from-lime-50 to-lime-200 py-20">
