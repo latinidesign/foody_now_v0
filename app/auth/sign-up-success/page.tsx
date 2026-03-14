@@ -4,7 +4,7 @@ import { AuthHeader } from "@/components/auth/auth-header"
 
 export default function SignUpSuccessPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-lime-50 to-lime-100">
       <AuthHeader />
 
       <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-6 md:p-10">

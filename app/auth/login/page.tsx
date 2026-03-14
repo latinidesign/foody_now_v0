@@ -61,7 +61,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-fuchsia-0 to-fuchsia-100">
       <AuthHeader />
 
       <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-6 md:p-10">
@@ -69,7 +69,7 @@ export default function Page() {
           <div className="flex flex-col gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Bienvenido a FOODYNOW</CardTitle>
+                <CardTitle className="text-2xl">Bienvenido a FOODYNOW<sup>®</sup></CardTitle>
                 <CardDescription>Inicia sesión para ingresar al panel de administración de la tienda</CardDescription>
               </CardHeader>
               <CardContent>
@@ -97,7 +97,7 @@ export default function Page() {
                       />
                     </div>
                     {error && <p className="text-sm text-red-500">{error}</p>}
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-fuchsia-500 hover:bg-fuchsia-600" disabled={isLoading}>
                       {isLoading ? "Ingresando..." : "Inicia sesión"}
                     </Button>
                   </div>

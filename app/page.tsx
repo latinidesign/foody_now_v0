@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star, Check } from 'lucide-react'
+import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star, Check, RotateCw } from 'lucide-react'
 
 export default function VentasPage() {
 	return (
@@ -39,21 +39,21 @@ export default function VentasPage() {
 			</header>
 
 			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-fuchsia-50 to-lime-50 py-16 md:py-24 lg:py-32">
+			<section className="bg-gradient-to-br from-fuchsia-50 to-fuchsia-200 py-16 md:py-24 lg:py-32">
 				<div className="container mx-auto px-4">
 					<div className="max-w-5xl mx-auto text-center">
-						<Badge className="mb-6 bg-accent text-accent-foreground border-accent">
+						<Badge className="mb-6 bg-accent text-accent-foreground border-accent text-lg px-8 py-4 rounded-full">
 							Tecnología pensada para vos
 						</Badge>
 						<h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 text-foreground text-balance font-heading">
 							Impulsá tu negocio de alimentos con tecnología pensada para vos
 						</h1>
 						<p className="text-xl text-muted-foreground mb-8 text-pretty max-w-3xl mx-auto">
-							<span className="font-bold text-primary">FOODYNOW®</span> es la solución
+							<span className="font-bold text-lime-600">FOODYNOW<sup>®</sup></span> es la solución
 							digital para productores, emprendedores y comercios gastronómicos que
-							elaboran alimentos saludables, artesanales o de especialidad.
-							Simplificamos tus ventas, mejoramos tu comunicación con clientes y
-							maximizamos tus ganancias —sin comisiones ni intermediarios.
+							elaboran alimentos saludables, artesanales o de especialidad.</p>
+						<p className="text-xl text-muted-foreground mb-8 text-pretty max-w-3xl mx-auto">Simplificamos tus ventas, mejoramos tu comunicación con clientes y
+							maximizamos tus ganancias —sin comisiones ni intermediarios—.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Link href="/auth/sign-up">
@@ -81,7 +81,7 @@ export default function VentasPage() {
 			</section>
 
 			{/* Vende más y mejor Section */}
-			<section className="py-20">
+			<section className="bg-gradient-to-br from-lime-50 to-lime-200 py-20">
 				<div className="container mx-auto px-4">
 					<div className="max-w-6xl mx-auto">
 						<div className="text-center mb-16">
@@ -89,8 +89,8 @@ export default function VentasPage() {
 								Vendé más y mejor, con tu propia tienda online
 							</h2>
 							<p className="text-lg text-muted-foreground max-w-3xl mx-auto text-pretty">
-								Creá tu tienda en minutos, conectada directamente con MercadoPago y
-								WhatsApp para brindar una experiencia de compra fluida, rápida y
+								Creá tu tienda en minutos, conectada directamente con <strong>MercadoPago</strong> y
+								<strong>WhatsApp</strong> para brindar una experiencia de compra fluida, rápida y
 								segura.
 							</p>
 						</div>
@@ -141,10 +141,10 @@ export default function VentasPage() {
 			</section>
 
 			{/* Potencia tu negocio Section */}
-			<section className="py-20 bg-gradient-to-br from-fuchsia-50 to-lime-50">
+			<section className="py-20 bg-gradient-to-br from-fuchsia-50 to-fuchsia-200">
 				<div className="container mx-auto px-4">
 					<div className="max-w-4xl mx-auto text-center mb-16">
-						<Badge className="mb-6 bg-fuchsia-600 text-white border-fuchsia-600">
+						<Badge className="mb-6 bg-fuchsia-600 text-white border-fuchsia-600 text-lg px-8 py-4 rounded-full">
 							<Zap className="w-4 h-4 mr-1" />
 							Potencia tu negocio
 						</Badge>
@@ -152,7 +152,7 @@ export default function VentasPage() {
 							Comenzá hoy mismo con tu tienda virtual
 						</h2>
 						<p className="text-lg text-muted-foreground text-pretty">
-							Moderniza tu estrategia comercial con FOODYNOW y lleva tu negocio al siguiente nivel con herramientas profesionales
+							Renová tu estrategia comercial con FOODYNOW<sup>®</sup> y lleva tu negocio al siguiente nivel con herramientas profesionales
 						</p>
 					</div>
 
@@ -165,11 +165,12 @@ export default function VentasPage() {
 									<Store className="w-8 h-8 text-fuchsia-600" />
 								</div>
 								<CardTitle className="text-2xl font-bold text-fuchsia-600 mb-2">TIENDA NOW</CardTitle>
-								<CardDescription className="text-lg mb-6">Todo lo que necesitas para vender online</CardDescription>
+								<CardDescription className="text-lg mb-6">Todo lo que necesitas para vender online <br />
+								por tan solo una comida para dos.</CardDescription>
 								<div className="text-center">
 									<div className="flex items-baseline justify-center gap-2 mb-2">
-										<span className="text-4xl font-bold text-fuchsia-600">$ 36.000</span>
-										<span className="text-muted-foreground">ars /mes</span>
+										<span className="text-4xl font-bold text-fuchsia-600">$ 48.000</span>
+										<span className="text-muted-foreground">ars/mes</span>
 									</div>
 									<p className="text-sm text-lime-600 font-medium">Sin comisiones por venta</p>
 								</div>
@@ -302,7 +303,7 @@ export default function VentasPage() {
 								</div>
 							</Card>
 
-							<Card className="p-8 lg:col-span-2 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+							<Card className="p-8 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
 								<div className="flex gap-4 mb-4">
 									<div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
 										<DollarSign className="w-6 h-6 text-accent-foreground" />
@@ -317,13 +318,29 @@ export default function VentasPage() {
 									</div>
 								</div>
 							</Card>
+
+							<Card className="p-8 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+								<div className="flex gap-4 mb-4">
+									<div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+										<RotateCw className="w-6 h-6 text-accent-foreground" />
+									</div>
+									<div>
+										<h3 className="text-xl font-semibold mb-2">
+											Costo fijo mensual
+										</h3>
+										<p className="text-muted-foreground">
+											Tu tienda virtual por el precio de una cena para dos.
+										</p>
+									</div>
+								</div>
+							</Card>
 						</div>
 					</div>
 				</div>
 			</section>
 
 			{/* Ideal para comercios Section */}
-			<section className="py-20 bg-lime-50">
+			<section className="py-20 bg-lime-100">
 				<div className="container mx-auto px-4">
 					<div className="max-w-5xl mx-auto text-center">
 						<div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
@@ -333,16 +350,14 @@ export default function VentasPage() {
 							Ideal para comercios con alma
 						</h2>
 						<p className="text-lg text-muted-foreground mb-8 text-pretty">
-							FOODYNOW está pensado para <strong>productores</strong>,{" "}
-							<strong>cocineros</strong>, <strong>panaderías</strong>,{" "}
-							<strong>dietéticas</strong>, <strong>fábricas de pastas</strong>,{" "}
-							<strong>tiendas naturales</strong> y{" "}
-							<strong>emprendimientos gastronómicos</strong> que ofrecen productos
-							con valor agregado.
+							FOODYNOW<sup>®</sup> está pensado para<br />
+							<strong>productores</strong>,{" "}
+							<strong>cocineros</strong>, <strong>emprendimientos gastronómicos</strong>,{" "}<br />
+							que ofrecen productos con valor agregado.
 						</p>
-						<div className="bg-fuchsia-600 rounded-2xl p-8 shadow-lg">
+						<div className="bg-lime-600 rounded-2xl p-8 shadow-lg">
 							<p className="text-xl font-semibold text-fuchsia-50">
-								Si hacés comida real, nosotros hacemos que llegue mejor a tus
+								Si hacés comida real, <br /> nosotros hacemos que llegue mejor a tus
 								clientes.
 							</p>
 						</div>
@@ -351,7 +366,7 @@ export default function VentasPage() {
 			</section>
 
 			{/* Proceso automatizado Section */}
-			<section className="py-20">
+			<section className="py-20 bg-gradient-to-br from-fuchsia-50 to-fuchsia-100">
 				<div className="container mx-auto px-4">
 					<div className="max-w-6xl mx-auto">
 						<div className="text-center mb-16">
@@ -359,6 +374,7 @@ export default function VentasPage() {
 								Todo el proceso, automatizado
 							</h2>
 							<p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+								Si actualmente recibis pedidos desde <strong>WhatsApp</strong> o <strong>Instagram</strong>, vas a seguir haciéndolo. Pero esta vez, la experiencia del clientes es mucho mejor. <br />
 								Desde el primer mensaje en redes sociales o WhatsApp, el cliente
 								puede:
 							</p>
@@ -371,7 +387,7 @@ export default function VentasPage() {
 								</div>
 								<div>
 									<p className="font-medium">
-										Ver tus categorías y productos con todos sus detalles y
+										Ver tus categorías y productos con todos los detalles, variaciones y 
 										precios
 									</p>
 								</div>
@@ -383,7 +399,7 @@ export default function VentasPage() {
 								</div>
 								<div>
 									<p className="font-medium">
-										Consultar el menú del día o recibir sugerencias destacadas
+										Recibir notificaciones automáticas por WhatsApp de sobre el estado de su pedido
 									</p>
 								</div>
 							</div>
@@ -405,18 +421,18 @@ export default function VentasPage() {
 								</div>
 								<div>
 									<p className="font-medium">
-										Recibir notificaciones del estado de su pedido
+										Consultar el menú del día o recibir sugerencias destacadas
 									</p>
 								</div>
 							</div>
 						</div>
 
-						<div className="mt-12 bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8 border border-primary/20">
+						<div className="mt-12 bg-gradient-to-br from-fuchsia-200 to-fuchsia-0 rounded-2xl p-8 border border-fuchsia-300 shadow-lg">
 							<div className="flex items-center justify-center gap-3 mb-6">
 								<Bell className="w-8 h-8 text-primary" />
 								<h3 className="text-2xl font-semibold">Experiencia completa</h3>
 							</div>
-							<p className="text-center text-muted-foreground max-w-2xl mx-auto">
+							<p className="text-center text-muted-foreground max-w-2xl mx-auto text-xl text-pretty">
 								El cliente recibe una experiencia fluida de principio a fin, con
 								actualizaciones automáticas en cada paso del proceso, desde la
 								selección hasta la entrega.
@@ -435,7 +451,7 @@ export default function VentasPage() {
 							¿Listo para transformar tu negocio?
 						</h2>
 						<p className="text-xl mb-8 opacity-90 text-pretty">
-							Sumate a los comercios que ya están vendiendo más con FOODYNOW.
+							Sumate a los comercios que ya están vendiendo más con FOODYNOW<sup>®</sup>.
 							Tecnología pensada para vos, sin complicaciones ni comisiones.
 						</p>
 						<p className="text-2xl font-semibold mb-8">
@@ -479,7 +495,7 @@ export default function VentasPage() {
 							/>
 						</div>
 						<p className="text-muted-foreground mb-6">
-							La plataforma moderna para comercios gastronómicos con alma
+							La plataforma para comercios gastronómicos con alma
 						</p>
 						<div className="flex justify-center gap-6 text-sm text-muted-foreground">
 							<Link href="/terms" className="hover:text-primary transition-colors">
