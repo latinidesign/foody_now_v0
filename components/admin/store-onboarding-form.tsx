@@ -110,6 +110,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
       }
 
       // Si no existe tienda, crearla
+      // Añadir 14 dias de prueba desde la creación mediante trial_ends_at
       if (!store) {
         const { data: newStore, error: createError } = await supabase
           .from("stores")
@@ -121,6 +122,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
             phone: formData.phone,
             email: formData.email,
             is_active: true,
+            trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 días de prueba, en el futuro se podría hacer mediante un parámetro o configurar desde el admin
             is_onboarded: true,
             delivery_radius: 5,
             delivery_fee: 0,

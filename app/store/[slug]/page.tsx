@@ -91,9 +91,10 @@ export default async function StorePage({ params }: StorePageProps) {
     .from("stores")
     .select("*")
     .eq("slug", slug)
-    .eq("is_active", true)
-    .single()
+    .maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
 
+  
+  // Ahora hay que comprobar que el periodo de 15 di
   if (storeError || !store) {
     console.log(`[DEBUG] Store not found for slug: ${slug}`, storeError)
 
@@ -143,17 +144,34 @@ export default async function StorePage({ params }: StorePageProps) {
   .limit(1)
   .maybeSingle()
 
-  let hasValidSubscription = true
+  const now = new Date()
 
-  if (subscription) {
-    const now = new Date()
+  // Verificar periodo de prueba
+  const trialEndsAt = store.trial_ends_at ? new Date(store.trial_ends_at) : null
+  const trialActive = trialEndsAt ? trialEndsAt > now : false
+
+  // Verificar suscripción
+  let hasValidSubscription = false
+
+  if (subscription?.paid_ends_at) {
     const paidEndsAt = new Date(subscription.paid_ends_at)
-
     hasValidSubscription = paidEndsAt > now
+  } else {
+    console.warn(`[store][slug:${slug}] No subscription found for store ${store.id}`)
   }
 
-  // Si la suscripción no es válida, mostrar mensaje de suspensión
-  if (!hasValidSubscription) {
+  const canAccessStore = trialActive || hasValidSubscription
+
+  // Log para depuración de acceso
+  console.log("[STORE ACCESS CHECK]", {
+    store: store.slug,
+    trialActive,
+    trialEndsAt,
+    hasValidSubscription
+  })
+
+  // Si no cumple ninguna condición → tienda suspendida
+  if (!canAccessStore) {
     const { StoreSuspendedMessage } = await import("@/components/store/store-suspended-message")
     return <StoreSuspendedMessage storeName={store.name} whatsappPhone={store.whatsapp_phone} />
   }

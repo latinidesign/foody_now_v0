@@ -46,33 +46,45 @@ export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps)
         return
       }
 
-      // Verificar suscripción
+      // verificar suscripción o trial
       const supabase = createClient()
+
+      // Obtener store para leer trial_ends_at
+      const { data: store } = await supabase
+        .from("stores")
+        .select("trial_ends_at")
+        .eq("id", storeId)
+        .maybeSingle()
+
+      // Obtener suscripción más reciente
       const { data: subscription } = await supabase
         .from("subscriptions")
-        .select("status")
+        .select("paid_ends_at")
         .eq("store_id", storeId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      // Obtener usuario para verificar período de prueba de 14 días
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      // Verificar si está dentro del período de prueba de 14 días
-      const isWithinTrialPeriod = user?.created_at ? 
-        (Date.now() - new Date(user.created_at).getTime()) < (14 * 24 * 60 * 60 * 1000) 
-        : false
+      const now = new Date()
 
-      // Estados válidos de suscripción
-      const validStatuses = ['trial', 'active']
-      const hasValidSubscription = subscription && validStatuses.includes(subscription.status)
+      // Verificar trial
+      const trialEndsAt = store?.trial_ends_at ? new Date(store.trial_ends_at) : null
+      const trialActive = trialEndsAt ? trialEndsAt > now : false
+
+      // Verificar suscripción
+      let hasValidSubscription = false
+
+      if (subscription?.paid_ends_at) {
+        const paidEndsAt = new Date(subscription.paid_ends_at)
+        hasValidSubscription = paidEndsAt > now
+      }
 
       // Permitir acceso si:
-      // 1. Tiene suscripción válida, O
-      // 2. Está dentro del período de prueba de 14 días
-      if (!hasValidSubscription && !isWithinTrialPeriod) {
-        // Agregar parámetro de query para mostrar motivo del bloqueo
+      // 1. trial activo
+      // 2. suscripción válida
+      const canAccess = trialActive || hasValidSubscription
+
+      if (!canAccess) {
         router.push('/admin/subscription?blocked=true')
         setShowAlert(true)
       } else {

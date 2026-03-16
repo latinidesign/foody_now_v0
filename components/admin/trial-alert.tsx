@@ -5,21 +5,20 @@ import { AlertCircle, AlertTriangle, X, Zap } from "lucide-react"
 import Link from "next/link"
 
 interface TrialAlertProps {
-  createdAt: string
+  trialEndsAt: string
 }
 
-export function TrialAlert({ createdAt }: TrialAlertProps) {
+export function TrialAlert({ trialEndsAt }: TrialAlertProps) {
   const [daysLeft, setDaysLeft] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
     const calculateDaysLeft = () => {
-      const created = new Date(createdAt)
+      const trialEndsAtDate = new Date(trialEndsAt)
       const now = new Date()
-      const daysPassed = Math.floor(
-        (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
-      )
-      const remaining = Math.max(0, 14 - daysPassed)
+      console.log("Calculando días restantes:", { trialEndsAtDate, now })
+      const remaining = Math.ceil((trialEndsAtDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      console.log("Días restantes calculados:", remaining)
       setDaysLeft(remaining)
     }
 
@@ -27,7 +26,7 @@ export function TrialAlert({ createdAt }: TrialAlertProps) {
     const interval = setInterval(calculateDaysLeft, 60000) // Actualizar cada minuto
 
     return () => clearInterval(interval)
-  }, [createdAt])
+  }, [trialEndsAt])
 
   if (daysLeft === null || daysLeft <= 0 || !isVisible) {
     return null
