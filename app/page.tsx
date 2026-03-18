@@ -55,18 +55,18 @@ export default function VentasPage() {
   {/* Content */}
   <div className="container mx-auto px-4 relative z-10">
     <div className="max-w-2xl">
-      <Badge className="mb-4 md:mb-6 bg-accent text-accent-foreground border-accent text-sm md:text-lg px-4 md:px-8 py-2 md:py-4 rounded-full">
+      <Badge className="mb-4 md:mb-6 bg-lime-600 text-accent-foreground border-primary text-sm md:text-lg px-4 md:px-8 py-2 md:py-4 rounded-full">
         Sistema para negocios de comida saludable
       </Badge>
       <h1 className="text-3xl md:text-5xl lg:text-6xl font-light mb-4 md:mb-6 text-foreground font-heading leading-tight">
         La tecnología que tu negocio gastronómico necesita
       </h1>
-      <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 text-pretty">
+      <p className="text-base md:text-xl text-foreground mb-6 md:mb-8 text-pretty pr-24">
         <span className="font-bold text-lime-600">FOODYNOW<sup>®</sup></span> es la solución
         digital para productores, emprendedores y comercios gastronómicos que
         elaboran alimentos saludables y con alma.
       </p>
-      <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 text-pretty">
+      <p className="text-base md:text-xl text-foreground mb-6 md:mb-8 text-pretty pr-24">
         Organizá tus pedidos, simplificá tu comunicación con clientes y hacé crecer tu negocio.<br />
         <strong>Sin comisiones. Sin intermediarios.</strong>
       </p>
