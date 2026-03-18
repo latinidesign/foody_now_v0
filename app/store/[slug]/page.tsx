@@ -4,6 +4,7 @@ import { ProductCatalog } from "@/components/store/product-catalog"
 import { WhatsAppContact } from "@/components/store/whatsapp-contact"
 import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { CheckoutSuccessModal } from "@/components/store/checkout-success-modal"
+import { StoreFooter } from "@/components/store/store-footer"
 
 interface StorePageProps {
   params: Promise<{ slug: string }>
@@ -205,11 +206,12 @@ export default async function StorePage({ params }: StorePageProps) {
     .order("sort_order")
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <StoreHeader store={storeWithSettings} />
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 flex-1">
         <ProductCatalog store={storeWithSettings} categories={categories || []} />
       </main>
+      <StoreFooter />
       <InstallPrompt />
       {store.whatsapp_phone && (
         <WhatsAppContact storeSlug={store.slug} storePhone={store.whatsapp_phone} storeName={store.name} />
