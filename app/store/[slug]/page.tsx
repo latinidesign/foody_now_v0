@@ -5,6 +5,7 @@ import { WhatsAppContact } from "@/components/store/whatsapp-contact"
 import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { CheckoutSuccessModal } from "@/components/store/checkout-success-modal"
 import { StoreFooter } from "@/components/store/store-footer"
+import { StoreMetaTags } from "@/components/store/store-meta-tags"
 
 interface StorePageProps {
   params: Promise<{ slug: string }>
@@ -232,17 +233,48 @@ export async function generateMetadata({ params }: StorePageProps) {
     return {
       title: "Tienda Demo",
       description: "Tienda de demostración - Configura Supabase para datos reales",
+      openGraph: {
+        title: "Tienda Demo",
+        description: "Tienda de demostración - Configura Supabase para datos reales",
+        type: "website",
+      },
     }
   }
 
   const { data: store } = await supabase
     .from("stores")
-    .select("name, description")
+    .select("name, description, logo_url, header_image_url, slug")
     .eq("slug", slug)
-    .maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
+    .maybeSingle()
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://foodynow.com.ar"
+  const storeUrl = `${baseUrl}/store/${slug}`
+  const ogImage = store?.logo_url || store?.header_image_url || `${baseUrl}/foodynow_logo-wt.svg`
 
   return {
     title: store?.name || `Tienda ${slug}`,
     description: store?.description || "Tienda online",
+    openGraph: {
+      title: store?.name || `Tienda ${slug}`,
+      description: store?.description || "Tienda online en FoodyNow",
+      type: "website",
+      url: storeUrl,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: store?.name,
+        },
+      ],
+      siteName: "FoodyNow",
+      locale: "es_AR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: store?.name || `Tienda ${slug}`,
+      description: store?.description || "Tienda online en FoodyNow",
+      images: [ogImage],
+    },
   }
 }
