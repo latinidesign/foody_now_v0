@@ -5,6 +5,33 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star, Check, RotateCw } from 'lucide-react'
 
+export const metadata = {
+  title: "FoodyNow - Menú digital para gastronomía",
+  description: "Sistema de pedidos online para negocios de comida",
+  openGraph: {
+    title: "Menú digital para gastronomía",
+    description: "Sistema de pedidos online para negocios de comida",
+    type: "website",
+    url: "https://foodynow.com.ar",
+    siteName: "FoodyNow",
+    images: [
+      {
+        url: "/foodynow_iso.jpg",
+        width: 1200,
+        height: 630,
+        alt: "FoodyNow",
+      },
+    ],
+    locale: "es_AR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Menú digital para gastronomía",
+    description: "Sistema de pedidos online para negocios de comida",
+    images: ["/foodynow_iso.jpg"],
+  },
+}
+
 export default function VentasPage() {
 	return (
 		<div className="min-h-screen bg-background">
