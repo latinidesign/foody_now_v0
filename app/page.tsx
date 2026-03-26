@@ -381,33 +381,116 @@ export default function VentasPage() {
 				</div>
 			</section>
 
-			{/* Ideal para comercios Section */}
-			<section className="py-20 bg-lime-100">
-				<div className="container mx-auto px-4">
-					<div className="max-w-5xl mx-auto text-center">
-						<div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
-							<Store className="w-8 h-8 text-primary-foreground" />
-						</div>
-						<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
-							Ideal para comercios con alma
-						</h2>
-						<p className="text-lg text-muted-foreground mb-8 text-pretty">
-							FOODYNOW<sup>®</sup> está pensado para<br />
-							<strong>productores</strong>,{" "}
-							<strong>cocineros</strong>, <strong>emprendimientos gastronómicos</strong>,{" "}<br />
-							que ofrecen productos con valor agregado.
+		{/* Ideal para comercios Section */}
+		<section className="py-20 bg-lime-100">
+			<div className="container mx-auto px-4">
+				<div className="max-w-5xl mx-auto text-center">
+					<div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+						<Store className="w-8 h-8 text-primary-foreground" />
+					</div>
+					<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">
+						Ideal para comercios con alma
+					</h2>
+					<p className="text-lg text-muted-foreground mb-8 text-pretty">
+						FOODYNOW<sup>®</sup> está pensado para<br />
+						<strong>productores</strong>,{" "}
+						<strong>cocineros</strong>, <strong>emprendimientos gastronómicos</strong>,{" "}<br />
+						que ofrecen productos con valor agregado.
+					</p>
+					<div className="bg-lime-600 rounded-2xl p-8 shadow-lg">
+						<p className="text-xl font-semibold text-fuchsia-50">
+							Si hacés comida real, <br /> nosotros hacemos que llegue mejor a tus
+							clientes.
 						</p>
-						<div className="bg-lime-600 rounded-2xl p-8 shadow-lg">
-							<p className="text-xl font-semibold text-fuchsia-50">
-								Si hacés comida real, <br /> nosotros hacemos que llegue mejor a tus
-								clientes.
-							</p>
-						</div>
 					</div>
 				</div>
-			</section>
+			</div>
+		</section>
 
-			{/* Proceso automatizado Section */}
+		{/* Demo Section */}
+		<section className="py-20 bg-gradient-to-br from-fuchsia-900 to-fuchsia-800">
+			<div className="container mx-auto px-4">
+				<div className="max-w-6xl mx-auto">
+					<div className="text-center mb-16">
+						<h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading text-white">
+							Mirá cómo funciona FoodyNow
+						</h2>
+						<p className="text-lg text-fuchsia-100 text-pretty">
+							Explora nuestras tiendas demo y descubre toda la potencia de nuestra plataforma
+						</p>
+					</div>
+
+					<div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+						{/* Sushi Demo */}
+						<Link href="https://sushi.foodynow.com.ar" target="_blank" rel="noopener noreferrer">
+							<div className="group cursor-pointer overflow-hidden rounded-2xl shadow-2xl hover:shadow-fuchsia-500/50 transition-all duration-300 h-full">
+								<div className="relative h-96 overflow-hidden bg-muted">
+									<Image
+										src="/demo_sushi.jpg"
+										alt="Sushi Now - Demo FoodyNow"
+										width={400}
+										height={600}
+										className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+										priority
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+										<div className="text-white">
+											<h3 className="text-2xl font-bold mb-2">Sushi Now</h3>
+											<p className="text-sm text-gray-200 mb-3">Tienda de sushi premium</p>
+											<div className="inline-flex items-center gap-2 bg-lime-500 text-black px-4 py-2 rounded-full font-semibold text-sm hover:bg-lime-400 transition-colors">
+												Ver tienda
+												<ArrowRight className="w-4 h-4" />
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</Link>
+
+						{/* Natural Food Demo */}
+						<Link href="https://naturalfood.foodynow.com.ar" target="_blank" rel="noopener noreferrer">
+							<div className="group cursor-pointer overflow-hidden rounded-2xl shadow-2xl hover:shadow-green-500/50 transition-all duration-300 h-full">
+								<div className="relative h-96 overflow-hidden bg-muted">
+									<Image
+										src="/demo_naturalfood.jpg"
+										alt="Natural Food - Demo FoodyNow"
+										width={400}
+										height={600}
+										className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+										priority
+									/>
+									<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+										<div className="text-white">
+											<h3 className="text-2xl font-bold mb-2">Natural Food</h3>
+											<p className="text-sm text-gray-200 mb-3">Comida saludable y orgánica</p>
+											<div className="inline-flex items-center gap-2 bg-lime-500 text-black px-4 py-2 rounded-full font-semibold text-sm hover:bg-lime-400 transition-colors">
+												Ver tienda
+												<ArrowRight className="w-4 h-4" />
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</Link>
+					</div>
+
+					<div className="text-center mt-12">
+						<p className="text-fuchsia-100 text-lg mb-6">
+							¿Listo para crear tu propia tienda?
+						</p>
+						<Link href="/auth/sign-up">
+							<Button
+								size="lg"
+								className="text-lg px-8 py-4 bg-lime-500 hover:bg-lime-400 text-black"
+							>
+								Comenzá ahora
+								<ArrowRight className="w-5 h-5 ml-2" />
+							</Button>
+						</Link>
+					</div>
+				</div>
+			</div>
+		</section>			{/* Proceso automatizado Section */}
 			<section className="py-20 bg-gradient-to-br from-fuchsia-50 to-fuchsia-100">
 				<div className="container mx-auto px-4">
 					<div className="max-w-6xl mx-auto">
