@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic" // evita SSG 404 por slugs no pre-generad
 export const revalidate = 0 // Sin cache para evitar problemas de subdominios
 
 export default async function StorePage({ params }: StorePageProps) {
-  console.log(`[DEBUG] Cargando tienda con params:`, await params)
+  // console.log(`[DEBUG] Cargando tienda con params:`, await params)
   const { slug } = await params
   const supabase = await createClient().catch((error) => {
     console.warn(`[store][slug:${slug}] Supabase client unavailable, falling back to demo data`, error)
@@ -165,12 +165,13 @@ export default async function StorePage({ params }: StorePageProps) {
   const canAccessStore = trialActive || hasValidSubscription
 
   // Log para depuración de acceso
+  /*
   console.log("[STORE ACCESS CHECK]", {
     store: store.slug,
     trialActive,
     trialEndsAt,
     hasValidSubscription
-  })
+  }) */
 
   // Si no cumple ninguna condición → tienda suspendida
   if (!canAccessStore) {
@@ -178,11 +179,14 @@ export default async function StorePage({ params }: StorePageProps) {
     return <StoreSuspendedMessage storeName={store.name} whatsappPhone={store.whatsapp_phone} />
   }
 
-  const { data: storeSettings } = await supabase
+  const { data: storeSettings, error } = await supabase
     .from("store_settings")
     .select("business_hours, is_open")
     .eq("store_id", store.id)
     .maybeSingle() // Usa maybeSingle() en lugar de single() para evitar error 406
+
+  // console.log(`[DEBUG] storeSettings for store ${store.slug}:`, storeSettings)
+  // console.log(`[DEBUG] storeSettings error for store ${store.slug}:`, error)
 
   const storeWithSettings = {
     ...store,
