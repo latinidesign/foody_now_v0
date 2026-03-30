@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Eye, Phone, MapPin, Search, X, MessageCircle } from "lucide-react"
+import { Eye, Phone, MapPin, Search, X, MessageCircle, Printer } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
@@ -31,11 +31,18 @@ interface OrderWithItems extends Order {
   }>
 }
 
-interface OrdersTableProps {
-  orders: OrderWithItems[]
+interface StoreInfo {
+  name?: string
+  phone?: string
+  address?: string
 }
 
-export function OrdersTable({ orders }: OrdersTableProps) {
+interface OrdersTableProps {
+  orders: OrderWithItems[]
+  store?: StoreInfo
+}
+
+export function OrdersTable({ orders, store }: OrdersTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -53,6 +60,116 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
   const startDate = searchParams.get("startDate")
   const endDate = searchParams.get("endDate")
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 2 }).format(value)
+
+  const buildTicketHtml = (order: OrderWithItems) => {
+    const createdAt = new Date(order.created_at)
+    const date = createdAt.toLocaleDateString("es-AR")
+    const time = createdAt.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
+
+    const itemsHtml = order.order_items
+      .map(
+        (item) => `
+        <div class="item">
+          <span class="qty">${item.quantity}x</span>
+          <span class="name">${item.products.name}</span>
+          <span class="price">${formatCurrency(item.total_price)}</span>
+        </div>
+      `
+      )
+      .join("")
+
+    const deliveryLabel = order.delivery_type === "pickup" ? "Retiro en local" : "Delivery"
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pedido #${order.id.slice(-8)}</title>
+          <style>
+            @page { size: 80mm auto; margin: 5mm; }
+            body {
+              font-family: 'Helvetica', 'Arial', sans-serif;
+              width: 72mm;
+              margin: 0 auto;
+              color: #000;
+            }
+            .ticket { padding: 6px; }
+            .title { text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+            .meta { text-align: center; font-size: 12px; margin-bottom: 6px; }
+            .section { border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
+            .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; gap: 6px; }
+            .item { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 3px; }
+            .qty { min-width: 28px; }
+            .name { flex: 1; }
+            .price { min-width: 60px; text-align: right; }
+            .bold { font-weight: 700; }
+            .notes { background: #f0f0f0; padding: 6px; border-radius: 4px; font-size: 12px; }
+            .totals { margin-top: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="ticket">
+            <div class="title">${store?.name || "Pedido"}</div>
+            <div class="meta">${[store?.address, store?.phone].filter(Boolean).join(" · ")}</div>
+            <div class="meta">Pedido #${order.id.slice(-8)} • ${date} ${time}</div>
+            <div class="meta">${deliveryLabel}</div>
+
+            <div class="section">
+              <div class="row"><span class="bold">Cliente</span><span>${order.customer_name}</span></div>
+              ${order.customer_phone ? `<div class="row"><span class="bold">Tel</span><span>${order.customer_phone}</span></div>` : ""}
+              ${
+                order.delivery_address
+                  ? `<div class="row"><span class="bold">Dirección</span><span>${order.delivery_address}</span></div>`
+                  : ""
+              }
+            </div>
+
+            <div class="section">
+              ${itemsHtml}
+            </div>
+
+            <div class="section totals">
+              <div class="row"><span>Subtotal</span><span>${formatCurrency(order.subtotal)}</span></div>
+              <div class="row"><span>Envío</span><span>${formatCurrency(order.delivery_fee)}</span></div>
+              <div class="row bold"><span>Total</span><span>${formatCurrency(order.total)}</span></div>
+            </div>
+
+            ${
+              order.delivery_notes
+                ? `<div class="section">
+                     <div class="notes"><strong>Notas:</strong><br />${order.delivery_notes}</div>
+                   </div>`
+                : ""
+            }
+
+            <div class="meta" style="margin-top: 8px;">Gracias por tu compra</div>
+          </div>
+        </body>
+      </html>
+    `
+  }
+
+  const handlePrintTicket = (order: OrderWithItems) => {
+    const printWindow = window.open("", "_blank", "width=400,height=600")
+
+    if (!printWindow) {
+      toast.error("No se pudo abrir la ventana de impresión")
+      return
+    }
+
+    const ticketHtml = buildTicketHtml(order)
+    printWindow.document.write(ticketHtml)
+    printWindow.document.close()
+
+    printWindow.onload = () => {
+      printWindow.focus()
+      printWindow.print()
+      printWindow.close()
+    }
+  }
 
   const filteredAndSortedOrders = useMemo(() => {
     const filtered = orders.filter((order) => {
@@ -431,6 +548,11 @@ Estado: ${getStatusText(status)}
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {order.status === "pending" && (
+                    <Button variant="secondary" size="sm" onClick={() => handlePrintTicket(order)} title="Imprimir ticket 80mm">
+                      <Printer className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Select
                     value={order.status}
                     onValueChange={(value) => updateOrderStatus(order.id, value)}
@@ -458,17 +580,25 @@ Estado: ${getStatusText(status)}
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>Pedido #{order.id.slice(-8)}</DialogTitle>
-                        <DialogDescription>
-                          Detalles completos del pedido y opciones para cambiar el estado
-                        </DialogDescription>
-                      </DialogHeader>
-                      {selectedOrder && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                            <div className="flex-1">
-                              <h4 className="font-semibold mb-1">Estado del Pedido</h4>
-                              <Badge variant={getStatusColor(selectedOrder.status)}>
-                                {getStatusText(selectedOrder.status)}
+                    <DialogDescription>
+                      Detalles completos del pedido y opciones para cambiar el estado
+                    </DialogDescription>
+                  </DialogHeader>
+                  {selectedOrder && (
+                    <div className="space-y-4">
+                      {selectedOrder.status === "pending" && (
+                        <div className="flex justify-end">
+                          <Button variant="secondary" size="sm" onClick={() => handlePrintTicket(selectedOrder)}>
+                            <Printer className="w-4 h-4 mr-2" />
+                            Imprimir ticket 80mm
+                          </Button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">Estado del Pedido</h4>
+                          <Badge variant={getStatusColor(selectedOrder.status)}>
+                            {getStatusText(selectedOrder.status)}
                               </Badge>
                             </div>
                             <Select

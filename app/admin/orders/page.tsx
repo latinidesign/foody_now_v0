@@ -38,7 +38,14 @@ export default async function OrdersPage() {
         <p className="text-muted-foreground">Gestiona los pedidos de tu tienda</p>
       </div>
 
-      <OrdersTable orders={orders || []} />
+      <OrdersTable
+        orders={orders || []}
+        store={{
+          name: store?.name || "",
+          phone: store?.phone || "",
+          address: store?.address || "",
+        }}
+      />
     </div>
   )
 }
