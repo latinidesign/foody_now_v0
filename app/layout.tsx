@@ -24,7 +24,7 @@ const openSans = Open_Sans({
 export const metadata: Metadata = {
   title: "FOODYNOW - Tiendas Online para Gastronomía",
   description:
-    "Plataforma de ecommerce para comercios de gastronomía. Crea tu tienda online y recibe pedidos fácilmente.",
+    "Plataforma de ecommerce para comercios gastronómicos. Crea tu tienda online y recibe pedidos fácilmente.",
   generator: "FOODYNOW",
   applicationName: "FOODYNOW",
   referrer: "origin-when-cross-origin",
@@ -44,11 +44,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "FOODYNOW",
-    title: "FOODYNOW - Tiendas Online para Restaurantes",
-    description: "Plataforma de ecommerce para restaurantes y comercios alimentarios",
+    title: "FOODYNOW - Tiendas Online para Gastronomía",
+    description: "Plataforma de ecommerce para comercios gastronómicos.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/foodynow_iso.jpg",
         width: 1200,
         height: 630,
         alt: "FOODYNOW",
@@ -57,9 +57,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "FOODYNOW - Tiendas Online para Restaurantes",
-    description: "Plataforma de ecommerce para restaurantes y comercios alimentarios",
-    images: ["/og-image.png"],
+    title: "FOODYNOW - Tiendas Online para Gastronomía",
+    description: "Plataforma de ecommerce para comercios gastronómicos.",
+    images: ["/foodynow_iso.jpg"],
   },
   manifest: "/manifest.json",
   icons: {
