@@ -22,13 +22,13 @@ const openSans = Open_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "FOODYNOW - Tiendas Online para Restaurantes",
+  title: "FOODYNOW - Tiendas Online para Gastronomía",
   description:
-    "Plataforma de ecommerce para restaurantes y comercios alimentarios. Crea tu tienda online y recibe pedidos fácilmente.",
+    "Plataforma de ecommerce para comercios de gastronomía. Crea tu tienda online y recibe pedidos fácilmente.",
   generator: "FOODYNOW",
   applicationName: "FOODYNOW",
   referrer: "origin-when-cross-origin",
-  keywords: ["restaurante", "delivery", "comida", "pedidos online", "ecommerce", "tienda online"],
+  keywords: ["restaurante", "delivery", "comida", "pedidos online", "ecommerce", "tienda online", "viandas"],
   authors: [{ name: "FOODYNOW" }],
   creator: "FOODYNOW",
   publisher: "FOODYNOW",
