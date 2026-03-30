@@ -99,30 +99,35 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
             .ticket { padding: 6px; }
             .title { text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
             .meta { text-align: center; font-size: 12px; margin-bottom: 6px; }
+            .order-number { font-size: 1.2rem; line-height: 1.4rem; }
+            .meta-large { font-size: 1.5rem; line-height: 2rem; }
             .section { border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
             .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; gap: 6px; }
+            .row-medium { font-size: 1.2rem; line-height: 1.4rem; }
             .item { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 3px; }
-            .qty { min-width: 28px; }
-            .name { flex: 1; }
+            .qty { min-width: 28px; font-size: 1.5rem;}
+            .name { flex: 1; font-size: 1.5rem; line-height: 1.6rem; }
             .price { min-width: 60px; text-align: right; }
             .bold { font-weight: 700; }
-            .notes { background: #f0f0f0; padding: 6px; border-radius: 4px; font-size: 12px; }
+            .notes { background: #f0f0f0; padding: 6px; border-radius: 4px; font-size: 1.5rem; line-height: 1.6rem; }
             .totals { margin-top: 4px; }
+            .total-row { font-size: 1.5rem; font-weight: 700; }
           </style>
         </head>
         <body>
           <div class="ticket">
             <div class="title">${store?.name || "Pedido"}</div>
             <div class="meta">${[store?.address, store?.phone].filter(Boolean).join(" · ")}</div>
-            <div class="meta">Pedido #${order.id.slice(-8)} • ${date} ${time}</div>
-            <div class="meta">${deliveryLabel}</div>
+            <div class="meta order-number">Pedido #${order.id.slice(-8)}</div>
+            <div class="meta meta-large">${date} ${time}</div>
+            <div class="meta meta-large">${deliveryLabel}</div>
 
             <div class="section">
-              <div class="row"><span class="bold">Cliente</span><span>${order.customer_name}</span></div>
-              ${order.customer_phone ? `<div class="row"><span class="bold">Tel</span><span>${order.customer_phone}</span></div>` : ""}
+              <div class="row row-medium"><span class="bold">Cliente</span><span>${order.customer_name}</span></div>
+              ${order.customer_phone ? `<div class="row row-medium"><span class="bold">Tel</span><span>${order.customer_phone}</span></div>` : ""}
               ${
                 order.delivery_address
-                  ? `<div class="row"><span class="bold">Dirección</span><span>${order.delivery_address}</span></div>`
+                  ? `<div class="row row-medium"><span class="bold">Dirección</span><span>${order.delivery_address}</span></div>`
                   : ""
               }
             </div>
@@ -134,7 +139,7 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
             <div class="section totals">
               <div class="row"><span>Subtotal</span><span>${formatCurrency(order.subtotal)}</span></div>
               <div class="row"><span>Envío</span><span>${formatCurrency(order.delivery_fee)}</span></div>
-              <div class="row bold"><span>Total</span><span>${formatCurrency(order.total)}</span></div>
+              <div class="row total-row"><span>Total</span><span>${formatCurrency(order.total)}</span></div>
             </div>
 
             ${
