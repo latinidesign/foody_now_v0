@@ -498,7 +498,7 @@ Estado: ${getStatusText(status)}
                               <div className="flex items-center gap-2 mt-1">
                                 <Phone className="w-4 h-4" />
                                 <a
-                                  href={`tel:${selectedOrder.customer_phone}`}
+                                  href={`https://wa.me/${selectedOrder.customer_phone}`}
                                   className="text-primary hover:underline"
                                 >
                                   {selectedOrder.customer_phone}
@@ -532,16 +532,16 @@ Estado: ${getStatusText(status)}
                                 </div>
                               ))}
                             </div>
-                            <div className="flex justify-between items-center pt-2 border-t font-bold">
+                            <div className="flex justify-between items-center pt-2 border-t font-bold text-lg">
                               <span>Total:</span>
-                              <span className="text-primary">${selectedOrder.total}</span>
+                              <span className="text-accent">${selectedOrder.total}</span>
                             </div>
                           </div>
 
                           {selectedOrder.delivery_notes && (
                             <div>
                               <h4 className="font-semibold mb-2">Notas</h4>
-                              <p className="text-sm bg-muted p-2 rounded">{selectedOrder.delivery_notes}</p>
+                              <p className="text-sm bg-accent text-white p-2 rounded">{selectedOrder.delivery_notes}</p>
                             </div>
                           )}
                         </div>

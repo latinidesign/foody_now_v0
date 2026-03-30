@@ -207,9 +207,10 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
             </div>
           )}
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2 text-accent">
             <Label htmlFor="deliveryNotes">Notas Adicionales (opcional)</Label>
             <Textarea
+              className="bg-fuchsia-50 border-accent"
               id="deliveryNotes"
               value={orderData.deliveryNotes}
               onChange={(e) => setOrderData({ ...orderData, deliveryNotes: e.target.value })}
@@ -282,7 +283,7 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
         </CardContent>
       </Card>
 
-      <Button type="submit" disabled={loading || !meetsMinimum} className="w-full" size="lg">
+      <Button type="submit" disabled={loading || !meetsMinimum} className="w-full text-black font-bold" size="lg">
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Pagar con MercadoPago
       </Button>
