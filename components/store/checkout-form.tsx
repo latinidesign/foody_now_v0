@@ -26,6 +26,7 @@ interface OrderData {
   deliveryType: "pickup" | "delivery"
   deliveryAddress: string
   deliveryNotes: string
+  paymentMethod: "mercadopago" | "cash"
 }
 
 export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps) {
@@ -40,6 +41,7 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
     deliveryType: "pickup",
     deliveryAddress: "",
     deliveryNotes: "",
+    paymentMethod: "cash",
   })
 
   const deliveryFee = orderData.deliveryType === "delivery" ? store.delivery_fee : 0
@@ -61,38 +63,72 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
     }
 
     try {
-      const paymentResponse = await fetch("/api/payments/create-preference", {
+      if (orderData.paymentMethod === "cash") {
+        // Handle cash payment
+        const cashResponse = await fetch("/api/orders/create-cash", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storeId: store.id,
+            items: state.items,
+            orderData,
+            subtotal,
+            deliveryFee,
+            total,
+          }),
+        })
 
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          storeId: store.id,
-          items: state.items,
-          orderData,
-          subtotal,
-          deliveryFee,
-          total,
-        }),
-      })
+        if (!cashResponse.ok) {
+          throw new Error("Error al crear el pedido con pago en efectivo")
+        }
 
-      if (!paymentResponse.ok) {
-        throw new Error("Error al crear el pago")
+        const { order_id, session_id } = await cashResponse.json()
+
+        clearCart()
+
+        // Preferir flujo unificado con el mismo backend de sesión de checkout.
+        // Si no se puede obtener session_id, hacemos fallback al detalle de orden.
+        if (session_id) {
+          window.location.href = `/store/${store.slug}/?session_id=${session_id}`
+        } else {
+          window.location.href = `/store/${store.slug}/order/${order_id}?payment=cash`
+        }
+      } else {
+        // Handle MercadoPago payment
+        const paymentResponse = await fetch("/api/payments/create-preference", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storeId: store.id,
+            items: state.items,
+            orderData,
+            subtotal,
+            deliveryFee,
+            total,
+          }),
+        })
+
+        if (!paymentResponse.ok) {
+          throw new Error("Error al crear el pago")
+        }
+
+        const { initPoint, preferenceId } = await paymentResponse.json()
+
+        try {
+          window.localStorage.setItem("foody_now.checkout_session (preferenceId): ", preferenceId)
+        } catch (storageError) {
+          console.warn("No se pudo guardar la sesión de pago localmente", storageError)
+        }
+
+        clearCart()
+
+        // Redirect to MercadoPago checkout
+        window.location.href = initPoint
       }
-
-      const { initPoint, preferenceId } = await paymentResponse.json()
-
-      try {
-        window.localStorage.setItem("foody_now.checkout_session (preferenceId): ", preferenceId)
-      } catch (storageError) {
-        console.warn("No se pudo guardar la sesión de pago localmente", storageError)
-      }
-
-      clearCart()
-
-      // Redirect to MercadoPago checkout
-      window.location.href = initPoint
     } catch (err) {
       setError("Error al procesar el pedido. Intenta nuevamente.")
     } finally {
@@ -136,16 +172,20 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="customerEmail">Email *</Label>
+            <Label htmlFor="customerEmail">Email {orderData.paymentMethod === "cash" ? "(opcional)" : "*"}</Label>
             <Input
               id="customerEmail"
               type="email"
               value={orderData.customerEmail}
               onChange={(e) => setOrderData({ ...orderData, customerEmail: e.target.value })}
-              placeholder="necesario@para-pago.com"
-              required
+              placeholder={orderData.paymentMethod === "cash" ? "Opcional para pago en efectivo" : "necesario@para-pago.com"}
+              required={orderData.paymentMethod !== "cash"}
             />
-            <p className="text-xs text-muted-foreground">Requerido para el proceso de pago</p>
+            {orderData.paymentMethod === "cash" ? (
+              <p className="text-xs text-muted-foreground">Opcional para pago en efectivo</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Requerido para el proceso de pago</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -273,19 +313,44 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
-            <img src="/mp_handshake.png" alt="MercadoPago" className="h-8" />
-            <div className="flex-1">
-              <p className="font-medium">Pago seguro con MercadoPago</p>
-              <p className="text-sm text-muted-foreground">Tarjetas de crédito, débito y más.</p>
+          <RadioGroup
+            value={orderData.paymentMethod}
+            onValueChange={(value: "mercadopago" | "cash") => setOrderData({ ...orderData, paymentMethod: value })}
+          >
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <RadioGroupItem value="mercadopago" id="mercadopago" />
+              <Label htmlFor="mercadopago" className="flex-1 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <img src="/mp_handshake.png" alt="MercadoPago" className="h-8" />
+                  <div>
+                    <p className="font-medium">Pago seguro con MercadoPago</p>
+                    <p className="text-sm text-muted-foreground">Tarjetas de crédito, débito y más.</p>
+                  </div>
+                </div>
+              </Label>
             </div>
-          </div>
+
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <RadioGroupItem value="cash" id="cash" />
+              <Label htmlFor="cash" className="flex-1 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-bold text-sm">$</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Pago en Efectivo</p>
+                    <p className="text-sm text-muted-foreground">Paga al recibir el pedido.</p>
+                  </div>
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
         </CardContent>
       </Card>
 
       <Button type="submit" disabled={loading || !meetsMinimum} className="w-full text-black font-bold" size="lg">
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Pagar con MercadoPago
+        {orderData.paymentMethod === "cash" ? "Confirmar Pedido" : "Pagar con MercadoPago"}
       </Button>
     </form>
   )
