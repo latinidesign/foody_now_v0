@@ -26,10 +26,13 @@ export default async function OrdersPage() {
       order_items (
         *,
         products (name)
-      )
+      ),
+      payments (id, payment_method, provider, status)
     `)
     .eq("store_id", store.id)
     .order("created_at", { ascending: false })
+  
+    console.log("Orders:", orders)
 
   return (
     <div className="space-y-6">

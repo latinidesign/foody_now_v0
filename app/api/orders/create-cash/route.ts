@@ -198,7 +198,7 @@ export async function POST(request: Request) {
         delivery_fee: computedDeliveryFee,
         total: computedTotal,
         status: "pending",
-        payment_status: "completed", // Cash payment is completed immediately
+        payment_status: "pending", // Cash payment is pending until confirmed by admin
       })
       .select("id")
       .single()
@@ -233,10 +233,11 @@ export async function POST(request: Request) {
         store_id: storeRecord.id,
         provider: "manual",
         payment_method: "cash",
-        status: "completed",
+        status: "pending",
         transaction_amount: computedTotal,
         currency: "ARS",
         payer_email: orderData.customerEmail,
+        raw: null,
       })
       .select("id")
       .single()
@@ -260,7 +261,7 @@ export async function POST(request: Request) {
           total: computedTotal,
           external_reference: randomUUID(),
           status: "approved",
-          payment_status: "completed",
+          payment_status: "pending",
           payment_id: paymentRecord?.id ? String(paymentRecord.id) : null,
           order_id: order.id,
           processed_at: new Date().toISOString(),

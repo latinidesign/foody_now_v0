@@ -29,6 +29,12 @@ interface OrderWithItems extends Order {
     total_price: number
     products: { name: string }
   }>
+  payments: Array<{
+    id: string
+    payment_method?: string
+    provider?: string
+    status?: string
+  }>
 }
 
 interface StoreInfo {
@@ -246,6 +252,14 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
     }
   }
 
+  const getPaymentMethodText = (payments?: Array<{ id: string; payment_method?: string; provider?: string }>) => {
+    const payment = payments?.[0]
+    if (payment?.provider === "manual") {
+      return "Efectivo"
+    }
+    return "MercadoPago"
+  }
+
   const getWhatsAppMessage = (order: OrderWithItems, status: string) => {
     const storeName = "Pizzeria Don Mario" // Nombre de la tienda
     const orderItems = order.order_items.map(item => 
@@ -401,12 +415,21 @@ Estado: ${getStatusText(status)}
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setIsUpdating(orderId)
     try {
-      const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId)
+      // Buscar el pedido para verificar si es pago en efectivo
+      const order = orders.find(o => o.id === orderId)
+      const isCashPayment = order?.payments?.[0]?.provider === "manual"
+
+      // Si se marca como entregado y es pago en efectivo, completar el pago
+      const updateData: { status: string; payment_status?: string } = { status: newStatus }
+      if (newStatus === "delivered" && isCashPayment && order?.payment_status !== "completed") {
+        updateData.payment_status = "completed"
+      }
+
+      const { error } = await supabase.from("orders").update(updateData).eq("id", orderId)
 
       if (error) throw error
 
       // Buscar el pedido para enviar mensaje de WhatsApp
-      const order = orders.find(o => o.id === orderId)
       if (order && order.customer_phone && newStatus !== 'pending') {
         // Generar mensaje automáticamente
         await sendWhatsAppMessage(order, newStatus)
@@ -672,6 +695,18 @@ Estado: ${getStatusText(status)}
                               <span className="text-accent">${selectedOrder.total}</span>
                             </div>
                           </div>
+
+                            <div>
+                              <h4 className="font-semibold mb-2">Pago</h4>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm">
+                                  Método: {getPaymentMethodText(selectedOrder.payments)}
+                                </span>
+                                <Badge variant={selectedOrder.payment_status === "completed" ? "default" : "secondary"}>
+                                  {selectedOrder.payment_status === "completed" ? "Pagado" : "Pendiente"}
+                                </Badge>
+                              </div>
+                            </div>
 
                           {selectedOrder.delivery_notes && (
                             <div>
