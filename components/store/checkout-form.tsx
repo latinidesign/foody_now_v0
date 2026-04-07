@@ -29,6 +29,18 @@ interface OrderData {
   paymentMethod: "mercadopago" | "cash"
 }
 
+const normalizePhone = (phone: string): string => {
+  // Remover espacios y caracteres no numéricos excepto +
+  const cleaned = phone.replace(/[^\d+]/g, '')
+  if (cleaned.startsWith('+')) {
+    return cleaned
+  } else {
+    // Si no tiene prefijo internacional, asumir Argentina y agregar 549
+    const without549 = cleaned.replace(/^549/, '')
+    return '549' + without549
+  }
+}
+
 export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps) {
   const { state, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
@@ -166,7 +178,8 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
                 id="customerPhone"
                 type="tel"
                 value={orderData.customerPhone}
-                onChange={(e) => setOrderData({ ...orderData, customerPhone: e.target.value })}
+                onChange={(e) => setOrderData({ ...orderData, customerPhone: normalizePhone(e.target.value) })}
+                placeholder="Ej: 1123456789 (Argentina)"
                 required
               />
             </div>
