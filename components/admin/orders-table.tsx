@@ -1,7 +1,7 @@
 "use client"
 
 import type { Order } from "@/lib/types/database"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -51,6 +51,8 @@ interface OrdersTableProps {
 export function OrdersTable({ orders, store }: OrdersTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [deliveryFilter, setDeliveryFilter] = useState<string>("all")
@@ -182,8 +184,34 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
     }
   }
 
+  const refreshOrders = async () => {
+    setIsRefreshing(true)
+
+    try {
+      const response = await fetch("/api/admin/orders", { cache: "no-store" })
+      if (!response.ok) {
+        throw new Error(`Error refreshing orders: ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (Array.isArray(data.orders)) {
+        setOrdersData(data.orders)
+      }
+    } catch (error) {
+      console.error("Error refreshing orders:", error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshOrders()
+    const intervalId = window.setInterval(refreshOrders, 30000)
+    return () => window.clearInterval(intervalId)
+  }, [])
+
   const filteredAndSortedOrders = useMemo(() => {
-    const filtered = orders.filter((order) => {
+    const filtered = ordersData.filter((order) => {
       const searchMatch =
         searchTerm === "" ||
         order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -201,8 +229,7 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
     })
 
     return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  }, [orders, searchTerm, statusFilter, deliveryFilter, startDate, endDate])
-
+  }, [ordersData, searchTerm, statusFilter, deliveryFilter, startDate, endDate])
   const clearFilters = () => {
     setSearchTerm("")
     setStatusFilter("all")
@@ -527,6 +554,10 @@ Estado: ${getStatusText(status)}
 
             <AnalyticsDateSelector />
 
+            <Button variant="outline" size="sm" onClick={refreshOrders} disabled={isRefreshing}>
+              {isRefreshing ? "Actualizando..." : "Refrescar ahora"}
+            </Button>
+
             {(searchTerm || statusFilter !== "all" || deliveryFilter !== "all" || startDate || endDate) && (
               <Button variant="outline" size="sm" onClick={clearFilters}>
                 <X className="w-4 h-4 mr-1" />
@@ -536,7 +567,7 @@ Estado: ${getStatusText(status)}
           </div>
 
           <div className="text-sm text-muted-foreground">
-            Mostrando {filteredAndSortedOrders.length} de {orders.length} pedidos
+            Mostrando {filteredAndSortedOrders.length} de {ordersData.length} pedidos
           </div>
         </div>
       </CardHeader>
@@ -544,7 +575,7 @@ Estado: ${getStatusText(status)}
         {filteredAndSortedOrders.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
-              {orders.length === 0 ? "No hay pedidos aún" : "No se encontraron pedidos con los filtros aplicados"}
+              {ordersData.length === 0 ? "No hay pedidos aún" : "No se encontraron pedidos con los filtros aplicados"}
             </p>
           </div>
         ) : (
