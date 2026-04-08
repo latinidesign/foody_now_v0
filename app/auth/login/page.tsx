@@ -35,23 +35,24 @@ export default function Page() {
       })
       if (error) throw error
       
-      // Verificar si es primer ingreso (no tiene onboarding completo)
+      // Verificar si es primer ingreso (no tiene suscripción)
       if (data.user) {
-        const { data: store } = await supabase
-          .from('stores')
-          .select('id, is_onboarded')
-          .eq('owner_id', data.user.id)
-          .maybeSingle()
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .in('status', ['active', 'trial'])
+          .single()
           
-        if (store?.is_onboarded) {
-          // Ya completó onboarding, ir a admin
-          router.push("/admin")
+        if (!subscription) {
+          // Primer ingreso, ir a setup
+          router.push("/admin/setup")
         } else {
-          // Primer ingreso o sin onboarding completo, ir a onboarding
-          router.push("/onboarding")
+          // Ya tiene suscripción, ir a admin
+          router.push("/admin")
         }
       } else {
-        router.push("/onboarding")
+        router.push("/admin")
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
@@ -61,7 +62,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-fuchsia-0 to-fuchsia-100">
+    <div className="min-h-screen bg-background">
       <AuthHeader />
 
       <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-6 md:p-10">
@@ -69,7 +70,7 @@ export default function Page() {
           <div className="flex flex-col gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Bienvenido a FOODYNOW<sup>®</sup></CardTitle>
+                <CardTitle className="text-2xl">Bienvenido a FOODYNOW</CardTitle>
                 <CardDescription>Inicia sesión para ingresar al panel de administración de la tienda</CardDescription>
               </CardHeader>
               <CardContent>
@@ -97,7 +98,7 @@ export default function Page() {
                       />
                     </div>
                     {error && <p className="text-sm text-red-500">{error}</p>}
-                    <Button type="submit" className="w-full bg-fuchsia-500 hover:bg-fuchsia-600" disabled={isLoading}>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Ingresando..." : "Inicia sesión"}
                     </Button>
                   </div>

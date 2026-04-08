@@ -66,7 +66,7 @@ export function AdminHeader({ user, store }: AdminHeaderProps) {
                   <span>Perfil</span>
                 </DropdownMenuItem>
               </Link>
-              <Link href="/store-settings">
+              <Link href="/admin/settings">
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Configuración</span>

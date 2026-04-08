@@ -1,86 +1,48 @@
-"use client"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { StoreSettingsForm } from "@/components/admin/store-settings-form"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { StoreOnboardingForm } from "@/components/admin/store-onboarding-form"
-import { AuthHeader } from "@/components/auth/auth-header"
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: { mp?: string }
+}) {
+  const supabase = await createClient()
 
-export default function AdminSettingsPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [store, setStore] = useState<any | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  useEffect(() => {
-    let mounted = true
-
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        if (mounted) {
-          router.replace("/auth/login")
-        }
-        return
-      }
-
-      setIsAuthenticated(true)
-
-      const { data: storeData } = await supabase
-        .from("stores")
-        .select("id, is_onboarded, slug, created_at, name, description, phone, email")
-        .eq("owner_id", user.id)
-        .maybeSingle()
-
-      if (!mounted) return
-
-      // Si completó onboarding → ir al admin general
-      if (storeData?.is_onboarded) {
-        router.replace("/admin")
-        return
-      }
-
-      // Si NO está onboarded o no existe → mostrar formulario de onboarding
-      setStore(storeData ?? null)
-      setLoading(false)
-    }
-
-    checkAuth()
-
-    return () => {
-      mounted = false
-    }
-  }, [router])
-
-  if (!isAuthenticated || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
+  if (!user) {
+    redirect("/auth/login")
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <AuthHeader />
-      <div className="p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {store ? "Completar configuración" : "Crear tu tienda"}
-            </h1>
-            <p className="text-muted-foreground">
-              {store
-                ? "Completa los detalles básicos de tu tienda para continuar"
-                : "Configura tu tienda para comenzar a recibir pedidos"}
-            </p>
-          </div>
+  const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
 
-          <StoreOnboardingForm store={store} />
-        </div>
+  if (!store) {
+    redirect("/admin/setup")
+  }
+
+  const { data: settings } = await supabase.from("store_settings").select("*").eq("store_id", store.id).single()
+
+   const { data: mpAccount } = await supabase
+    .from("mp_accounts")
+    .select("*")
+    .eq("store_id", store?.id)
+    .single()
+
+  const isConnected = mpAccount?.status === "connected"
+  const showSuccess = searchParams.mp === "connected"
+
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Configuración</h1>
+        <p className="text-muted-foreground">Gestiona la configuración de tu tienda</p>
       </div>
+
+      <StoreSettingsForm store={store} settings={settings} mp={isConnected ? "connected" : "false"} mp_account_id={mpAccount?.mp_user_id} />
     </div>
   )
 }

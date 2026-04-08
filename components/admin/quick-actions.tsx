@@ -31,7 +31,7 @@ export function QuickActions({ store }: QuickActionsProps) {
     {
       title: "Configuración",
       description: "Ajustar configuración de la tienda",
-      href: "/store-settings",
+      href: "/admin/settings",
       icon: Settings,
     },
   ]

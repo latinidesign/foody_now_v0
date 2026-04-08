@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="pt-4">
-            <Link href="/store-settings">
+            <Link href="/admin/settings">
               <Button>Configurar Tienda</Button>
             </Link>
           </div>
@@ -66,8 +66,7 @@ export default async function ProfilePage() {
 
       {/* Estado de Suscripción */}
       <div className="mt-6">
-        {/*
-        <SubscriptionStatus /> */}
+        <SubscriptionStatus />
       </div>
     </div>
   )

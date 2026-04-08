@@ -8,14 +8,14 @@
 **Archivo:** `/app/api/subscription/create/route.ts`
 
 **Solución:**
-```typescript
+\`\`\`typescript
 // Antes: Solo buscaba por 'name'
 .eq("name", selectedPlanId)
 
 // Ahora: Detecta si es UUID y busca por el campo correcto
 const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedPlanId)
 .eq(isUUID ? "id" : "name", selectedPlanId)
-```
+\`\`\`
 
 ### 2. ❌ Precio incorrecto mostrado: $3.000
 **Problema:** La página de planes mostraba $3.000 en lugar de $36.000
@@ -23,13 +23,13 @@ const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 **Archivo:** `/app/admin/subscription/plans/page.tsx`
 
 **Solución:**
-```tsx
+\`\`\`tsx
 // Antes
 <span className="text-5xl font-bold">$3.000</span>
 
 // Ahora
 <span className="text-5xl font-bold">$36.000</span>
-```
+\`\`\`
 
 ### 3. ❌ PlanId incorrecto enviado
 **Problema:** Se enviaba `planId: 'monthly'` que no existe en la base de datos
@@ -37,13 +37,13 @@ const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 **Archivo:** `/app/admin/subscription/plans/page.tsx`
 
 **Solución:**
-```typescript
+\`\`\`typescript
 // Antes
 planId: 'monthly'
 
 // Ahora
 planId: 'basic_monthly'  // Nombre correcto del plan en la DB
-```
+\`\`\`
 
 ---
 
@@ -103,11 +103,11 @@ planId: 'basic_monthly'  // Nombre correcto del plan en la DB
 ## 🔄 Próximos Pasos Recomendados
 
 1. **Hacer commit y push:**
-```bash
+\`\`\`bash
 git add .
 git commit -m "fix: corregir búsqueda de planes y precios de suscripción"
 git push
-```
+\`\`\`
 
 2. **Probar en producción:**
 - Usuario con suscripción expirada → renovar
@@ -123,18 +123,18 @@ git push
 ## 📝 Notas Técnicas
 
 ### Validación de UUID
-```typescript
+\`\`\`typescript
 const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedPlanId)
-```
+\`\`\`
 
 Esta validación permite que el endpoint sea flexible y acepte:
 - UUID completo del plan (ej: `20e79e7c-3ee9-4027-b7ae-c30488bf5dca`)
 - Nombre del plan (ej: `basic_monthly`)
 
 ### Plan por Defecto
-```typescript
+\`\`\`typescript
 const selectedPlanId = planId || 'basic_monthly'
-```
+\`\`\`
 
 Si no se envía ningún `planId`, se usa 'basic_monthly' por defecto.
 

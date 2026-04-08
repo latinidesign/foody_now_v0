@@ -16,14 +16,14 @@ El error "Error de confirmación: Hubo un problema confirmando tu email. Enlace 
 - **Logging detallado**: Para debugging en consola del navegador
 
 ### 2. **Manejo de Diferentes Casos**
-```typescript
+\`\`\`typescript
 // Casos manejados automáticamente:
 - Confirmación con `code` (método moderno)
 - Confirmación con `token_hash` (método legacy) 
 - Usuario ya confirmado previamente
 - Sesión activa sin parámetros
 - Errores explícitos en URL
-```
+\`\`\`
 
 ### 3. **Scripts de Diagnóstico**
 - **`debug-email-confirmation.js`**: Analiza configuración y usuarios
@@ -32,46 +32,46 @@ El error "Error de confirmación: Hubo un problema confirmando tu email. Enlace 
 ## 🔧 **Configuración Recomendada en Supabase**
 
 ### Dashboard → Authentication → Settings → General:
-```
+\`\`\`
 Site URL: http://localhost:3000 (desarrollo)
 Site URL: https://foodynow.com.ar (producción)
-```
+\`\`\`
 
 ### Authentication → URL Configuration:
-```
+\`\`\`
 Redirect URLs:
 • http://localhost:3000/auth/confirm
 • http://localhost:3000/confirm
 • https://foodynow.com.ar/auth/confirm
 • https://foodynow.com.ar/confirm
-```
+\`\`\`
 
 ### Email Templates → Confirm Signup:
-```html
+\`\`\`html
 <h2>Confirm your signup</h2>
 <p>Follow this link to confirm your user:</p>
 <p><a href="{{ .ConfirmationURL }}">Confirm your mail</a></p>
-```
+\`\`\`
 
 ## 🧪 **Para Probar el Sistema**
 
 ### 1. **Ejecutar Diagnóstico**
-```bash
+\`\`\`bash
 node debug-email-confirmation.js
-```
+\`\`\`
 
 ### 2. **Probar con Email de Prueba**
-```bash
+\`\`\`bash
 node debug-email-confirmation.js test@example.com
-```
+\`\`\`
 
 ### 3. **Confirmar Usuario Manualmente** (si es necesario)
-```bash
+\`\`\`bash
 node fix-email-confirmation.js usuario@email.com
-```
+\`\`\`
 
 ### 4. **Flujo Completo de Prueba**
-```bash
+\`\`\`bash
 # 1. Iniciar aplicación
 npm run dev
 
@@ -82,7 +82,7 @@ http://localhost:3000/auth/sign-up
 # 4. Revisar logs en consola del navegador
 # 5. Seguir enlace del email
 # 6. Verificar confirmación exitosa
-```
+\`\`\`
 
 ## 📋 **Estados Manejados Automáticamente**
 

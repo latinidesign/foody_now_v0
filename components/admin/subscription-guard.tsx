@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { AlertCircle } from "lucide-react"
 
 interface SubscriptionGuardProps {
   children: React.ReactNode
@@ -12,20 +11,18 @@ interface SubscriptionGuardProps {
 
 export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const [isChecking, setIsChecking] = useState(true)
   const [isAllowed, setIsAllowed] = useState(false)
-  const [showAlert, setShowAlert] = useState(false)
 
   useEffect(() => {
     const checkSubscription = async () => {
       // Rutas que permiten acceso sin suscripción activa
       const allowedPathsWithoutSubscription = [
-        '/onboarding',
+        '/admin/setup',
+        '/admin/renew',
         '/admin/subscription',
-        '/admin/profile',
-        '/store-settings'
+        '/admin/profile'
       ]
 
       // Verificar si la ruta actual está permitida sin suscripción
@@ -40,53 +37,35 @@ export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps)
         return
       }
 
-      // Si no tiene tienda, no puede acceder
+      // Si no tiene tienda, no puede acceder (esto no debería pasar)
       if (!storeId) {
-        router.push('/onboarding')
+        router.push('/admin/setup')
         return
       }
 
-      // verificar suscripción o trial
+      // Verificar suscripción
       const supabase = createClient()
-
-      // Obtener store para leer trial_ends_at
-      const { data: store } = await supabase
-        .from("stores")
-        .select("trial_ends_at")
-        .eq("id", storeId)
-        .maybeSingle()
-
-      // Obtener suscripción más reciente
       const { data: subscription } = await supabase
         .from("subscriptions")
-        .select("paid_ends_at")
+        .select("status")
         .eq("store_id", storeId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      const now = new Date()
+      // Estados válidos de suscripción
+      const validStatuses = ['trial', 'active']
+      const hasValidSubscription = subscription && validStatuses.includes(subscription.status)
 
-      // Verificar trial
-      const trialEndsAt = store?.trial_ends_at ? new Date(store.trial_ends_at) : null
-      const trialActive = trialEndsAt ? trialEndsAt > now : false
-
-      // Verificar suscripción
-      let hasValidSubscription = false
-
-      if (subscription?.paid_ends_at) {
-        const paidEndsAt = new Date(subscription.paid_ends_at)
-        hasValidSubscription = paidEndsAt > now
-      }
-
-      // Permitir acceso si:
-      // 1. trial activo
-      // 2. suscripción válida
-      const canAccess = trialActive || hasValidSubscription
-
-      if (!canAccess) {
-        router.push('/admin/subscription?blocked=true')
-        setShowAlert(true)
+      if (!hasValidSubscription) {
+        // Redirigir a setup si nunca tuvo suscripción, o a renew si la tuvo
+        const hasHadSubscription = subscription !== null
+        
+        if (hasHadSubscription) {
+          router.push('/admin/renew')
+        } else {
+          router.push('/admin/setup')
+        }
       } else {
         setIsAllowed(true)
       }

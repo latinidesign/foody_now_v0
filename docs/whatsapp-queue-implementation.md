@@ -43,14 +43,14 @@ El sistema de encolado de WhatsApp está completamente implementado y operativo 
 #### 🎯 Flujo Automático Implementado
 
 1. **Pago Aprobado** (webhook MercadoPago):
-   ```
+   \`\`\`
    Cliente paga → Push notification a tienda → WhatsApp confirmación a cliente
-   ```
+   \`\`\`
 
 2. **Cambio de Estado** (desde admin):
-   ```
+   \`\`\`
    Admin cambia estado → Actualiza BD → Encola WhatsApp → Envía al cliente
-   ```
+   \`\`\`
 
 #### 🖥️ Interfaz de Administración
 
@@ -75,7 +75,7 @@ El sistema de encolado de WhatsApp está completamente implementado y operativo 
 
 #### 🔄 Funciones Helper Implementadas
 
-```typescript
+\`\`\`typescript
 // Confirmación automática de pedido
 enqueueCustomerConfirmation({
   orderId, storeId, customerPhone, customerName, 
@@ -93,7 +93,7 @@ notifyOrderStatusChange({
   orderId, storeId, newStatus, customerPhone,
   customerName, storeName, deliveryType, deliveryAddress
 })
-```
+\`\`\`
 
 #### 🚀 Características Avanzadas
 

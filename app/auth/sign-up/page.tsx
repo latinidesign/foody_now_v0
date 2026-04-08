@@ -68,7 +68,7 @@ export default function Page() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-background">
         <AuthHeader />
 
         <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-4 md:p-6">
@@ -124,7 +124,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-lime-50 to-lime-100">
+    <div className="min-h-screen bg-background">
       <AuthHeader />
 
       <div className="flex min-h-[calc(100vh-80px)] w-full items-center justify-center p-4 md:p-6">
@@ -201,7 +201,7 @@ export default function Page() {
                       {error}
                     </div>
                   )}
-                  <Button type="submit" className="w-full hover:bg-lime-600" disabled={isLoading}>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creando cuenta..." : "Crear cuenta gratis"}
                   </Button>
                 </div>

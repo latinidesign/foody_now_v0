@@ -1,6 +1,6 @@
 # 🎯 Resumen Visual: Estados de Suscripciones FoodyNow
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                   ESTADO ACTUAL: 6/10 ⚠️                        │
 │                                                                 │
@@ -8,13 +8,13 @@
 │  ❌ NO existe control de trial_used (CRÍTICO)                  │
 │  ⚠️  Mapeo incompleto de estados MP                            │
 └─────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ## 📊 Mapeo de Estados
 
 ### Capa 1: Estados de Suscripción (Preapproval)
 
-```
+\`\`\`
 ┌────────────────┬──────────────────┬─────────────────┬──────────┐
 │ Estado MP      │ Estado Actual    │ Estado Correcto │ Estado   │
 ├────────────────┼──────────────────┼─────────────────┼──────────┤
@@ -24,11 +24,11 @@
 │ cancelled      │ cancelled ✅     │ cancelled       │ ✅ OK    │
 │ expired        │ (no mapeado) ❌  │ expired         │ ❌ FALTA │
 └────────────────┴──────────────────┴─────────────────┴──────────┘
-```
+\`\`\`
 
 ### Capa 2: Control de Trial
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                    ❌ PROBLEMA CRÍTICO                          │
 │                                                                 │
@@ -45,11 +45,11 @@
 │                                                                 │
 │  Solución: Ejecutar add-trial-used-to-stores.sql              │
 └─────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### Capa 3: Estados de Pagos (Invoices)
 
-```
+\`\`\`
 ┌────────────────┬──────────────────┬──────────┐
 │ Estado Pago MP │ Implementado     │ Estado   │
 ├────────────────┼──────────────────┼──────────┤
@@ -61,11 +61,11 @@
 │ refunded       │ ❌ No            │ FALTA    │
 │ charged_back   │ ❌ No            │ FALTA    │
 └────────────────┴──────────────────┴──────────┘
-```
+\`\`\`
 
 ## 🔥 Acción INMEDIATA Requerida
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │  PASO 1: Agregar control de trial (5 minutos)                  │
 │  ═════════════════════════════════════════════                 │
@@ -99,11 +99,11 @@
 │                                                                 │
 │  Impacto: DIAGNÓSTICO ⭐⭐                                      │
 └─────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ## 📈 Flujo de Estados Recomendado
 
-```
+\`\`\`
 NUEVO USUARIO
     │
     ├─► [1] Crea cuenta
@@ -142,13 +142,13 @@ NUEVO USUARIO
     │                 └─► Estado: pending
     │                     trial_used: false (sigue)
     │                     (puede reintentar)
-```
+\`\`\`
 
 ## 🎓 Comparación: Antes vs Después
 
 ### ❌ ANTES (Vulnerable)
 
-```
+\`\`\`
 Usuario crea cuenta → trial → cancela
     ↓
 Crea otra cuenta → trial → cancela
@@ -156,11 +156,11 @@ Crea otra cuenta → trial → cancela
 Crea otra cuenta → trial → cancela
     ↓
     ♾️ INFINITO
-```
+\`\`\`
 
 ### ✅ DESPUÉS (Protegido)
 
-```
+\`\`\`
 Usuario crea cuenta → trial → trial_used=TRUE
     ↓
 Cancela
@@ -168,22 +168,22 @@ Cancela
 Vuelve → SOLO plan sin trial
     ↓
     🛡️ PROTEGIDO
-```
+\`\`\`
 
 ## 📋 Checklist Rápido
 
-```
+\`\`\`
 [ ] Ejecutar add-trial-used-to-stores.sql
 [ ] Actualizar Store type en TypeScript
 [ ] Modificar /api/subscription/create
 [ ] Modificar /api/webhooks/mercadopago
 [ ] Ejecutar diagnóstico de estados
 [ ] Verificar en Supabase
-```
+\`\`\`
 
 ## 📚 Documentos Relacionados
 
-```
+\`\`\`
 docs/
 ├── ANALISIS-IMPLEMENTACION-SUSCRIPCIONES.md  (Análisis completo)
 ├── PLAN-DE-ACCION.md                          (Plan detallado)
@@ -192,7 +192,7 @@ docs/
 scripts/
 ├── add-trial-used-to-stores.sql              (Migración crítica)
 └── diagnostico-estados-suscripciones.sql     (Diagnóstico)
-```
+\`\`\`
 
 ---
 

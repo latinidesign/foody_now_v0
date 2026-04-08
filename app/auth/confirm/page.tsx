@@ -124,7 +124,7 @@ function ConfirmEmailContent() {
   }, [searchParams, router])
 
   return (
-    <div className="w-full max-w-md bg-gradient-to-br from-lime-50 to-lime-100">
+    <div className="w-full max-w-md">
       <Card>
         <CardHeader className="text-center">
           {status === 'loading' && (

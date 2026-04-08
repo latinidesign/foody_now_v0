@@ -37,7 +37,7 @@ const navigation = [
   { name: "Notificaciones", href: "/admin/notifications", icon: Bell },
   { name: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
   { name: "Suscripción", href: "/admin/subscription", icon: CreditCard },
-  { name: "Configuración", href: "/store-settings", icon: Settings },
+  { name: "Configuración", href: "/admin/settings", icon: Settings },
 ]
 
 export function AdminSidebar({ store }: AdminSidebarProps) {
@@ -133,7 +133,7 @@ export function AdminSidebar({ store }: AdminSidebarProps) {
 
         {/* Version Info */}
         <div className="p-2 border-t text-center text-xs text-muted-foreground">
-          FoodyNow v0.1.13
+          FoodyNow v0.1.11
         </div>
       </div>
     </div>

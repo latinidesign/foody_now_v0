@@ -1,8 +1,0 @@
-enum_name,enum_values
-delivery_type,"{pickup,delivery}"
-order_status,"{pending,confirmed,preparing,ready,sent,delivered,cancelled}"
-payment_frequency,"{monthly,yearly,one_time,quarterly}"
-payment_status,"{pending,completed,failed,refunded,approved,rejected,cancelled,in_process}"
-providers,"{mercadopago,stripe,manual}"
-subscription_payment_status,"{pending,approved,rejected,refunded,cancelled}"
-subscription_status,"{trial,active,expired,cancelled,suspended,past_due,pending,post_due}"

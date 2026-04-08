@@ -16,9 +16,9 @@ export default async function OrderPage({ params }: OrderPageProps) {
   const { slug, orderId } = await params
   const supabase = await createClient()
   const storeBasePath = getStoreBasePathFromHeaders(slug)
-  const storeHomeHref = combineStorePath(await storeBasePath)
+  const storeHomeHref = combineStorePath(storeBasePath)
 
-  // Get order with store, items, and payment info
+  // Get order with store and items
   const { data: order, error } = await supabase
     .from("orders")
     .select(`
@@ -27,8 +27,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
       order_items (
         *,
         products (name, image_url)
-      ),
-      payments (provider, payment_method, status)
+      )
     `)
     .eq("id", orderId)
     .single()
@@ -212,43 +211,6 @@ export default async function OrderPage({ params }: OrderPageProps) {
                 <span className="text-primary">${order.total}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Payment Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información de Pago</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {order.payments && order.payments.length > 0 ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  {order.payments[0].provider === "manual" && order.payments[0].payment_method === "cash" ? (
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-bold text-xs">$</span>
-                    </div>
-                  ) : (
-                    <img src="/mp_handshake.png" alt="MercadoPago" className="h-5" />
-                  )}
-                  <span className="font-medium">
-                    {order.payments[0].provider === "manual" && order.payments[0].payment_method === "cash"
-                      ? "Pago en Efectivo"
-                      : "Pago con MercadoPago"}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {order.payments[0].provider === "manual" && order.payments[0].payment_method === "cash"
-                    ? "El pago se realiza al momento de la entrega o retiro del pedido."
-                    : "Pago procesado correctamente."}
-                </p>
-                <Badge variant={order.payment_status === "completed" ? "default" : "secondary"}>
-                  {order.payment_status === "completed" ? "Pagado" : "Pendiente"}
-                </Badge>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Información de pago no disponible</p>
-            )}
           </CardContent>
         </Card>
 

@@ -1,11 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const requestData = await request.json()
     const supabase = await createClient()
-    const urlParams = await params
 
     const {
       data: { user },
@@ -18,7 +17,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { data: product } = await supabase
       .from("products")
       .select("store_id, stores!inner(owner_id)")
-      .eq("id", urlParams.id)
+      .eq("id", params.id)
       .single()
 
     if (!product || product.stores.owner_id !== user.id) {
@@ -35,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { data: updatedProduct, error: productError } = await supabase
       .from("products")
       .update(productData)
-      .eq("id", urlParams.id)
+      .eq("id", params.id)
       .select()
       .single()
 
@@ -46,7 +45,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (product_options && Array.isArray(product_options)) {
       // First, delete existing options for this product
-      const { error: deleteOptionsError } = await supabase.from("product_options").delete().eq("product_id", urlParams.id)
+      const { error: deleteOptionsError } = await supabase.from("product_options").delete().eq("product_id", params.id)
 
       if (deleteOptionsError) {
         console.error("Error deleting existing options:", deleteOptionsError)
@@ -58,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const { data: newOption, error: optionError } = await supabase
           .from("product_options")
           .insert({
-            product_id: urlParams.id,
+            product_id: params.id,
             name: option.name,
             type: option.type,
             is_required: option.is_required,
@@ -96,10 +95,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabase = await createClient()
-    const urlParams = await params
 
     const {
       data: { user },
@@ -112,14 +110,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { data: product } = await supabase
       .from("products")
       .select("store_id, stores!inner(owner_id)")
-      .eq("id", urlParams.id)
+      .eq("id", params.id)
       .single()
 
     if (!product || product.stores.owner_id !== user.id) {
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 })
     }
 
-    const { error } = await supabase.from("products").delete().eq("id", urlParams.id)
+    const { error } = await supabase.from("products").delete().eq("id", params.id)
 
     if (error) {
       console.error("Product deletion error:", error)

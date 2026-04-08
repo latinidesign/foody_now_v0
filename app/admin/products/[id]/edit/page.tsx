@@ -3,14 +3,13 @@ import { redirect } from "next/navigation"
 import { ProductForm } from "@/components/admin/product-form"
 
 interface EditProductPageProps {
-  params: Promise<{
+  params: {
     id: string
-  }>
+  }
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const supabase = await createClient()
-  const urlParams = await params
 
   const {
     data: { user },
@@ -22,8 +21,8 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
   const { data: store } = await supabase.from("stores").select("*").eq("owner_id", user.id).single()
 
-  if (!store || !store.is_onboarded) {
-    redirect("/onboarding")
+  if (!store) {
+    redirect("/admin/setup")
   }
 
   const { data: product } = await supabase
@@ -42,7 +41,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         )
       )
     `)
-    .eq("id", urlParams.id)
+    .eq("id", params.id)
     .eq("store_id", store.id)
     .single()
 

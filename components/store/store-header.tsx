@@ -64,7 +64,7 @@ export function StoreHeader({ store, showBackButton = false }: StoreHeaderProps)
 
         {/* Header image section (opcional) */}
         {store.header_image_url && (
-          <div className="relative h-32 md:h-[300px] overflow-hidden">
+          <div className="relative h-32 md:h-48 overflow-hidden">
             <img
               src={store.header_image_url || "/placeholder.svg"}
               alt={store.name}

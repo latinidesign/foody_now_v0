@@ -223,12 +223,18 @@ async function handleCheckoutSession(
     return fail(403, "La tienda no está activa")
   }
 
-  let accessToken: string
+  const { data: mpAccount, error: mpAccountError } = await supabase
+    .from("mp_accounts")
+    .select("access_token")
+    .eq("store_id", store.id)
+    .single()
 
-  try {
-    accessToken = await getValidAccessToken(store.id)
-  } catch (tokenError) {
-    return fail(500, "No se pudo obtener token válido de MercadoPago", tokenError)
+  if (mpAccountError) {
+    return fail(500, "No se pudo obtener la configuración de pagos", mpAccountError)
+  }
+
+  if (!mpAccount?.access_token) {
+    return fail(400, "MercadoPago no configurado para la tienda")
   }
 
   const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
@@ -285,7 +291,7 @@ async function handleCheckoutSession(
       pending: `${tenantBase}/?session_id=${checkoutSession.id}`,
     },
     auto_return: "approved",
-    notification_url: `${normalizedBaseUrl}/api/payments/webhook?tenant=${store.slug}`,
+    notification_url: `${normalizedBaseUrl}/api/webhook/mercadopago?store_slug=${store.slug}`,
     external_reference: externalReference,
     statement_descriptor: "FOODY NOW",
     metadata: {
@@ -298,7 +304,7 @@ async function handleCheckoutSession(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${mpAccount.access_token}`,
       "X-Idempotency-Key": `${Date.now()}-${externalReference}`,
     },
     body: JSON.stringify(preferenceData),

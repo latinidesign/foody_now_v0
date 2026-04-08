@@ -36,5 +36,3 @@ SELECT
   '3. Si ambos empiezan con APP_USR-, revisar collector_id en respuestas de API' as verification_method,
   '4. TEST collector_id: números específicos de sandbox (ej: 123456789)' as test_collector,
   '5. PROD collector_id: tu collector_id real de producción' as prod_collector;
-
-

@@ -40,9 +40,9 @@ function ConfirmContent() {
         
         console.log('✅ Confirmación procesada exitosamente')
         
-        // Redirigir a onboarding para completar configuración después de 2 segundos
+        // Redirigir a setup después de 2 segundos
         setTimeout(() => {
-          router.push('/onboarding')
+          router.push('/admin/setup')
         }, 2000)
         
       } catch (error: any) {

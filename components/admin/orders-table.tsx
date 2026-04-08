@@ -1,7 +1,7 @@
 "use client"
 
 import type { Order } from "@/lib/types/database"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Eye, Phone, MapPin, Search, X, MessageCircle, Printer } from "lucide-react"
+import { Eye, Phone, MapPin, Search, X, MessageCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
@@ -29,30 +29,15 @@ interface OrderWithItems extends Order {
     total_price: number
     products: { name: string }
   }>
-  payments: Array<{
-    id: string
-    payment_method?: string
-    provider?: string
-    status?: string
-  }>
-}
-
-interface StoreInfo {
-  name?: string
-  phone?: string
-  address?: string
 }
 
 interface OrdersTableProps {
   orders: OrderWithItems[]
-  store?: StoreInfo
 }
 
-export function OrdersTable({ orders, store }: OrdersTableProps) {
+export function OrdersTable({ orders }: OrdersTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
-  const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [deliveryFilter, setDeliveryFilter] = useState<string>("all")
@@ -69,149 +54,8 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
   const startDate = searchParams.get("startDate")
   const endDate = searchParams.get("endDate")
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 2 }).format(value)
-
-  const buildTicketHtml = (order: OrderWithItems) => {
-    const createdAt = new Date(order.created_at)
-    const date = createdAt.toLocaleDateString("es-AR")
-    const time = createdAt.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
-
-    const itemsHtml = order.order_items
-      .map(
-        (item) => `
-        <div class="item">
-          <span class="qty">${item.quantity}x</span>
-          <span class="name">${item.products.name}</span>
-          <span class="price">${formatCurrency(item.total_price)}</span>
-        </div>
-      `
-      )
-      .join("")
-
-    const deliveryLabel = order.delivery_type === "pickup" ? "Retiro en local" : "Delivery"
-
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Pedido #${order.id.slice(-8)}</title>
-          <style>
-            @page { size: 80mm auto; margin: 5mm; }
-            body {
-              font-family: 'Helvetica', 'Arial', sans-serif;
-              width: 72mm;
-              margin: 0 auto;
-              color: #000;
-            }
-            .ticket { padding: 6px; }
-            .title { text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
-            .meta { text-align: center; font-size: 12px; margin-bottom: 6px; }
-            .order-number { font-size: 1.2rem; line-height: 1.4rem; }
-            .meta-large { font-size: 1.5rem; line-height: 2rem; }
-            .section { border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
-            .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; gap: 6px; }
-            .row-medium { font-size: 1.2rem; line-height: 1.4rem; }
-            .item { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 3px; }
-            .qty { min-width: 28px; font-size: 1.5rem;}
-            .name { flex: 1; font-size: 1.5rem; line-height: 1.6rem; }
-            .price { min-width: 60px; text-align: right; }
-            .bold { font-weight: 700; }
-            .notes { background: #f0f0f0; padding: 6px; border-radius: 4px; font-size: 1.5rem; line-height: 1.6rem; }
-            .totals { margin-top: 4px; }
-            .total-row { font-size: 1.5rem; font-weight: 700; }
-          </style>
-        </head>
-        <body>
-          <div class="ticket">
-            <div class="title">${store?.name || "Pedido"}</div>
-            <div class="meta">${[store?.address, store?.phone].filter(Boolean).join(" · ")}</div>
-            <div class="meta order-number">Pedido #${order.id.slice(-8)}</div>
-            <div class="meta meta-large">${date} ${time}</div>
-            <div class="meta meta-large">${deliveryLabel}</div>
-
-            <div class="section">
-              <div class="row row-medium"><span class="bold">Cliente</span><span>${order.customer_name}</span></div>
-              ${order.customer_phone ? `<div class="row row-medium"><span class="bold">Tel</span><span>${order.customer_phone}</span></div>` : ""}
-              ${
-                order.delivery_address
-                  ? `<div class="row row-medium"><span class="bold">Dirección</span><span>${order.delivery_address}</span></div>`
-                  : ""
-              }
-            </div>
-
-            <div class="section">
-              ${itemsHtml}
-            </div>
-
-            <div class="section totals">
-              <div class="row"><span>Subtotal</span><span>${formatCurrency(order.subtotal)}</span></div>
-              <div class="row"><span>Envío</span><span>${formatCurrency(order.delivery_fee)}</span></div>
-              <div class="row total-row"><span>Total</span><span>${formatCurrency(order.total)}</span></div>
-            </div>
-
-            ${
-              order.delivery_notes
-                ? `<div class="section">
-                     <div class="notes"><strong>Notas:</strong><br />${order.delivery_notes}</div>
-                   </div>`
-                : ""
-            }
-
-            <div class="meta" style="margin-top: 8px;">Gracias por tu compra</div>
-          </div>
-        </body>
-      </html>
-    `
-  }
-
-  const handlePrintTicket = (order: OrderWithItems) => {
-    const printWindow = window.open("", "_blank", "width=400,height=600")
-
-    if (!printWindow) {
-      toast.error("No se pudo abrir la ventana de impresión")
-      return
-    }
-
-    const ticketHtml = buildTicketHtml(order)
-    printWindow.document.write(ticketHtml)
-    printWindow.document.close()
-
-    printWindow.onload = () => {
-      printWindow.focus()
-      printWindow.print()
-      printWindow.close()
-    }
-  }
-
-  const refreshOrders = async () => {
-    setIsRefreshing(true)
-
-    try {
-      const response = await fetch("/api/admin/orders", { cache: "no-store" })
-      if (!response.ok) {
-        throw new Error(`Error refreshing orders: ${response.status}`)
-      }
-
-      const data = await response.json()
-      if (Array.isArray(data.orders)) {
-        setOrdersData(data.orders)
-      }
-    } catch (error) {
-      console.error("Error refreshing orders:", error)
-    } finally {
-      setIsRefreshing(false)
-    }
-  }
-
-  useEffect(() => {
-    refreshOrders()
-    const intervalId = window.setInterval(refreshOrders, 30000)
-    return () => window.clearInterval(intervalId)
-  }, [])
-
   const filteredAndSortedOrders = useMemo(() => {
-    const filtered = ordersData.filter((order) => {
+    const filtered = orders.filter((order) => {
       const searchMatch =
         searchTerm === "" ||
         order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -229,7 +73,8 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
     })
 
     return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  }, [ordersData, searchTerm, statusFilter, deliveryFilter, startDate, endDate])
+  }, [orders, searchTerm, statusFilter, deliveryFilter, startDate, endDate])
+
   const clearFilters = () => {
     setSearchTerm("")
     setStatusFilter("all")
@@ -277,14 +122,6 @@ export function OrdersTable({ orders, store }: OrdersTableProps) {
       default:
         return status
     }
-  }
-
-  const getPaymentMethodText = (payments?: Array<{ id: string; payment_method?: string; provider?: string }>) => {
-    const payment = payments?.[0]
-    if (payment?.provider === "manual") {
-      return "Efectivo"
-    }
-    return "MercadoPago"
   }
 
   const getWhatsAppMessage = (order: OrderWithItems, status: string) => {
@@ -442,21 +279,12 @@ Estado: ${getStatusText(status)}
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setIsUpdating(orderId)
     try {
-      // Buscar el pedido para verificar si es pago en efectivo
-      const order = orders.find(o => o.id === orderId)
-      const isCashPayment = order?.payments?.[0]?.provider === "manual"
-
-      // Si se marca como entregado y es pago en efectivo, completar el pago
-      const updateData: { status: string; payment_status?: string } = { status: newStatus }
-      if (newStatus === "delivered" && isCashPayment && order?.payment_status !== "completed") {
-        updateData.payment_status = "completed"
-      }
-
-      const { error } = await supabase.from("orders").update(updateData).eq("id", orderId)
+      const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId)
 
       if (error) throw error
 
       // Buscar el pedido para enviar mensaje de WhatsApp
+      const order = orders.find(o => o.id === orderId)
       if (order && order.customer_phone && newStatus !== 'pending') {
         // Generar mensaje automáticamente
         await sendWhatsAppMessage(order, newStatus)
@@ -554,10 +382,6 @@ Estado: ${getStatusText(status)}
 
             <AnalyticsDateSelector />
 
-            <Button variant="outline" size="sm" onClick={refreshOrders} disabled={isRefreshing}>
-              {isRefreshing ? "Actualizando..." : "Refrescar ahora"}
-            </Button>
-
             {(searchTerm || statusFilter !== "all" || deliveryFilter !== "all" || startDate || endDate) && (
               <Button variant="outline" size="sm" onClick={clearFilters}>
                 <X className="w-4 h-4 mr-1" />
@@ -567,7 +391,7 @@ Estado: ${getStatusText(status)}
           </div>
 
           <div className="text-sm text-muted-foreground">
-            Mostrando {filteredAndSortedOrders.length} de {ordersData.length} pedidos
+            Mostrando {filteredAndSortedOrders.length} de {orders.length} pedidos
           </div>
         </div>
       </CardHeader>
@@ -575,7 +399,7 @@ Estado: ${getStatusText(status)}
         {filteredAndSortedOrders.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
-              {ordersData.length === 0 ? "No hay pedidos aún" : "No se encontraron pedidos con los filtros aplicados"}
+              {orders.length === 0 ? "No hay pedidos aún" : "No se encontraron pedidos con los filtros aplicados"}
             </p>
           </div>
         ) : (
@@ -607,11 +431,6 @@ Estado: ${getStatusText(status)}
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {order.status === "pending" && (
-                    <Button variant="secondary" size="sm" onClick={() => handlePrintTicket(order)} title="Imprimir ticket 80mm">
-                      <Printer className="w-4 h-4" />
-                    </Button>
-                  )}
                   <Select
                     value={order.status}
                     onValueChange={(value) => updateOrderStatus(order.id, value)}
@@ -639,25 +458,17 @@ Estado: ${getStatusText(status)}
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>Pedido #{order.id.slice(-8)}</DialogTitle>
-                    <DialogDescription>
-                      Detalles completos del pedido y opciones para cambiar el estado
-                    </DialogDescription>
-                  </DialogHeader>
-                  {selectedOrder && (
-                    <div className="space-y-4">
-                      {selectedOrder.status === "pending" && (
-                        <div className="flex justify-end">
-                          <Button variant="secondary" size="sm" onClick={() => handlePrintTicket(selectedOrder)}>
-                            <Printer className="w-4 h-4 mr-2" />
-                            Imprimir ticket 80mm
-                          </Button>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-1">Estado del Pedido</h4>
-                          <Badge variant={getStatusColor(selectedOrder.status)}>
-                            {getStatusText(selectedOrder.status)}
+                        <DialogDescription>
+                          Detalles completos del pedido y opciones para cambiar el estado
+                        </DialogDescription>
+                      </DialogHeader>
+                      {selectedOrder && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-semibold mb-1">Estado del Pedido</h4>
+                              <Badge variant={getStatusColor(selectedOrder.status)}>
+                                {getStatusText(selectedOrder.status)}
                               </Badge>
                             </div>
                             <Select
@@ -687,7 +498,7 @@ Estado: ${getStatusText(status)}
                               <div className="flex items-center gap-2 mt-1">
                                 <Phone className="w-4 h-4" />
                                 <a
-                                  href={`https://wa.me/${selectedOrder.customer_phone}`}
+                                  href={`tel:${selectedOrder.customer_phone}`}
                                   className="text-primary hover:underline"
                                 >
                                   {selectedOrder.customer_phone}
@@ -721,28 +532,16 @@ Estado: ${getStatusText(status)}
                                 </div>
                               ))}
                             </div>
-                            <div className="flex justify-between items-center pt-2 border-t font-bold text-lg">
+                            <div className="flex justify-between items-center pt-2 border-t font-bold">
                               <span>Total:</span>
-                              <span className="text-accent">${selectedOrder.total}</span>
+                              <span className="text-primary">${selectedOrder.total}</span>
                             </div>
                           </div>
-
-                            <div>
-                              <h4 className="font-semibold mb-2">Pago</h4>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">
-                                  Método: {getPaymentMethodText(selectedOrder.payments)}
-                                </span>
-                                <Badge variant={selectedOrder.payment_status === "completed" ? "default" : "secondary"}>
-                                  {selectedOrder.payment_status === "completed" ? "Pagado" : "Pendiente"}
-                                </Badge>
-                              </div>
-                            </div>
 
                           {selectedOrder.delivery_notes && (
                             <div>
                               <h4 className="font-semibold mb-2">Notas</h4>
-                              <p className="text-sm bg-accent text-white p-2 rounded">{selectedOrder.delivery_notes}</p>
+                              <p className="text-sm bg-muted p-2 rounded">{selectedOrder.delivery_notes}</p>
                             </div>
                           )}
                         </div>

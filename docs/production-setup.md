@@ -48,14 +48,14 @@ Ejecuta el script de actualización con los IDs reales.
 ## 🛠️ Scripts de Configuración Automática
 
 ### Script 1: Actualizar con IDs Reales
-```bash
+\`\`\`bash
 node update-production-plans.js
-```
+\`\`\`
 
 ### Script 2: Validar Configuración
-```bash
+\`\`\`bash
 node validate-plans.js
-```
+\`\`\`
 
 ---
 
@@ -63,7 +63,7 @@ node validate-plans.js
 
 Asegúrate de tener configurado:
 
-```env
+\`\`\`env
 # MercadoPago Producción
 MERCADOPAGO_ACCESS_TOKEN=APP_USR_xxxxxxxxxxxxxxxxxxxxxxxx
 MERCADOPAGO_PUBLIC_KEY=APP_USR_xxxxxxxxxxxxxxxxxxxxxxxx
@@ -77,7 +77,7 @@ MERCADOPAGO_WEBHOOK_URL=https://foodynow.com.ar/api/subscription/webhook-new
 # Base de datos de producción
 NEXT_PUBLIC_SUPABASE_URL=https://your-prod-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_prod_service_key
-```
+\`\`\`
 
 ---
 

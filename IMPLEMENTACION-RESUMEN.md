@@ -49,7 +49,7 @@
 
 2. **Copiar y ejecutar este SQL:**
 
-```sql
+\`\`\`sql
 -- 1. Agregar campos
 ALTER TABLE stores 
   ADD COLUMN IF NOT EXISTS trial_used BOOLEAN DEFAULT FALSE,
@@ -74,49 +74,49 @@ WHERE id IN (
   FROM subscriptions 
   WHERE status IN ('trial', 'active', 'cancelled', 'expired', 'suspended', 'past_due')
 );
-```
+\`\`\`
 
 3. **Verificar que funcionó:**
 
-```sql
+\`\`\`sql
 SELECT column_name FROM information_schema.columns
 WHERE table_name = 'stores' AND column_name = 'trial_used';
 -- Debe retornar 1 fila
-```
+\`\`\`
 
 ---
 
 ## ✅ Verificaciones de Build
 
-```bash
+\`\`\`bash
 ✅ Build completado exitosamente
 ✅ No hay errores de TypeScript
 ✅ Todos los archivos compilaron correctamente
 ✅ Página /admin/subscription/plans creada
-```
+\`\`\`
 
 ---
 
 ## 🎯 Cómo Funciona
 
 ### Flujo para Usuario Nuevo
-```
+\`\`\`
 1. Usuario va a /admin/subscription/plans
 2. Click "Suscribirme Ahora"
 3. API detecta: hasUsedTrial = false
 4. Selecciona plan CON trial (7 días)
 5. Redirige a MP: plan 921acee62b484deaa5120e39733ab2ee
-```
+\`\`\`
 
 ### Flujo para Usuario con Suscripción Expirada
-```
+\`\`\`
 1. Usuario ve botón "Ver Planes" en estado expired
 2. Click lleva a /admin/subscription/plans
 3. Click "Suscribirme Ahora"
 4. API detecta: hasUsedTrial = true (tiene historial)
 5. Selecciona plan SIN trial (pago inmediato)
 6. Redirige a MP: plan 946bf6e3186741b5b7b8accbbdf646a5
-```
+\`\`\`
 
 ---
 
@@ -125,10 +125,10 @@ WHERE table_name = 'stores' AND column_name = 'trial_used';
 ### Después de ejecutar la migración SQL:
 
 1. **Reiniciar servidor:**
-   ```bash
+   \`\`\`bash
    # Ctrl+C para detener
    pnpm dev
-   ```
+   \`\`\`
 
 2. **Probar página de planes:**
    - Ir a: http://localhost:3000/admin/subscription/plans
@@ -138,9 +138,9 @@ WHERE table_name = 'stores' AND column_name = 'trial_used';
    - Abrir consola del navegador
    - Click "Suscribirme"
    - Debe mostrar:
-     ```
+     \`\`\`
      ✅ Suscripción creada: { plan_type: 'WITH_TRIAL', trial_days: 7, ... }
-     ```
+     \`\`\`
 
 ---
 
@@ -174,13 +174,13 @@ WHERE table_name = 'stores' AND column_name = 'trial_used';
 
 ## 📝 Variables de Entorno Agregadas
 
-```bash
+\`\`\`bash
 # Plan CON trial (usuarios nuevos)
 NEXT_PUBLIC_MERCADOPAGO_PLAN_WITH_TRIAL_ID=921acee62b484deaa5120e39733ab2ee
 
 # Plan SIN trial (renovaciones)
 NEXT_PUBLIC_MERCADOPAGO_PLAN_WITHOUT_TRIAL_ID=946bf6e3186741b5b7b8accbbdf646a5
-```
+\`\`\`
 
 ---
 
@@ -206,7 +206,7 @@ NEXT_PUBLIC_MERCADOPAGO_PLAN_WITHOUT_TRIAL_ID=946bf6e3186741b5b7b8accbbdf646a5
 
 Después de desplegar, verificar:
 
-```sql
+\`\`\`sql
 -- Cuántas tiendas ya usaron trial
 SELECT COUNT(*) as con_trial_usado 
 FROM stores WHERE trial_used = true;
@@ -218,7 +218,7 @@ WHERE status IN ('expired', 'cancelled', 'suspended', 'past_due');
 -- Suscripciones creadas hoy
 SELECT COUNT(*) FROM subscriptions 
 WHERE created_at >= CURRENT_DATE;
-```
+\`\`\`
 
 ---
 

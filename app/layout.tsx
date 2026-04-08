@@ -1,9 +1,16 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { MuseoModerno, Open_Sans } from "next/font/google"
+
 import { Toaster } from "sonner"
 import { PWAProvider } from "@/components/pwa/pwa-provider"
 import "./globals.css"
+
+import { MuseoModerno, Open_Sans, Noto_Sans as V0_Font_Noto_Sans, Roboto_Mono as V0_Font_Roboto_Mono, Noto_Serif as V0_Font_Noto_Serif } from 'next/font/google'
+
+// Initialize fonts
+const _notoSans = V0_Font_Noto_Sans({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
+const _robotoMono = V0_Font_Roboto_Mono({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700"] })
+const _notoSerif = V0_Font_Noto_Serif({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
 
 const museoModerno = MuseoModerno({
   subsets: ["latin"],
@@ -22,13 +29,13 @@ const openSans = Open_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "FOODYNOW - Tiendas Online para Gastronomía",
+  title: "FOODYNOW - Tiendas Online para Restaurantes",
   description:
-    "Plataforma de ecommerce para comercios gastronómicos. Crea tu tienda online y recibe pedidos fácilmente.",
+    "Plataforma de ecommerce para restaurantes y comercios alimentarios. Crea tu tienda online y recibe pedidos fácilmente.",
   generator: "FOODYNOW",
   applicationName: "FOODYNOW",
   referrer: "origin-when-cross-origin",
-  keywords: ["restaurante", "delivery", "comida", "pedidos online", "ecommerce", "tienda online", "viandas"],
+  keywords: ["restaurante", "delivery", "comida", "pedidos online", "ecommerce", "tienda online"],
   authors: [{ name: "FOODYNOW" }],
   creator: "FOODYNOW",
   publisher: "FOODYNOW",
@@ -44,11 +51,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "FOODYNOW",
-    title: "FOODYNOW - Tiendas Online para Gastronomía",
-    description: "Plataforma de ecommerce para comercios gastronómicos.",
+    title: "FOODYNOW - Tiendas Online para Restaurantes",
+    description: "Plataforma de ecommerce para restaurantes y comercios alimentarios",
     images: [
       {
-        url: "/foodynow_iso.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "FOODYNOW",
@@ -57,9 +64,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "FOODYNOW - Tiendas Online para Gastronomía",
-    description: "Plataforma de ecommerce para comercios gastronómicos.",
-    images: ["/foodynow_iso.jpg"],
+    title: "FOODYNOW - Tiendas Online para Restaurantes",
+    description: "Plataforma de ecommerce para restaurantes y comercios alimentarios",
+    images: ["/og-image.png"],
   },
   manifest: "/manifest.json",
   icons: {

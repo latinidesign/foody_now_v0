@@ -22,8 +22,7 @@ export function CheckoutSuccessModal() {
       const res = await fetch(`/api/checkout/session-status?session_id=${sessionId}`)
       const data = await res.json()
 
-      // Si el pago fue exitoso o está pendiente (en el caso de los que pagan con efectivo), mostrar el modal
-      if (data?.payment_status === "completed" || data?.payment_status === "pending") {
+      if (data?.payment_status === "completed") {
         setOpen(true)
       }
 

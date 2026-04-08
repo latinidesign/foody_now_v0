@@ -27,8 +27,6 @@ export function StoreDrawer({ store, open, onOpenChange }: StoreDrawerProps) {
     store.is_open
   )
 
-  console.log("business_hours:", store.business_hours)
-
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
