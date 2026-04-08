@@ -63,6 +63,11 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
   // Check minimum order amount for delivery
   const meetsMinimum = orderData.deliveryType === "pickup" || subtotal >= store.min_order_amount
 
+  // Detect if we're on a subdomain
+  const isSubdomain = typeof window !== 'undefined' && 
+    window.location.hostname.endsWith('.foodynow.com.ar') && 
+    window.location.hostname !== 'foodynow.com.ar'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -103,9 +108,11 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
         // Preferir flujo unificado con el mismo backend de sesión de checkout.
         // Si no se puede obtener session_id, hacemos fallback al detalle de orden.
         if (session_id) {
-          window.location.href = `/store/${store.slug}/?session_id=${session_id}`
+          const redirectPath = isSubdomain ? `/?session_id=${session_id}` : `/store/${store.slug}/?session_id=${session_id}`
+          window.location.href = redirectPath
         } else {
-          window.location.href = `/store/${store.slug}/order/${order_id}?payment=cash`
+          const redirectPath = isSubdomain ? `/order/${order_id}?payment=cash` : `/store/${store.slug}/order/${order_id}?payment=cash`
+          window.location.href = redirectPath
         }
       } else {
         // Handle MercadoPago payment
