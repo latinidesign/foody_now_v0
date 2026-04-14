@@ -17,13 +17,14 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { MobileSidebar } from "./mobile-sidebar"
 import Link from "next/link"
+import { memo } from "react"
 
 interface AdminHeaderProps {
   user: User
   store: Store | null
 }
 
-export function AdminHeader({ user, store }: AdminHeaderProps) {
+export const AdminHeader = memo(function AdminHeader({ user, store }: AdminHeaderProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -83,4 +84,4 @@ export function AdminHeader({ user, store }: AdminHeaderProps) {
       </div>
     </header>
   )
-}
+})

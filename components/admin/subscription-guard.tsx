@@ -17,8 +17,16 @@ export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps)
   const [isChecking, setIsChecking] = useState(true)
   const [isAllowed, setIsAllowed] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [subscriptionCache, setSubscriptionCache] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const checkSubscription = async () => {
       // Rutas que permiten acceso sin suscripción activa
       const allowedPathsWithoutSubscription = [
@@ -43,6 +51,13 @@ export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps)
       // Si no tiene tienda, no puede acceder
       if (!storeId) {
         router.push('/onboarding')
+        return
+      }
+
+      // Check cache
+      if (subscriptionCache[storeId] !== undefined) {
+        setIsAllowed(subscriptionCache[storeId])
+        setIsChecking(false)
         return
       }
 
@@ -87,18 +102,20 @@ export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps)
       if (!canAccess) {
         router.push('/admin/subscription?blocked=true')
         setShowAlert(true)
+        setSubscriptionCache(prev => ({ ...prev, [storeId]: false }))
       } else {
         setIsAllowed(true)
+        setSubscriptionCache(prev => ({ ...prev, [storeId]: true }))
       }
 
       setIsChecking(false)
     }
 
     checkSubscription()
-  }, [pathname, storeId, router])
+  }, [pathname, storeId, router, mounted])
 
-  // Mientras verifica, mostrar loading
-  if (isChecking) {
+  // Mientras verifica o no está montado, mostrar loading
+  if (isChecking || !mounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

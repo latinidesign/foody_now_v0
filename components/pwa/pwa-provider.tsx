@@ -6,6 +6,12 @@ import { useEffect } from "react"
 
 export function PWAProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    // Only register SW in production
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("[PWA] Skipping service worker registration in development")
+      return
+    }
+
     // Esperar a que el DOM esté completamente cargado
     const registerSW = async () => {
       if ("serviceWorker" in navigator) {

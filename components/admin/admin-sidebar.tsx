@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { adminHelpLinks } from "./help-links"
+import { memo } from "react"
 
 interface AdminSidebarProps {
   store: StoreType | null
@@ -40,7 +41,7 @@ const navigation = [
   { name: "Configuración", href: "/store-settings", icon: Settings },
 ]
 
-export function AdminSidebar({ store }: AdminSidebarProps) {
+export const AdminSidebar = memo(function AdminSidebar({ store }: AdminSidebarProps) {
   const pathname = usePathname()
   const [helpOpen, setHelpOpen] = useState(false)
 
@@ -50,9 +51,7 @@ export function AdminSidebar({ store }: AdminSidebarProps) {
         {/* Logo/Store Info */}
         <div className="p-6 border-b">
           <div className="flex items-center gap-3 flex-col">
-            {store?.logo_url && (
-              <img src={store.logo_url || "/placeholder.svg"} alt={store.name} className="rounded-full size-36" />
-            )}
+            <img src={store?.logo_url || "/placeholder.svg"} alt={store?.name || "Mi Tienda"} className="rounded-full size-36" />
             <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-lg truncate">{store?.name || "Mi Tienda"}</h2>
               <p className="text-sm text-muted-foreground">Panel de Admin</p>
@@ -138,4 +137,4 @@ export function AdminSidebar({ store }: AdminSidebarProps) {
       </div>
     </div>
   )
-}
+})

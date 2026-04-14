@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react"
 import { AlertCircle, AlertTriangle, X, Zap } from "lucide-react"
 import Link from "next/link"
+import { memo } from "react"
 
 interface TrialAlertProps {
   trialEndsAt: string
 }
 
-export function TrialAlert({ trialEndsAt }: TrialAlertProps) {
+export const TrialAlert = memo(function TrialAlert({ trialEndsAt }: TrialAlertProps) {
   const [daysLeft, setDaysLeft] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(true)
 
@@ -83,4 +84,4 @@ export function TrialAlert({ trialEndsAt }: TrialAlertProps) {
       </div>
     </div>
   )
-}
+})

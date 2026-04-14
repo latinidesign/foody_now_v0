@@ -24,6 +24,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { adminHelpLinks } from "./help-links"
+import { memo } from "react"
 
 interface MobileSidebarProps {
   store: StoreType | null
@@ -40,7 +41,7 @@ const navigation = [
   { name: "Configuración", href: "/store-settings", icon: Settings },
 ]
 
-export function MobileSidebar({ store }: MobileSidebarProps) {
+export const MobileSidebar = memo(function MobileSidebar({ store }: MobileSidebarProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -58,9 +59,7 @@ export function MobileSidebar({ store }: MobileSidebarProps) {
           {/* Logo/Store Info */}
           <div className="p-6 border-b">
             <div className="flex items-center gap-3 flex-col">
-              {store?.logo_url && (
-                <img src={store.logo_url || "/placeholder.svg"} alt={store.name} className="rounded-full size-36" />
-              )}
+              <img src={store?.logo_url || "/placeholder.svg"} alt={store?.name || "Mi Tienda"} className="rounded-full size-36" />
               <div className="min-w-0 flex-1">
                 <h2 className="font-semibold text-lg truncate">{store?.name || "Mi Tienda"}</h2>
                 <p className="text-sm text-muted-foreground">Panel de Admin</p>
@@ -149,4 +148,4 @@ export function MobileSidebar({ store }: MobileSidebarProps) {
       </SheetContent>
     </Sheet>
   )
-}
+})
