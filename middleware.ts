@@ -12,23 +12,34 @@ export async function middleware(request: NextRequest) {
     return confirmationResponse
   }
 
+  const response = NextResponse.next()
+
+  // Configurar headers CORS para todas las respuestas
+  const origin = request.headers.get('origin')
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  
+  if (isDevelopment || (origin && (origin.includes('foodynow.com.ar') || origin.includes('vercel.app') || origin.includes('localhost')))) {
+    response.headers.set('Access-Control-Allow-Origin', origin || '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Access-Control-Max-Age', '86400')
+  }
+
   // Manejar preflight OPTIONS requests para CORS
   if (request.method === 'OPTIONS') {
-    const response = new Response(null, { status: 200 })
+    const optionsResponse = new Response(null, { status: 200 })
     
     // Configurar headers CORS para preflight
-    const origin = request.headers.get('origin')
-    const isDevelopment = process.env.NODE_ENV === 'development'
-    
-    if (isDevelopment || (origin && origin.includes('.foodynow.com.ar'))) {
-      response.headers.set('Access-Control-Allow-Origin', origin || '*')
-      response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-      response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
-      response.headers.set('Access-Control-Allow-Credentials', 'true')
-      response.headers.set('Access-Control-Max-Age', '86400')
+    if (isDevelopment || (origin && (origin.includes('foodynow.com.ar') || origin.includes('vercel.app') || origin.includes('localhost')))) {
+      optionsResponse.headers.set('Access-Control-Allow-Origin', origin || '*')
+      optionsResponse.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+      optionsResponse.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
+      optionsResponse.headers.set('Access-Control-Allow-Credentials', 'true')
+      optionsResponse.headers.set('Access-Control-Max-Age', '86400')
     }
     
-    return response
+    return optionsResponse
   }
 
   const url = request.nextUrl.clone()
