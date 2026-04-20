@@ -3,9 +3,7 @@ import { confirmationRedirectMiddleware } from "@/lib/middleware/confirmation-re
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
-export const runtime = "experimental-edge"
-
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Verificar redirecciones de confirmación de email primero
   const confirmationResponse = confirmationRedirectMiddleware(request)
   if (confirmationResponse.status === 307 || confirmationResponse.status === 302) {
@@ -14,38 +12,50 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next()
 
-  // Configurar headers CORS para todas las respuestas
-  const origin = request.headers.get('origin')
-  const isDevelopment = process.env.NODE_ENV === 'development'
-  
-  if (isDevelopment || (origin && (origin.includes('foodynow.com.ar') || origin.includes('vercel.app') || origin.includes('localhost')))) {
-    response.headers.set('Access-Control-Allow-Origin', origin || '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-    response.headers.set('Access-Control-Max-Age', '86400')
+  const origin = request.headers.get("origin")
+  const isDevelopment = process.env.NODE_ENV === "development"
+
+  if (
+    isDevelopment ||
+    (origin &&
+      (origin.includes("foodynow.com.ar") ||
+        origin.includes("vercel.app") ||
+        origin.includes("localhost")))
+  ) {
+    response.headers.set("Access-Control-Allow-Origin", origin || "*")
+    response.headers.set("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT")
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+    )
+    response.headers.set("Access-Control-Allow-Credentials", "true")
+    response.headers.set("Access-Control-Max-Age", "86400")
   }
 
-  // Manejar preflight OPTIONS requests para CORS
-  if (request.method === 'OPTIONS') {
+  if (request.method === "OPTIONS") {
     const optionsResponse = new Response(null, { status: 200 })
-    
-    // Configurar headers CORS para preflight
-    if (isDevelopment || (origin && (origin.includes('foodynow.com.ar') || origin.includes('vercel.app') || origin.includes('localhost')))) {
-      optionsResponse.headers.set('Access-Control-Allow-Origin', origin || '*')
-      optionsResponse.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-      optionsResponse.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
-      optionsResponse.headers.set('Access-Control-Allow-Credentials', 'true')
-      optionsResponse.headers.set('Access-Control-Max-Age', '86400')
+    if (
+      isDevelopment ||
+      (origin &&
+        (origin.includes("foodynow.com.ar") ||
+          origin.includes("vercel.app") ||
+          origin.includes("localhost")))
+    ) {
+      optionsResponse.headers.set("Access-Control-Allow-Origin", origin || "*")
+      optionsResponse.headers.set("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT")
+      optionsResponse.headers.set(
+        "Access-Control-Allow-Headers",
+        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+      )
+      optionsResponse.headers.set("Access-Control-Allow-Credentials", "true")
+      optionsResponse.headers.set("Access-Control-Max-Age", "86400")
     }
-    
     return optionsResponse
   }
 
   const url = request.nextUrl.clone()
   const hostname = request.headers.get("host") || ""
 
-  // Lista de dominios principales que no son tiendas
   const mainDomains = [
     "foodynow.com.ar",
     "www.foodynow.com.ar",
@@ -55,7 +65,6 @@ export async function middleware(request: NextRequest) {
     "localhost:3001",
   ]
 
-  // Rutas que nunca deben ser reescritas
   const excludedPaths = ["/_next", "/api", "/robots.txt", "/favicon.ico", "/offline"]
 
   if (excludedPaths.some((path) => url.pathname.startsWith(path))) {
@@ -70,7 +79,6 @@ export async function middleware(request: NextRequest) {
   const isMainDomain = mainDomains.some((domain) => hostname === domain) || isVercelPreviewDomain
   const isLocalhost = hostname.includes("localhost") || hostname.startsWith("127.0.0.1")
 
-  // Para localhost, permitir acceso directo sin reescritura
   if (isLocalhost) {
     try {
       return await updateSession(request)
@@ -85,7 +93,6 @@ export async function middleware(request: NextRequest) {
     if (hostname.endsWith(".foodynow.com.ar")) {
       storeSlug = hostname.replace(".foodynow.com.ar", "")
     } else if (hostname.includes("vercel.app")) {
-      // Para dominios de Vercel con subdominios
       const parts = hostname.split(".")
       if (parts.length > 2 && !mainDomains.includes(hostname)) {
         storeSlug = parts[0]
@@ -96,7 +103,6 @@ export async function middleware(request: NextRequest) {
       const originalPath = url.pathname
 
       const staticAssetPaths = new Set(["/robots.txt", "/favicon.ico", "/offline"])
-
       const staticExtensions = [
         ".png",
         ".jpg",
@@ -117,7 +123,8 @@ export async function middleware(request: NextRequest) {
       ]
 
       const isStaticAsset =
-        staticAssetPaths.has(originalPath) || staticExtensions.some((extension) => originalPath.endsWith(extension))
+        staticAssetPaths.has(originalPath) ||
+        staticExtensions.some((extension) => originalPath.endsWith(extension))
 
       if (isStaticAsset) {
         return NextResponse.next()
@@ -133,16 +140,13 @@ export async function middleware(request: NextRequest) {
 
       try {
         const supabaseResponse = await updateSession(request)
-
         if (supabaseResponse.cookies) {
           supabaseResponse.cookies.getAll().forEach((cookie) => {
             response.cookies.set(cookie.name, cookie.value, cookie)
           })
         }
-
         return response
       } catch (error) {
-        // Si Supabase falla, continuar con el rewrite sin autenticación
         return response
       }
     }
@@ -158,7 +162,6 @@ export async function middleware(request: NextRequest) {
       if (hostname.includes("foodynow.com.ar")) {
         newHostname = `${storeSlug}.foodynow.com.ar`
       } else if (hostname.includes("vercel.app")) {
-        // Para Vercel, mantener el formato original pero con subdominio
         const baseDomain = hostname.replace(/^[^.]+\./, "")
         newHostname = `${storeSlug}.${baseDomain}`
       } else {
@@ -176,21 +179,12 @@ export async function middleware(request: NextRequest) {
   try {
     return await updateSession(request)
   } catch (error) {
-    // Si updateSession falla, continuar sin autenticación
     return NextResponse.next()
   }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
-     * Feel free to modify this pattern to include more paths.
-     */
     "/((?!_next/static|_next/image|robots\\.txt|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|ico|txt|js|css|woff|woff2|ttf|eot)$).*)",
   ],
 }
