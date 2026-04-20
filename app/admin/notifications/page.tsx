@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { NotificationSettings } from "@/components/admin/notification-settings"
+// import { NotificationSettings } from "@/components/admin/notification-settings"
 
 export default async function NotificationsPage() {
   const supabase = await createClient()
@@ -24,15 +24,15 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-6" data-store-id={store.id}>
+    <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold">Notificaciones</h1>
-        <p className="text-muted-foreground">
-          Configura las notificaciones push y WhatsApp para tu tienda
+        <p className="text-muted-foreground text-yellow-600 mt-4">
+          ⚠️ Las notificaciones push están temporalmente deshabilitadas mientras se implementa una solución PWA adecuada.
         </p>
       </div>
-
-      <NotificationSettings storeId={store.id} storeName={store.name} />
+      {/* NotificationSettings temporarily disabled */}
+      {/* <NotificationSettings storeId={store.id} /> */}
     </div>
   )
 }

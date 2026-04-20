@@ -2,7 +2,6 @@
 
 import { StoreHeader } from "@/components/store/store-header"
 import { ProductCatalog } from "@/components/store/product-catalog"
-import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { CartProvider } from "@/components/store/cart-context"
 
 export default function DemoPage() {
@@ -166,7 +165,6 @@ export default function DemoPage() {
           </div>
           <ProductCatalog store={demoStore as any} categories={demoCategories as any} />
         </main>
-        <InstallPrompt />
       </div>
     </CartProvider>
   )

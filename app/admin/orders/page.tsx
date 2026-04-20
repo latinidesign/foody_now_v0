@@ -31,7 +31,7 @@ export default async function OrdersPage() {
     `)
     .eq("store_id", store.id)
     .order("created_at", { ascending: false })
-    .limit(50)
+    .limit(20)
 
   return (
     <div className="space-y-6">

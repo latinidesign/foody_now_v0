@@ -28,6 +28,7 @@ export async function GET() {
       `)
       .eq("store_id", store.id)
       .order("name")
+      .limit(20)
 
     if (error) {
       console.error("Categories fetch error:", error)

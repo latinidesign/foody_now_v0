@@ -28,16 +28,6 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
   return (
     <>
       <head>
-        {/* Apple Mobile Meta Tags */}
-        <meta name="application-name" content={storeName} />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content={storeName} />
-        <meta name="theme-color" content={themeColor} />
-        
-        {/* Manifest */}
-        <link rel="manifest" href={`/api/store/${slug}/manifest.json`} />
-        
         {/* Apple Icons */}
         {logoUrl && (
           <>

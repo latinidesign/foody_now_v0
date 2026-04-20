@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { MuseoModerno, Open_Sans } from "next/font/google"
 import { Toaster } from "sonner"
-import { PWAProvider } from "@/components/pwa/pwa-provider"
 import "./globals.css"
 
 const museoModerno = MuseoModerno({
@@ -61,26 +60,12 @@ export const metadata: Metadata = {
     description: "Plataforma de ecommerce para comercios gastronómicos.",
     images: ["/foodynow_iso.jpg"],
   },
-  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-icon-180.png", sizes: "180x180", type: "image/png" }],
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "FOODYNOW",
-  },
-  other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "FOODYNOW",
-    "msapplication-TileColor": "#2D5016",
-    "msapplication-tap-highlight": "no",
   },
 }
 
@@ -103,9 +88,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${openSans.variable} ${museoModerno.variable} font-sans antialiased`}>
-        <PWAProvider>
-          {children}
-        </PWAProvider>
+        {children}
         <Toaster />
       </body>
     </html>

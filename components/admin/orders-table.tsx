@@ -18,6 +18,7 @@ import {
 import { Eye, Phone, MapPin, Search, X, MessageCircle, Printer } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
+import { memo } from "react"
 import { toast } from "sonner"
 import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
 
@@ -48,7 +49,7 @@ interface OrdersTableProps {
   store?: StoreInfo
 }
 
-export function OrdersTable({ orders, store }: OrdersTableProps) {
+export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
@@ -812,4 +813,4 @@ Estado: ${getStatusText(status)}
       </Dialog>
     </Card>
   )
-}
+})

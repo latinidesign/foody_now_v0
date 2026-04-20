@@ -30,28 +30,7 @@ export function useWhatsAppWorker() {
 // Hook para inicializar notificaciones push
 export function usePushNotifications(storeId?: string) {
   useEffect(() => {
-    if (!storeId || typeof window === 'undefined') return
-
-    // Solo en páginas de admin
-    const isAdminPage = window.location.pathname.startsWith('/admin')
-    if (!isAdminPage) return
-
-    // Verificar si hay una suscripción guardada
-    const checkExistingSubscription = async () => {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration()
-        if (registration) {
-          const subscription = await registration.pushManager.getSubscription()
-          if (subscription && Notification.permission === 'granted') {
-            console.log('[PushNotifications] Existing subscription found')
-            // La suscripción ya existe, no hacer nada
-          }
-        }
-      } catch (error) {
-        console.warn('[PushNotifications] Error checking existing subscription:', error)
-      }
-    }
-
-    checkExistingSubscription()
+    // PWA removed - push notifications disabled
+    console.warn('[PushNotifications] PWA implementation removed - notifications disabled')
   }, [storeId])
 }

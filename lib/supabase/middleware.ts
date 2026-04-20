@@ -52,8 +52,6 @@ export async function updateSession(request: NextRequest) {
     "/privacy",
     "/terms",
     "/api",
-    "/manifest",
-    "/sw",
     "/robots",
     "/favicon",
     "/offline",

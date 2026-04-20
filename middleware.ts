@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
   ]
 
   // Rutas que nunca deben ser reescritas
-  const excludedPaths = ["/_next", "/api", "/manifest.json", "/sw.js", "/robots.txt", "/favicon.ico", "/offline"]
+  const excludedPaths = ["/_next", "/api", "/robots.txt", "/favicon.ico", "/offline"]
 
   if (excludedPaths.some((path) => url.pathname.startsWith(path))) {
     try {
@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
     if (storeSlug && storeSlug !== "www" && storeSlug !== "api") {
       const originalPath = url.pathname
 
-      const staticAssetPaths = new Set(["/manifest.json", "/sw.js", "/robots.txt", "/favicon.ico", "/offline"])
+      const staticAssetPaths = new Set(["/robots.txt", "/favicon.ico", "/offline"])
 
       const staticExtensions = [
         ".png",
@@ -191,6 +191,6 @@ export const config = {
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|manifest\\.json|sw\\.js|robots\\.txt|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|ico|txt|js|css|woff|woff2|ttf|eot)$).*)",
+    "/((?!_next/static|_next/image|robots\\.txt|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|ico|txt|js|css|woff|woff2|ttf|eot)$).*)",
   ],
 }

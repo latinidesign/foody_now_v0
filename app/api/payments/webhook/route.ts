@@ -215,16 +215,17 @@ export async function POST(request: NextRequest) {
 
     if (process.env.NEXT_PUBLIC_APP_URL) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/order-created`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            orderId: order.id,
-            storeSlug: order.stores?.slug,
-          }),
-        })
+        // PWA notifications disabled - API routes removed
+        // await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/order-created`, {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify({
+        //     orderId: order.id,
+        //     storeSlug: order.stores?.slug,
+        //   }),
+        // })
       } catch (notificationError) {
         console.error(`[payments:webhook][cid:${cid}] Error enviando notificación de nueva orden`, notificationError)
       }
