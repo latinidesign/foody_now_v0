@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { AlertCircle } from "lucide-react"
 
 interface SubscriptionGuardProps {
@@ -62,7 +62,7 @@ export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps)
       }
 
       // verificar suscripción o trial
-      const supabase = createClient()
+      const supabase = getBrowserClient()
 
       // Obtener store para leer trial_ends_at
       const { data: store } = await supabase

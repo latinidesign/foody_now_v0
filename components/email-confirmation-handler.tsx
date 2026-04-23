@@ -2,7 +2,7 @@
 
 import { useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { getBrowserClient } from "@/lib/supabase/client"
 
 function EmailConfirmationHandler() {
   const searchParams = useSearchParams()
@@ -43,7 +43,7 @@ function EmailConfirmationHandler() {
         console.log('🔄 Detectados parámetros de confirmación exitosa...')
         
         try {
-          const supabase = createClient()
+          const supabase = getBrowserClient()
           
           // Verificar si hay una sesión activa
           const { data: { user }, error: userError } = await supabase.auth.getUser()

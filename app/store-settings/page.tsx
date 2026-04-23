@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { StoreSettingsForm } from "@/components/admin/store-settings-form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
@@ -21,7 +21,7 @@ export default function StoreSettingsPage() {
     let mounted = true
 
     const loadStore = async () => {
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {

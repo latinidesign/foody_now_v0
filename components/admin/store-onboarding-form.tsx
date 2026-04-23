@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -53,7 +53,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
 
     setValidatingSubdomain(true)
     try {
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { data: existing } = await supabase
         .from("stores")
         .select("id")
@@ -100,7 +100,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
         return
       }
 
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {

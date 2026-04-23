@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Store, Check, CreditCard, ArrowRight, AlertCircle, RefreshCw } from "lucide-react"
@@ -19,7 +19,7 @@ export default function RenewSubscriptionPage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { data: { user }, error } = await supabase.auth.getUser()
       
       if (error || !user) {

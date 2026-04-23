@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogOut, UserIcon, Settings } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { MobileSidebar } from "./mobile-sidebar"
 import Link from "next/link"
@@ -28,7 +28,7 @@ export const AdminHeader = memo(function AdminHeader({ user, store }: AdminHeade
   const router = useRouter()
 
   const handleSignOut = async () => {
-    const supabase = createClient()
+    const supabase = getBrowserClient()
     await supabase.auth.signOut()
     router.push("/auth/login")
   }

@@ -1,5 +1,5 @@
 // app/api/mp/callback/route.ts
-import { createClient } from '@/lib/supabase/client';
+import { getBrowserClient } from "@/lib/supabase/client"
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
@@ -65,7 +65,7 @@ if (!decodedStateCookie || !codeVerifier || decodedStateCookie !== state) {
     live_mode
   } = data;
 
-  const supabase = await createClient()
+  const supabase = await getBrowserClient()
 
   const expiresAt = new Date(
     Date.now() + data.expires_in * 1000

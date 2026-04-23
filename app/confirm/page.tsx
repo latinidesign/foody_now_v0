@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { getBrowserClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AuthHeader } from "@/components/auth/auth-header"
@@ -18,7 +18,7 @@ function ConfirmContent() {
       console.log('🔍 Procesando confirmación de email...')
       
       try {
-        const supabase = createClient()
+        const supabase = getBrowserClient()
         
         // Verificar si ya hay una sesión activa
         const { data: { user }, error: sessionError } = await supabase.auth.getUser()

@@ -28,15 +28,43 @@ export async function GET() {
   const { data: orders, error: ordersError } = await supabase
     .from("orders")
     .select(`
-      *,
+      id,
+      store_id,
+      customer_name,
+      customer_phone,
+      customer_email,
+      delivery_type,
+      delivery_address,
+      delivery_notes,
+      subtotal,
+      delivery_fee,
+      total,
+      status,
+      payment_status,
+      payment_id,
+      estimated_delivery_time,
+      notes,
+      created_at,
+      updated_at,
       order_items (
-        *,
-        products (name)
+        id,
+        quantity,
+        unit_price,
+        total_price,
+        products (
+          name
+        )
       ),
-      payments (id, payment_method, provider, status)
+      payments (
+        id,
+        payment_method,
+        provider,
+        status
+      )
     `)
     .eq("store_id", store.id)
     .order("created_at", { ascending: false })
+    .limit(20)
 
   if (ordersError) {
     console.error("Error fetching admin orders:", ordersError)

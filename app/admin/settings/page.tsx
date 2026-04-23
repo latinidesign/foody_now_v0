@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { StoreOnboardingForm } from "@/components/admin/store-onboarding-form"
 import { AuthHeader } from "@/components/auth/auth-header"
 
@@ -16,7 +16,7 @@ export default function AdminSettingsPage() {
     let mounted = true
 
     const checkAuth = async () => {
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {

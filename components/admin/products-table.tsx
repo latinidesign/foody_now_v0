@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2, Search, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { getBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
 interface ProductWithCategory extends Product {
@@ -30,7 +30,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
 
   const toggleAvailability = async (productId: string, isAvailable: boolean) => {
     try {
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { error } = await supabase.from("products").update({ is_available: !isAvailable }).eq("id", productId)
 
       if (error) throw error
@@ -51,7 +51,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
     if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) return
 
     try {
-      const supabase = createClient()
+      const supabase = getBrowserClient()
       const { error } = await supabase.from("products").delete().eq("id", productId)
 
       if (error) throw error
