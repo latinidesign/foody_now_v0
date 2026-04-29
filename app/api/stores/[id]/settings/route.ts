@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const settingsData = await request.json()
     const supabase = await createClient()
+    const { id } = await params
 
     const {
       data: { user },
@@ -17,7 +18,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { data: store } = await supabase
       .from("stores")
       .select("id")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("owner_id", user.id)
       .single()
 
@@ -26,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const updateData: any = {
-      store_id: params.id,
+      store_id: id,
       updated_at: new Date().toISOString(),
     }
 

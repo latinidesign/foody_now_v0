@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
+    const { id } = await params
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -13,7 +14,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Log para depuración de parámetros
-    console.log("PUT /stores/[id]/whatsapp", { paramsId: params.id, userId: user.id })
+    console.log("PUT /stores/[id]/whatsapp", { paramsId: id, userId: user.id })
 
     const body = await request.json()
     const {
@@ -30,7 +31,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { data: store } = await supabase
       .from("stores")
       .select("id")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("owner_id", user.id)
       .single()
 
@@ -42,7 +43,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .from("store_settings")
       .upsert(
         {
-          store_id: params.id,
+          store_id: id,
           whatsapp_number,
           whatsapp_notifications_enabled: whatsapp_notifications,
           whatsapp_message,

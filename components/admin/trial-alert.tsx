@@ -6,20 +6,43 @@ import Link from "next/link"
 import { memo } from "react"
 
 interface TrialAlertProps {
-  trialEndsAt: string
+  trialEndsAt?: string | null
+  userCreatedAt?: string
 }
 
-export const TrialAlert = memo(function TrialAlert({ trialEndsAt }: TrialAlertProps) {
+export const TrialAlert = memo(function TrialAlert({ trialEndsAt, userCreatedAt }: TrialAlertProps) {
   const [daysLeft, setDaysLeft] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
     const calculateDaysLeft = () => {
-      const trialEndsAtDate = new Date(trialEndsAt)
+      let effectiveEndDate = trialEndsAt
+
+      // Si no hay trial_ends_at, calcular 15 días desde la creación del usuario
+      if (!trialEndsAt && userCreatedAt) {
+        const createdDate = new Date(userCreatedAt)
+        const calculatedEndDate = new Date(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000)
+        effectiveEndDate = calculatedEndDate.toISOString()
+      }
+
+      // Si aún no tenemos una fecha válida, no mostrar el alert
+      if (!effectiveEndDate) {
+        setDaysLeft(null)
+        return
+      }
+
+      const trialEndsAtDate = new Date(effectiveEndDate)
       const now = new Date()
-      console.log("Calculando días restantes:", { trialEndsAtDate, now })
+      
+      // Validar que la fecha es válida
+      if (isNaN(trialEndsAtDate.getTime())) {
+        console.error("Fecha de fin de prueba inválida:", effectiveEndDate)
+        setDaysLeft(null)
+        return
+      }
+      
       const remaining = Math.ceil((trialEndsAtDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-      console.log("Días restantes calculados:", remaining)
+      console.log("Días restantes calculados:", remaining, { effectiveEndDate, now })
       setDaysLeft(remaining)
     }
 
@@ -27,7 +50,7 @@ export const TrialAlert = memo(function TrialAlert({ trialEndsAt }: TrialAlertPr
     const interval = setInterval(calculateDaysLeft, 60000) // Actualizar cada minuto
 
     return () => clearInterval(interval)
-  }, [trialEndsAt])
+  }, [trialEndsAt, userCreatedAt])
 
   if (daysLeft === null || daysLeft <= 0 || !isVisible) {
     return null

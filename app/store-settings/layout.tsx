@@ -29,7 +29,7 @@ export default async function StoreSettingsLayout({ children }: { children: Reac
       <div className="lg:pl-64">
         <AdminHeader user={user} store={store} />
         <main className="p-6">
-          <TrialAlert createdAt={user.created_at || new Date().toISOString()} />
+          <TrialAlert trialEndsAt={store?.trial_ends_at} userCreatedAt={user.created_at} />
           {children}
         </main>
       </div>

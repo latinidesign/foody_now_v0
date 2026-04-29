@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 //export async function PUT(request: NextRequest, context: any) {
 
   try {
@@ -37,8 +37,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .eq("id", id)
       .select()
       .single()
-    
-
 
     if (error) {
       console.error("Supabase update error:", error)
@@ -46,14 +44,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         { error: error.message, code: error.code },
         { status: 400 }
       )
-        /*if (error) {
-          console.error("Store update error:", error)
-          return NextResponse.json({ error: "Error al actualizar la tienda" }, { status: 500 })
-        }
+    }
 
-        return NextResponse.json({ store })*/
-      }
- } catch (error: any) {
+    return NextResponse.json({ store })
+  } catch (error: any) {
     console.error("API error:", error)
     console.error("UPDATE STORE ERROR:", error)
 
@@ -68,11 +62,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
+    const { id } = await params
 
-    const { data: store, error } = await supabase.from("stores").select("*").eq("id", params.id).single()
+    const { data: store, error } = await supabase.from("stores").select("*").eq("id", id).single()
 
     if (error) {
       return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })

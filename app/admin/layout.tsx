@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="lg:pl-64">
         <AdminHeader user={user} store={store} />
         <main className="p-6">
-          <TrialAlert trialEndsAt={store.trial_ends_at || new Date().toISOString()} />
+          <TrialAlert trialEndsAt={store.trial_ends_at} userCreatedAt={user.created_at} />
           <SubscriptionGuard storeId={store?.id || null}>
             {children}
           </SubscriptionGuard>

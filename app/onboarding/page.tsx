@@ -70,7 +70,7 @@ export default function OnboardingPage() {
       <AuthHeader />
       <div className="p-6">
         <div className="max-w-4xl mx-auto space-y-6">
-          <TrialAlert createdAt={userCreatedAt} />
+          <TrialAlert trialEndsAt={store?.trial_ends_at} userCreatedAt={userCreatedAt} />
           <div>
             <h1 className="text-3xl font-bold">
               {store ? "Completar configuración" : "Crear tu tienda"}
