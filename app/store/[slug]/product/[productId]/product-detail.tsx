@@ -41,6 +41,8 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const cartQuantity = getItemQuantity(variantId)
   const basePrice = product.sale_price || product.price
 
+  const maxOptionQuantity = quantity * 12
+
   const calculateAdditionalPrice = () => {
     if (!product.product_options) return 0
 
@@ -195,6 +197,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                 options={product.product_options}
                 selectedOptions={selectedOptions}
                 onOptionsChange={setSelectedOptions}
+                maxQuantity={maxOptionQuantity}
               />
             )}
 

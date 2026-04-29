@@ -3,6 +3,7 @@ import { randomUUID } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getTenantSlugFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
+import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
 
 export const runtime = "nodejs"
 
@@ -172,6 +173,15 @@ export async function POST(request: Request) {
 
     if (!Number.isFinite(unitPrice) || unitPrice < 0) {
       return fail(400, "Each item must include a valid unit price")
+    }
+
+    try {
+      ensureSelectedOptionsQuantityWithinLimit({
+        quantity,
+        selectedOptions: item.selectedOptions ?? null,
+      })
+    } catch (validationError) {
+      return fail(400, (validationError as Error).message, validationError)
     }
 
     orderItemsPayload.push({

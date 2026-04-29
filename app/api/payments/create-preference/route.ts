@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getSubdomainFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
 import { getValidAccessToken } from "@/lib/mercadopago/SellerUtils"
+import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
 
 
 export const runtime = "nodejs"
@@ -18,6 +19,7 @@ type CreatePreferencePayload = {
     name: string
     price: number
     quantity: number
+    selectedOptions?: Record<string, unknown> | null
   }>
   orderData?: {
     customerName: string
@@ -201,6 +203,17 @@ async function handleCheckoutSession(
 
   if (!Array.isArray(items) || items.length === 0) {
     return fail(400, "Items inválidos")
+  }
+
+  try {
+    items.forEach((item) => {
+      ensureSelectedOptionsQuantityWithinLimit({
+        quantity: item.quantity,
+        selectedOptions: item.selectedOptions ?? null,
+      })
+    })
+  } catch (validationError) {
+    return fail(400, (validationError as Error).message, validationError)
   }
 
   if (!orderData?.customerEmail || !orderData?.customerName) {

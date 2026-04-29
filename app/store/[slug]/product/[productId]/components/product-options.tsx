@@ -7,16 +7,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, DollarSign } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface ProductOptionsProps {
   options: any[]
   selectedOptions: Record<string, any>
   onOptionsChange: (options: Record<string, any>) => void
+  maxQuantity?: number
 }
 
 const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
-export function ProductOptions({ options, selectedOptions, onOptionsChange }: ProductOptionsProps) {
+export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQuantity }: ProductOptionsProps) {
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 
   const handleOptionChange = (optionId: string, value: any) => {
@@ -42,13 +43,28 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
     })
   }
 
+  const getMaxAvailableForValue = (optionId: string, valueId: string) => {
+    if (maxQuantity === undefined) {
+      return Infinity
+    }
+
+    const currentQuantities = quantities[optionId] || {}
+    const currentTotal = Object.values(currentQuantities).reduce((sum: number, qty: number) => sum + qty, 0)
+    const currentValue = currentQuantities[valueId] || 0
+
+    return Math.max(0, maxQuantity - (currentTotal - currentValue))
+  }
+
   const handleQuantityChange = (optionId: string, valueId: string, quantity: number) => {
+    const maxForValue = getMaxAvailableForValue(optionId, valueId)
+    const value = Math.min(Math.max(0, quantity), maxForValue)
+
     const currentQuantities = quantities[optionId] || {}
     const newQuantities = {
       ...quantities,
       [optionId]: {
         ...currentQuantities,
-        [valueId]: Math.max(0, quantity),
+        [valueId]: value,
       },
     }
     setQuantities(newQuantities)
@@ -58,10 +74,16 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
       .filter(([_, qty]) => qty > 0)
       .reduce((acc, [valueId, qty]) => ({ ...acc, [valueId]: qty }), {})
 
-    onOptionsChange({
-      ...selectedOptions,
-      [optionId]: selectedQuantities,
-    })
+    if (Object.keys(selectedQuantities).length === 0) {
+      const nextOptions = { ...selectedOptions }
+      delete nextOptions[optionId]
+      onOptionsChange(nextOptions)
+    } else {
+      onOptionsChange({
+        ...selectedOptions,
+        [optionId]: selectedQuantities,
+      })
+    }
   }
 
   const getQuantity = (optionId: string, valueId: string) => {
@@ -72,6 +94,66 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
     const optionQuantities = quantities[optionId] || {}
     return Object.values(optionQuantities).reduce((sum: number, qty: number) => sum + qty, 0)
   }
+
+  useEffect(() => {
+    if (maxQuantity === undefined) {
+      return
+    }
+
+    let changed = false
+    const nextQuantities = { ...quantities }
+
+    options.forEach((option) => {
+      if (option.type !== "quantity") {
+        return
+      }
+
+      const optionQuantities = { ...(nextQuantities[option.id] || {}) }
+      let total = Object.values(optionQuantities).reduce((sum: number, qty: number) => sum + qty, 0)
+
+      if (total <= maxQuantity) {
+        return
+      }
+
+      const valueIds = Object.keys(optionQuantities)
+      for (const valueId of valueIds.reverse()) {
+        if (total <= maxQuantity) {
+          break
+        }
+
+        const currentValue = optionQuantities[valueId]
+        const overflow = total - maxQuantity
+        const nextValue = Math.max(0, currentValue - overflow)
+
+        if (nextValue !== currentValue) {
+          optionQuantities[valueId] = nextValue
+          total -= currentValue - nextValue
+          changed = true
+        }
+      }
+
+      nextQuantities[option.id] = Object.fromEntries(
+        Object.entries(optionQuantities).filter(([, qty]) => qty > 0),
+      )
+    })
+
+    if (!changed) {
+      return
+    }
+
+    setQuantities(nextQuantities)
+
+    const nextSelectedOptions = { ...selectedOptions }
+    Object.entries(nextQuantities).forEach(([optionId, optionQuantities]) => {
+      if (Object.keys(optionQuantities).length > 0) {
+        nextSelectedOptions[optionId] = optionQuantities
+      } else {
+        delete nextSelectedOptions[optionId]
+      }
+    })
+
+    onOptionsChange(nextSelectedOptions)
+  }, [maxQuantity, options, quantities, onOptionsChange, selectedOptions])
 
   const calculateOptionPrice = (option: any, selectedValue?: any, selectedQuantities?: Record<string, number>) => {
     const optionValues = getOptionValues(option)
@@ -155,9 +237,11 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                   )}
                 </div>
               </div>
-              {option.type === "quantity" && getTotalQuantity(option.id) > 0 && (
+              {option.type === "quantity" && (
                 <p className="text-sm text-muted-foreground">
-                  Total seleccionado: {getTotalQuantity(option.id)} unidades
+                  {maxQuantity !== undefined
+                    ? `${Math.max(0, maxQuantity - getTotalQuantity(option.id))} de ${maxQuantity} disponibles`
+                    : `Total seleccionado: ${getTotalQuantity(option.id)} unidades`}
                   {optionPrice > 0 && ` (+$${optionPrice})`}
                 </p>
               )}
@@ -254,6 +338,10 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange }: Pr
                           size="sm"
                           onClick={() =>
                             handleQuantityChange(option.id, value.id, getQuantity(option.id, value.id) + 1)
+                          }
+                          disabled={
+                            maxQuantity !== undefined &&
+                            getTotalQuantity(option.id) >= maxQuantity
                           }
                         >
                           <Plus className="w-4 h-4" />

@@ -5,6 +5,7 @@ import { NextResponse } from "next/server"
 import { mapOrderStatus, mapPaymentStatus } from "@/lib/payments"
 import { enqueueCustomerConfirmation } from "@/lib/queue/queue-initializer"
 import { sendStoreNotification, buildPaymentReceivedNotification } from "@/lib/notifications/store-notifications"
+import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
 
 export const runtime = "nodejs"
 
@@ -578,6 +579,18 @@ async function handleMerchantOrderWebhook(
       
       const orderData = checkoutSession.order_data as any
       const sessionItems = checkoutSession.items as any[]
+
+      try {
+        sessionItems.forEach((item) => {
+          ensureSelectedOptionsQuantityWithinLimit({
+            quantity: item.quantity,
+            selectedOptions: item.selectedOptions ?? null,
+          })
+        })
+      } catch (validationError) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Invalid selected options for checkout session`, validationError)
+        continue
+      }
 
       // Crear la orden
       const { data: order, error: orderError } = await supabase

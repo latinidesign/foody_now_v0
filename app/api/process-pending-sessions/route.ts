@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
 
 export const runtime = "nodejs"
 
@@ -51,6 +52,18 @@ export async function POST() {
           continue
         }
         
+        try {
+          sessionItems.forEach((item: any) => {
+            ensureSelectedOptionsQuantityWithinLimit({
+              quantity: item.quantity,
+              selectedOptions: item.selectedOptions ?? null,
+            })
+          })
+        } catch (validationError) {
+          results.push({ sessionId: session.id, status: 'skipped', reason: 'Invalid selected options', error: String(validationError) })
+          continue
+        }
+
         // Crear la orden
         const { data: order, error: orderError } = await supabase
           .from("orders")

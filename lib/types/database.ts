@@ -57,7 +57,7 @@ export interface ProductOption {
   id: string
   product_id: string
   name: string
-  type: "single" | "multiple"
+  type: "single" | "multiple" | "quantity"
   is_required: boolean
   created_at: string
   values?: ProductOptionValue[]
