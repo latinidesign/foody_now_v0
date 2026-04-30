@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 import { mapOrderStatus, mapPaymentStatus } from "@/lib/payments"
 import { enqueueCustomerConfirmation } from "@/lib/queue/queue-initializer"
 import { sendStoreNotification, buildPaymentReceivedNotification } from "@/lib/notifications/store-notifications"
-import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
+import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
 
 export const runtime = "nodejs"
 
@@ -582,7 +582,7 @@ async function handleMerchantOrderWebhook(
 
       try {
         sessionItems.forEach((item) => {
-          ensureSelectedOptionsQuantityWithinLimit({
+          ensureOrderItemQuantityWithinLimit({
             quantity: item.quantity,
             selectedOptions: item.selectedOptions ?? null,
           })
@@ -624,11 +624,12 @@ async function handleMerchantOrderWebhook(
       if (sessionItems.length > 0) {
         const orderItems = sessionItems.map((item: any) => ({
           order_id: order.id,
-          product_id: item.id,
+          product_id: item.product_id ?? item.id,
           quantity: item.quantity,
           unit_price: item.price,
-          total_price: item.price * item.quantity,
+          total_price: item.total_price ?? item.price * item.quantity,
           selected_options: item.selectedOptions ?? null,
+          pricing_snapshot: item.pricing_snapshot ?? null,
         }))
 
         const { error: itemsError } = await supabase

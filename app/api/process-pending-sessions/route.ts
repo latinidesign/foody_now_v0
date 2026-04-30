@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
+import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
 
 export const runtime = "nodejs"
 
@@ -54,7 +54,7 @@ export async function POST() {
         
         try {
           sessionItems.forEach((item: any) => {
-            ensureSelectedOptionsQuantityWithinLimit({
+            ensureOrderItemQuantityWithinLimit({
               quantity: item.quantity,
               selectedOptions: item.selectedOptions ?? null,
             })
@@ -93,11 +93,12 @@ export async function POST() {
         if (sessionItems.length > 0) {
           const orderItems = sessionItems.map((item: any) => ({
             order_id: order.id,
-            product_id: item.id,
+            product_id: item.product_id ?? item.id,
             quantity: item.quantity,
             unit_price: item.price,
-            total_price: item.price * item.quantity,
+            total_price: item.total_price ?? item.price * item.quantity,
             selected_options: item.selectedOptions ?? null,
+            pricing_snapshot: item.pricing_snapshot ?? null,
           }))
 
           const { error: itemsError } = await supabase

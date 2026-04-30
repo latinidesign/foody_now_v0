@@ -26,9 +26,10 @@ interface ProductOptionValue {
 interface ProductOptionsFormProps {
   options: ProductOption[]
   onChange: (options: ProductOption[]) => void
+  pricingMode?: "default" | "unit_only" | "unit_half_dozen_dozen"
 }
 
-export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProps) {
+export function ProductOptionsForm({ options, onChange, pricingMode = "default" }: ProductOptionsFormProps) {
   const addOption = () => {
     const newOption: ProductOption = {
       name: "",
@@ -162,6 +163,8 @@ export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProp
     return Math.max(...option.values.map((v) => v.priceModifier), 0)
   }
 
+  const isPricingMode = pricingMode !== "default"
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -190,14 +193,24 @@ export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProp
         </div>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Adicionales con costo:</strong> Configura diferentes precios para mostrar las diferencias al cliente.
-          <br />
-          <strong>Ejemplo:</strong> "Papas chicas ($0), Medianas (+$50), Grandes (+$100)"
-        </AlertDescription>
-      </Alert>
+      {isPricingMode ? (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            En modo pricing, el precio por unidad/media docena/docena se configura en el producto.
+            Los valores de opción no tienen precio individual editable en este modo.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Adicionales con costo:</strong> Configura diferentes precios para mostrar las diferencias al cliente.
+            <br />
+            <strong>Ejemplo:</strong> "Papas chicas ($0), Medianas (+$50), Grandes (+$100)"
+          </AlertDescription>
+        </Alert>
+      )}
 
       {options.map((option, optionIndex) => (
         <Card key={optionIndex}>
@@ -205,7 +218,7 @@ export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProp
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CardTitle className="text-lg">Opción {optionIndex + 1}</CardTitle>
-                {getFreeOptionsCount(option) > 0 && (
+                {!isPricingMode && getFreeOptionsCount(option) > 0 && (
                   <Badge variant="secondary" className="text-xs">
                     {getFreeOptionsCount(option)} gratis
                   </Badge>
@@ -261,12 +274,19 @@ export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProp
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Valores de la Opción</Label>
-                <Button type="button" variant="outline" size="sm" onClick={() => addOptionValue(optionIndex)}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  Agregar Valor
-                </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Valores de la Opción</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={() => addOptionValue(optionIndex)}>
+                    <Plus className="w-4 h-4 mr-1" />
+                    Agregar Valor
+                  </Button>
+                </div>
+                {isPricingMode && (
+                  <p className="text-xs text-muted-foreground">
+                    En modo pricing, los precios de cada opción no se configuran aquí. El cliente pagará según el precio por unidad configurado en el producto.
+                  </p>
+                )}
               </div>
 
               {option.values.map((value, valueIndex) => (
@@ -291,7 +311,8 @@ export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProp
                           Number.parseFloat(e.target.value) || 0,
                         )
                       }
-                      placeholder="Precio extra"
+                      placeholder={isPricingMode ? "Precio no editable en pricing mode" : "Precio extra"}
+                      disabled={isPricingMode}
                       className={
                         value.priceModifier === 0
                           ? "border-green-200 bg-green-50"
@@ -300,7 +321,7 @@ export function ProductOptionsForm({ options, onChange }: ProductOptionsFormProp
                             : "border-red-200 bg-red-50"
                       }
                     />
-                    {value.priceModifier === 0 && (
+                    {value.priceModifier === 0 && !isPricingMode && (
                       <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs px-1 py-0">
                         GRATIS
                       </Badge>

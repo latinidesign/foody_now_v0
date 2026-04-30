@@ -112,9 +112,15 @@ export function ProductsTable({ products }: ProductsTableProps) {
                   </div>
                   <p className="text-sm text-muted-foreground mb-1">{product.categories?.name || "Sin categoría"}</p>
                   <div className="flex items-center gap-4 text-sm">
-                    <span className="text-primary font-extrabold">${product.price}</span>
-                    {product.sale_price && product.sale_price < product.price && (
-                      <span className="text-muted-foreground line-through">${product.sale_price}</span>
+                    {product.pricing_config ? (
+                      <span className="text-primary font-extrabold">Precio según cantidad</span>
+                    ) : (
+                      <>
+                        <span className="text-primary font-extrabold">${product.price}</span>
+                        {product.sale_price && product.sale_price < product.price && (
+                          <span className="text-muted-foreground line-through">${product.sale_price}</span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

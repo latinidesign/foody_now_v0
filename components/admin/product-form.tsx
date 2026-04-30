@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Loader2, ArrowLeft, Plus, Package, Upload, X, ImageIcon } from "lucide-react"
+import { Loader2, ArrowLeft, Plus, Package, Upload, X, ImageIcon, Info } from "lucide-react"
 import Link from "next/link"
 import type { Category } from "@/lib/types/database"
 import { ProductOptionsForm } from "./product-options-form"
@@ -61,6 +61,10 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
     description: product?.description || "",
     price: product?.price?.toString() || "",
     salePrice: product?.sale_price?.toString() || "",
+    pricingMode: product?.pricing_config?.mode || "default",
+    pricingUnitPrice: product?.pricing_config?.unit_price?.toString() || "",
+    pricingHalfDozenPrice: product?.pricing_config?.half_dozen_price?.toString() || "",
+    pricingDozenPrice: product?.pricing_config?.dozen_price?.toString() || "",
     categoryId: product?.category_id || "0",
     imageUrl: product?.image_url || "",
     galleryImages: product?.gallery_images || [],
@@ -184,6 +188,10 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
       description: "",
       price: "",
       salePrice: "",
+      pricingMode: "default",
+      pricingUnitPrice: "",
+      pricingHalfDozenPrice: "",
+      pricingDozenPrice: "",
       categoryId: "0",
       imageUrl: "",
       galleryImages: [],
@@ -199,12 +207,32 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
     setError("")
 
     try {
+      const parsedPrice = formData.price.trim() !== "" ? Number.parseFloat(formData.price) : null
+      const parsedSalePrice = formData.salePrice.trim() !== "" ? Number.parseFloat(formData.salePrice) : null
+
+      if (formData.pricingMode === "default" && (parsedPrice === null || Number.isNaN(parsedPrice))) {
+        throw new Error("Ingresa un precio base válido")
+      }
+
       const productData = {
         store_id: storeId,
         name: formData.name,
         description: formData.description || null,
-        price: Number.parseFloat(formData.price),
-        sale_price: formData.salePrice ? Number.parseFloat(formData.salePrice) : null,
+        price: parsedPrice,
+        sale_price: parsedSalePrice,
+        pricing_config:
+          formData.pricingMode === "default"
+            ? null
+            : {
+                mode: formData.pricingMode,
+                unit_price: Number.parseFloat(formData.pricingUnitPrice),
+                ...(formData.pricingMode === "unit_half_dozen_dozen"
+                  ? {
+                      half_dozen_price: Number.parseFloat(formData.pricingHalfDozenPrice),
+                      dozen_price: Number.parseFloat(formData.pricingDozenPrice),
+                    }
+                  : {}),
+              },
         category_id:
           formData.categoryId && formData.categoryId !== "" && formData.categoryId !== "0" ? formData.categoryId : null,
         image_url: formData.imageUrl || null,
@@ -233,8 +261,11 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Error al guardar el producto")
+        const errorData = await response.json().catch(() => null)
+        const serverMessage =
+          errorData?.error || errorData?.message || JSON.stringify(errorData) || "Error al guardar el producto"
+        console.error("Product form submit error:", serverMessage, errorData)
+        throw new Error(serverMessage)
       }
 
       if (continueAdding && !product) {
@@ -309,7 +340,9 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Precio *</Label>
+                <Label htmlFor="price">
+                  Precio {formData.pricingMode === "default" ? "*" : "(deshabilitado)"}
+                </Label>
                 <Input
                   id="price"
                   type="number"
@@ -318,11 +351,19 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="0.00"
-                  required
+                  required={formData.pricingMode === "default"}
+                  disabled={formData.pricingMode !== "default"}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {formData.pricingMode === "default"
+                    ? "El precio base puede ser $0 si el producto se venderá exclusivamente con precios configurados."
+                    : "El precio base se ignora en este modo; los precios se calculan desde la configuración de precios por unidad/media/docena."}
+                </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="salePrice">Precio de Oferta</Label>
+                <Label htmlFor="salePrice">
+                  Precio de Oferta {formData.pricingMode !== "default" ? "(deshabilitado)" : ""}
+                </Label>
                 <Input
                   id="salePrice"
                   type="number"
@@ -331,8 +372,98 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                   value={formData.salePrice}
                   onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
                   placeholder="0.00"
+                  disabled={formData.pricingMode !== "default"}
                 />
+                {formData.pricingMode !== "default" && (
+                  <p className="text-xs text-muted-foreground">
+                    El precio de oferta no se usa cuando el producto se calcula solo desde la configuración de precios.
+                  </p>
+                )}
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="pricingMode">Configuración de precios</Label>
+              </div>
+              <Select
+                value={formData.pricingMode}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    pricingMode: value,
+                    price: value === "default" ? formData.price : "0",
+                    salePrice: value === "default" ? formData.salePrice : "",
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Usar precio base" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="default">Usar precio base</SelectItem>
+                  <SelectItem value="unit_only">Precio por unidad fija</SelectItem>
+                  <SelectItem value="unit_half_dozen_dozen">Precio por unidad / media docena / docena</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {formData.pricingMode !== "default" && (
+                <div className="space-y-4">
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      Con esta configuración el precio se calculará desde la configuración de precios y no desde el precio base del producto.
+                      Si quieres un producto tipo "Armá tu pedido", deja el precio base en $0 y define la configuración de precios.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pricingUnitPrice">Precio por unidad *</Label>
+                      <Input
+                        id="pricingUnitPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.pricingUnitPrice}
+                        onChange={(e) => setFormData({ ...formData, pricingUnitPrice: e.target.value })}
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    {formData.pricingMode === "unit_half_dozen_dozen" && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="pricingHalfDozenPrice">Precio media docena *</Label>
+                          <Input
+                            id="pricingHalfDozenPrice"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.pricingHalfDozenPrice}
+                            onChange={(e) => setFormData({ ...formData, pricingHalfDozenPrice: e.target.value })}
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="pricingDozenPrice">Precio docena *</Label>
+                          <Input
+                            id="pricingDozenPrice"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.pricingDozenPrice}
+                            onChange={(e) => setFormData({ ...formData, pricingDozenPrice: e.target.value })}
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -392,7 +523,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar categoría" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="0">Sin categoría</SelectItem>
                   {localCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
@@ -561,7 +692,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
             <CardTitle>Adicionales y Opciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <ProductOptionsForm options={productOptions} onChange={setProductOptions} />
+            <ProductOptionsForm options={productOptions} onChange={setProductOptions} pricingMode={formData.pricingMode} />
           </CardContent>
         </Card>
 

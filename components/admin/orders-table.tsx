@@ -41,7 +41,16 @@ interface OrderWithItems extends Order {
     quantity: number
     unit_price: number
     total_price: number
-    products: { name: string }
+    selected_options?: Record<string, any> | null
+    products: {
+      name: string
+      product_options?: Array<{
+        id: string
+        name: string
+        type: string
+        product_option_values?: Array<{ id: string; name: string }>
+      }>
+    }
   }>
   payments: Array<{
     id: string
@@ -49,6 +58,59 @@ interface OrderWithItems extends Order {
     provider?: string
     status?: string
   }>
+}
+
+const parseSelectedOptions = (raw: unknown): Record<string, any> | null => {
+  if (!raw) return null
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return null
+    }
+  }
+
+  if (typeof raw === "object" && raw !== null) {
+    return raw as Record<string, any>
+  }
+
+  return null
+}
+
+const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): string[] => {
+  const parsed = parseSelectedOptions(selectedOptions)
+  if (!parsed || !product?.product_options) return []
+
+  return Object.entries(parsed).flatMap(([optionId, optionValue]) => {
+    const option = (product.product_options as any[]).find((option: any) => option.id === optionId)
+    if (!option) return []
+
+    const values = option.product_option_values ?? []
+
+    if (option.type === "single") {
+      const value = values.find((v: any) => v.id === optionValue)
+      return [`${option.name}: ${value?.name ?? optionValue}`]
+    }
+
+    if (option.type === "multiple" && Array.isArray(optionValue)) {
+      const valueNames = optionValue
+        .map((valueId: string) => values.find((v: any) => v.id === valueId)?.name ?? valueId)
+        .filter(Boolean)
+      return [`${option.name}: ${valueNames.join(", ")}`]
+    }
+
+    if (option.type === "quantity" && typeof optionValue === "object" && optionValue !== null) {
+      const quantityLines = Object.entries(optionValue as Record<string, number>)
+        .map(([valueId, qty]) => {
+          const value = values.find((v: any) => v.id === valueId)
+          return `${qty} x ${value?.name ?? valueId}`
+        })
+        .filter(Boolean)
+      return quantityLines.length > 0 ? [`${option.name}: ${quantityLines.join(", ")}`] : []
+    }
+
+    return []
+  })
 }
 
 interface StoreInfo {
@@ -813,17 +875,26 @@ Estado: ${getStatusText(status)}
                     {selectedOrder.order_items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center p-2 bg-muted rounded"
+                        className="flex flex-col gap-2 p-2 bg-muted rounded"
                       >
-                        <div>
-                          <p className="font-medium">{item.products.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatCurrency(item.unit_price)} x {item.quantity}
-                          </p>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{item.products.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatCurrency(item.unit_price)} x {item.quantity}
+                            </p>
+                          </div>
+                          <span className="font-medium">
+                            {formatCurrency(item.total_price)}
+                          </span>
                         </div>
-                        <span className="font-medium">
-                          {formatCurrency(item.total_price)}
-                        </span>
+                        {getSelectedOptionsSummary(item.selected_options, item.products).length > 0 && (
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            {getSelectedOptionsSummary(item.selected_options, item.products).map((line) => (
+                              <p key={line}>{line}</p>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

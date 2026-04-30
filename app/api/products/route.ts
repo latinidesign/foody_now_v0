@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { parsePricingConfig } from "@/lib/utils/pricing"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -32,12 +33,36 @@ export async function POST(request: NextRequest) {
       productData.category_id = null
     }
 
+    const hasPricingConfig = productData.pricing_config != null
+
+    if (productData.price === "" || productData.price == null || Number.isNaN(productData.price)) {
+      productData.price = hasPricingConfig ? 0 : null
+    }
+
+    if (productData.sale_price === "" || productData.sale_price == null || Number.isNaN(productData.sale_price)) {
+      productData.sale_price = null
+    }
+
+    if (hasPricingConfig) {
+      try {
+        productData.pricing_config = parsePricingConfig(productData.pricing_config)
+      } catch (pricingError) {
+        return NextResponse.json({ error: String(pricingError) }, { status: 400 })
+      }
+    }
+
     // Create the product in the products table (without product_options)
     const { data: product, error: productError } = await supabase.from("products").insert(productData).select().single()
 
     if (productError) {
       console.error("Product creation error:", productError)
-      return NextResponse.json({ error: "Error al crear el producto" }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: productError.message || "Error al crear el producto",
+          details: productError,
+        },
+        { status: 500 },
+      )
     }
 
     if (product_options && Array.isArray(product_options)) {
@@ -71,7 +96,13 @@ export async function POST(request: NextRequest) {
 
           if (valuesError) {
             console.error("Error creating option values:", valuesError)
-            return NextResponse.json({ error: "Error al crear los valores de opciones" }, { status: 500 })
+            return NextResponse.json(
+              {
+                error: valuesError.message || "Error al crear los valores de opciones",
+                details: valuesError,
+              },
+              { status: 500 },
+            )
           }
         }
       }

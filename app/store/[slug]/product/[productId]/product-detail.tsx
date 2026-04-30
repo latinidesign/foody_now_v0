@@ -14,6 +14,8 @@ import { ProductOptions } from "./components/product-options"
 import { RelatedProducts } from "./components/related-products"
 import { usePathname } from "next/navigation"
 import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
+import { getSelectedOptionsQuantityTotal } from "@/lib/utils/order-validation"
+import { calculateProductPrice, calculateSelectedOptionsPrice, type PricingBreakdownItem } from "@/lib/utils/pricing"
 
 interface ProductDetailProps {
   store: Store
@@ -41,7 +43,18 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const cartQuantity = getItemQuantity(variantId)
   const basePrice = product.sale_price || product.price
 
-  const maxOptionQuantity = quantity * 12
+  const selectedOptionsQuantity = getSelectedOptionsQuantityTotal(selectedOptions)
+  const isPricingProduct = Boolean(product.pricing_config)
+  const maxOptionQuantity = isPricingProduct ? undefined : quantity * 12
+  const pricingQuantity = isPricingProduct ? selectedOptionsQuantity : quantity
+
+  const pricing = pricingQuantity > 0
+    ? calculateProductPrice({ product, quantity: pricingQuantity })
+    : { total: 0, breakdown: [] }
+  const optionsTotal = calculateSelectedOptionsPrice(product, selectedOptions, isPricingProduct)
+  const pricingTotal = pricing.total + optionsTotal
+  const approximateUnitPrice = pricingQuantity > 0 ? Math.round(pricingTotal / pricingQuantity) : 0
+  const canAddToCart = !isPricingProduct || selectedOptionsQuantity > 0
 
   const calculateAdditionalPrice = () => {
     if (!product.product_options) return 0
@@ -91,10 +104,16 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
       // keep original product id for reference
       product_id: product.id,
       name: product.name,
-      price: finalPrice,
+      price: approximateUnitPrice,
+      total_price: pricingTotal,
       image_url: product.image_url,
-      quantity: quantity,
+      quantity: pricingQuantity,
       selectedOptions,
+      pricing_snapshot: {
+        config: product.pricing_config ?? null,
+        breakdown: pricing.breakdown,
+        options_total: optionsTotal,
+      },
     })
     setIsAdding(false)
   }
@@ -169,7 +188,17 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                   )}
                 </div>
                 <div className="text-right">
-                  {product.sale_price && product.sale_price < product.price ? (
+                  {product.pricing_config ? (
+                    <div>
+                      <Badge variant="secondary" className="mb-2">
+                        Precio configurado
+                      </Badge>
+                      <div>
+                        <span className="text-2xl font-bold text-primary">${pricingTotal.toFixed(2)}</span>
+                        <div className="text-sm text-muted-foreground mt-1">Precio unitario aprox. ${approximateUnitPrice}</div>
+                      </div>
+                    </div>
+                  ) : product.sale_price && product.sale_price < product.price ? (
                     <div>
                       <Badge variant="destructive" className="mb-2">
                         Oferta
@@ -182,8 +211,8 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                   ) : (
                     <span className="text-2xl font-bold text-primary">${product.price}</span>
                   )}
-                  {additionalPrice > 0 && (
-                    <div className="text-sm text-muted-foreground mt-1">+ ${additionalPrice} por opciones</div>
+                  {optionsTotal > 0 && (
+                    <div className="text-sm text-muted-foreground mt-1">+ ${optionsTotal} por opciones</div>
                   )}
                 </div>
               </div>
@@ -198,6 +227,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                 selectedOptions={selectedOptions}
                 onOptionsChange={setSelectedOptions}
                 maxQuantity={maxOptionQuantity}
+                pricingConfig={product.pricing_config ?? undefined}
               />
             )}
 
@@ -205,42 +235,82 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
             <Card>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Cantidad:</span>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        disabled={quantity <= 1}
-                      >
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      <span className="font-medium min-w-[2rem] text-center">{quantity}</span>
-                      <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
-                        <Plus className="w-4 h-4" />
-                      </Button>
+                  {isPricingProduct ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Unidades seleccionadas:</span>
+                        <span className="font-semibold">{selectedOptionsQuantity}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        La cantidad se determina mediante las variedades seleccionadas.
+                      </p>
+                      {selectedOptionsQuantity === 0 && (
+                        <p className="text-sm text-destructive">Selecciona sabores o variedades para calcular el precio.</p>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Cantidad:</span>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          disabled={quantity <= 1}
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <span className="font-medium min-w-[2rem] text-center">{quantity}</span>
+                        <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Precio base:</span>
-                      <span>${basePrice.toFixed(2)}</span>
-                    </div>
-                    {additionalPrice > 0 && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Adicionales:</span>
-                        <span>+${additionalPrice.toFixed(2)}</span>
+                    {product.pricing_config ? (
+                      <div className="space-y-2">
+                        <div className="text-sm text-muted-foreground">Detalle de precio:</div>
+                        {pricing.breakdown.map((item: PricingBreakdownItem, index) => (
+                          <div key={`${item.type}-${index}`} className="flex items-center justify-between text-sm">
+                            <span>
+                              {item.type === "dozen" && `${item.quantity} docena(s)`}
+                              {item.type === "half_dozen" && `${item.quantity} media docena(s)`}
+                              {item.type === "unit" && `${item.quantity} unidad(es)`}
+                            </span>
+                            <span>${item.total.toFixed(2)}</span>
+                          </div>
+                        ))}
+                        {optionsTotal > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Adicionales:</span>
+                            <span>+${optionsTotal.toFixed(2)}</span>
+                          </div>
+                        )}
                       </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Precio base:</span>
+                          <span>${basePrice.toFixed(2)}</span>
+                        </div>
+                        {optionsTotal > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Adicionales:</span>
+                            <span>+${optionsTotal.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </>
                     )}
+
                     <div className="flex items-center justify-between text-lg font-semibold border-t pt-2">
                       <span>Total:</span>
-                      <span>${(finalPrice * quantity).toFixed(2)}</span>
+                      <span>${pricingTotal.toFixed(2)}</span>
                     </div>
                   </div>
 
-                  <Button onClick={handleAddToCart} disabled={isAdding} className="w-full" size="lg">
+                  <Button onClick={handleAddToCart} disabled={isAdding || !canAddToCart} className="w-full" size="lg">
                     {isAdding ? (
                       "Agregando..."
                     ) : (

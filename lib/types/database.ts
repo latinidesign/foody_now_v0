@@ -37,6 +37,34 @@ export interface Category {
   created_at: string
 }
 
+export type UnitOnlyPricing = {
+  mode: "unit_only"
+  unit_price: number
+}
+
+export type UnitHalfDozenDozenPricing = {
+  mode: "unit_half_dozen_dozen"
+  unit_price: number
+  half_dozen_price: number
+  dozen_price: number
+}
+
+export type PricingConfig = UnitOnlyPricing | UnitHalfDozenDozenPricing
+
+export type PricingBreakdownItem = {
+  type: "unit" | "half_dozen" | "dozen"
+  quantity: number
+  unit_size?: number
+  unit_price: number
+  total: number
+}
+
+export interface PricingSnapshot {
+  config?: PricingConfig | null
+  breakdown: PricingBreakdownItem[]
+  options_total?: number
+}
+
 export interface Product {
   id: string
   store_id: string
@@ -45,6 +73,7 @@ export interface Product {
   description?: string
   price: number
   sale_price?: number
+  pricing_config?: PricingConfig | null
   image_url?: string
   gallery_images?: string[]
   is_available: boolean
@@ -102,6 +131,7 @@ export interface OrderItem {
   unit_price: number
   total_price: number
   selected_options?: Record<string, any>
+  pricing_snapshot?: PricingSnapshot | null
   created_at: string
   product?: Product
 }

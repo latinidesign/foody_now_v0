@@ -65,7 +65,12 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
                   <h3 className="font-semibold text-lg truncate hover:text-primary cursor-pointer">{product.name}</h3>
                 </Link>
                 <div className="text-right flex-shrink-0 ml-4">
-                  {product.sale_price && product.sale_price < product.price ? (
+                  {product.pricing_config ? (
+                    <div className="text-right">
+                      <span className="font-bold text-lg text-primary">Precio según cantidad</span>
+                      <div className="text-sm text-muted-foreground">Calculado en la ficha</div>
+                    </div>
+                  ) : product.sale_price && product.sale_price < product.price ? (
                     <div>
                       <Badge variant="destructive" className="text-xs mb-1">
                         Oferta
@@ -142,7 +147,12 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
         )}
 
         <div className="flex items-center justify-between mb-4">
-          {product.sale_price && product.sale_price < product.price ? (
+          {product.pricing_config ? (
+            <div>
+              <span className="font-bold text-lg text-primary">Precio según cantidad</span>
+              <span className="text-sm text-muted-foreground block">Calculado en la ficha</span>
+            </div>
+          ) : product.sale_price && product.sale_price < product.price ? (
             <div>
               <span className="font-bold text-lg text-primary">${product.sale_price}</span>
               <span className="text-sm text-muted-foreground line-through ml-2">${product.price}</span>

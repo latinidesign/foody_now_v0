@@ -61,8 +61,18 @@ export default async function OrdersPage() {
         quantity,
         unit_price,
         total_price,
+        selected_options,
         products (
-          name
+          name,
+          product_options (
+            id,
+            name,
+            type,
+            product_option_values (
+              id,
+              name
+            )
+          )
         )
       ),
       payments (

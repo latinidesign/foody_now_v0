@@ -65,7 +65,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                        <p className="text-primary font-semibold">${item.price}</p>
+                        <p className="text-primary font-semibold">
+                          ${item.total_price != null ? item.total_price.toFixed(2) : (item.price * item.quantity).toFixed(2)}
+                        </p>
 
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">

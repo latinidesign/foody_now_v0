@@ -3,7 +3,8 @@ import { randomUUID } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getTenantSlugFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
-import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
+import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
+import { calculateProductPrice, calculateSelectedOptionsPrice } from "@/lib/utils/pricing"
 
 export const runtime = "nodejs"
 
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
 
   const { data: storeRecord, error: storeError } = await supabase
     .from("stores")
-    .select("id, is_active")
+    .select("id, is_active, delivery_fee")
     .eq("id", resolvedStoreId)
     .single()
 
@@ -104,32 +105,13 @@ export async function POST(request: Request) {
     return fail(403, "Store is not active")
   }
 
-  const ensureNumber = (value: number | string | undefined): number => {
-    const parsed = Number(value ?? 0)
-    if (!Number.isFinite(parsed)) {
-      throw new Error(`Invalid numeric value: ${value}`)
-    }
-    return parsed
-  }
-
-  let computedSubtotal: number
-  let computedDeliveryFee: number
-  let computedTotal: number
-
-  try {
-    computedSubtotal = ensureNumber(subtotal)
-    computedDeliveryFee = ensureNumber(deliveryFee)
-    computedTotal = ensureNumber(total)
-  } catch (numberError) {
-    return fail(400, "Invalid monetary amounts", numberError)
-  }
-
   const orderItemsPayload: {
     product_id: string
     quantity: number
     unit_price: number
     total_price: number
     selected_options: Record<string, unknown> | null
+    pricing_snapshot?: Record<string, unknown> | null
   }[] = []
 
   const isValidUuid = (value: string) =>
@@ -158,10 +140,30 @@ export async function POST(request: Request) {
     return null
   }
 
+  const productIds = items
+    .map((item) => extractProductId(item))
+    .filter((id): id is string => Boolean(id))
+  const uniqueProductIds = Array.from(new Set(productIds))
+
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select(`id, price, sale_price, pricing_config, product_options (*, product_option_values (*))`)
+    .in("id", uniqueProductIds)
+
+  if (productsError) {
+    return fail(500, "Unable to load product pricing information", productsError)
+  }
+
+  const productMap = new Map<string, any>()
+  for (const product of products ?? []) {
+    if (product?.id) {
+      productMap.set(product.id, product)
+    }
+  }
+
   for (const item of items) {
     const productId = extractProductId(item)
     const quantity = Number(item.quantity ?? 0)
-    const unitPrice = Number(item.unitPrice ?? item.price ?? 0)
 
     if (!productId) {
       return fail(400, "Each item must include a product identifier")
@@ -171,12 +173,13 @@ export async function POST(request: Request) {
       return fail(400, "Each item must include a valid quantity")
     }
 
-    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-      return fail(400, "Each item must include a valid unit price")
+    const product = productMap.get(productId)
+    if (!product) {
+      return fail(404, `Product not found: ${productId}`)
     }
 
     try {
-      ensureSelectedOptionsQuantityWithinLimit({
+      ensureOrderItemQuantityWithinLimit({
         quantity,
         selectedOptions: item.selectedOptions ?? null,
       })
@@ -184,14 +187,48 @@ export async function POST(request: Request) {
       return fail(400, (validationError as Error).message, validationError)
     }
 
+    let pricing
+    try {
+      pricing = calculateProductPrice({
+        product,
+        quantity,
+      })
+    } catch (pricingError) {
+      return fail(400, "Invalid pricing configuration for product", pricingError)
+    }
+
+    const optionsTotal = calculateSelectedOptionsPrice(product, item.selectedOptions ?? null)
+    const totalPrice = pricing.total + optionsTotal
+    const unitPrice = Math.round(totalPrice / quantity)
+
     orderItemsPayload.push({
       product_id: productId,
       quantity,
       unit_price: unitPrice,
-      total_price: unitPrice * quantity,
+      total_price: totalPrice,
       selected_options: item.selectedOptions ?? null,
+      pricing_snapshot: {
+        config: product.pricing_config ?? null,
+        breakdown: pricing.breakdown,
+        options_total: optionsTotal,
+      },
     })
   }
+
+  const computedSubtotal = orderItemsPayload.reduce((sum, item) => sum + item.total_price, 0)
+  const computedDeliveryFee = orderData?.deliveryType === "delivery" ? storeRecord.delivery_fee : 0
+  const computedTotal = computedSubtotal + computedDeliveryFee
+
+  const checkoutItems = items.map((item, index) => ({
+    id: item.id,
+    product_id: orderItemsPayload[index].product_id,
+    name: (item as any).name ?? null,
+    quantity: orderItemsPayload[index].quantity,
+    price: orderItemsPayload[index].unit_price,
+    total_price: orderItemsPayload[index].total_price,
+    selectedOptions: orderItemsPayload[index].selected_options,
+    pricing_snapshot: orderItemsPayload[index].pricing_snapshot,
+  }))
 
   try {
     const { data: order, error: orderError } = await supabase
@@ -264,7 +301,7 @@ export async function POST(request: Request) {
         .from("checkout_sessions")
         .insert({
           store_id: storeRecord.id,
-          items,
+          items: checkoutItems,
           order_data: orderData,
           subtotal: computedSubtotal,
           delivery_fee: computedDeliveryFee,

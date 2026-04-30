@@ -14,10 +14,11 @@ interface ProductOptionsProps {
   selectedOptions: Record<string, any>
   onOptionsChange: (options: Record<string, any>) => void
   maxQuantity?: number
+  pricingConfig?: { unit_price: number }
 }
 
 const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
-export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQuantity }: ProductOptionsProps) {
+export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQuantity, pricingConfig }: ProductOptionsProps) {
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 
   const handleOptionChange = (optionId: string, value: any) => {
@@ -161,6 +162,9 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
     if (option.type === "quantity" && selectedQuantities) {
       return Object.entries(selectedQuantities).reduce((total, [valueId, qty]) => {
         const value = optionValues.find((v: any) => v.id === valueId)
+        if (pricingConfig) {
+          return total + pricingConfig.unit_price * qty + (value?.price_modifier || 0)
+        }
         return total + (value?.price_modifier || 0) * qty
       }, 0)
     }
@@ -184,6 +188,14 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
     return options.reduce((total, option) => {
       const selectedValue = selectedOptions[option.id]
       const selectedQuantities = option.type === "quantity" ? selectedValue : null
+
+      if (pricingConfig && option.type === "quantity" && selectedQuantities) {
+        return total + Object.entries(selectedQuantities).reduce((subtotal, [valueId, qty]) => {
+          const value = getOptionValues(option).find((v: any) => v.id === valueId)
+          return subtotal + (value?.price_modifier || 0) * qty
+        }, 0)
+      }
+
       return total + calculateOptionPrice(option, selectedValue, selectedQuantities)
     }, 0)
   }
@@ -204,7 +216,14 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
 
       {options.map((option) => {
         const selectedValue = selectedOptions[option.id]
-        const optionPrice = calculateOptionPrice(option, selectedValue, selectedValue)
+        const selectedQuantities = option.type === "quantity" ? selectedValue : undefined
+        const optionPrice = calculateOptionPrice(option, selectedValue, selectedQuantities)
+        const optionExtras = pricingConfig && option.type === "quantity" && selectedQuantities
+          ? Object.entries(selectedQuantities).reduce((total, [valueId, qty]) => {
+              const value = getOptionValues(option).find((v: any) => v.id === valueId)
+              return total + (value?.price_modifier || 0) * qty
+            }, 0)
+          : optionPrice
 
         return (
           <Card key={option.id}>
@@ -220,7 +239,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                       Por cantidad
                     </Badge>
                   )}
-                  {getOptionValues(option).some((v: any) => v.price_modifier === 0) && (
+                  {(!pricingConfig || option.type !== "quantity") && getOptionValues(option).some((v: any) => v.price_modifier === 0) && (
                     <Badge variant="secondary" className="text-xs">
                       Opciones gratis
                     </Badge>
@@ -230,11 +249,15 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                       Con costo extra
                     </Badge>
                   )}
-                  {optionPrice > 0 && (
+                  {pricingConfig && option.type === "quantity" ? (
+                    <Badge variant="default" className="text-xs">
+                      ${pricingConfig.unit_price} c/u
+                    </Badge>
+                  ) : optionPrice > 0 ? (
                     <Badge variant="default" className="text-xs">
                       +${optionPrice}
                     </Badge>
-                  )}
+                  ) : null}
                 </div>
               </div>
               {option.type === "quantity" && (
@@ -242,7 +265,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                   {maxQuantity !== undefined
                     ? `${Math.max(0, maxQuantity - getTotalQuantity(option.id))} de ${maxQuantity} disponibles`
                     : `Total seleccionado: ${getTotalQuantity(option.id)} unidades`}
-                  {optionPrice > 0 && ` (+$${optionPrice})`}
+                  {optionExtras > 0 && ` (+$${optionExtras})`}
                 </p>
               )}
             </CardHeader>
@@ -258,7 +281,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         <RadioGroupItem value={value.id} id={value.id} />
                         <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
                           {value.name}
-                          {value.price_modifier === 0 && (
+                          {!(pricingConfig && option.type === "quantity") && value.price_modifier === 0 && (
                             <Badge variant="secondary" className="text-xs">
                               GRATIS
                             </Badge>
@@ -287,7 +310,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         />
                         <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
                           {value.name}
-                          {value.price_modifier === 0 && (
+                          {!(pricingConfig && option.type === "quantity") && value.price_modifier === 0 && (
                             <Badge variant="secondary" className="text-xs">
                               GRATIS
                             </Badge>
@@ -308,16 +331,20 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                     <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{value.name}</span>
-                        {value.price_modifier === 0 && (
+                        {!(pricingConfig && option.type === "quantity") && value.price_modifier === 0 && (
                           <Badge variant="secondary" className="text-xs">
                             GRATIS
                           </Badge>
                         )}
-                        {value.price_modifier !== 0 && (
+                        {pricingConfig ? (
+                          <Badge variant="default" className="text-xs">
+                            +${pricingConfig.unit_price} c/u
+                          </Badge>
+                        ) : value.price_modifier !== 0 ? (
                           <Badge variant={value.price_modifier > 0 ? "default" : "destructive"} className="text-xs">
                             {value.price_modifier > 0 ? "+" : ""}${value.price_modifier} c/u
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button

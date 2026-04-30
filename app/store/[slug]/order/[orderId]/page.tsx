@@ -8,6 +8,59 @@ import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
+const parseSelectedOptions = (raw: unknown): Record<string, any> | null => {
+  if (!raw) return null
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return null
+    }
+  }
+
+  if (typeof raw === "object" && raw !== null) {
+    return raw as Record<string, any>
+  }
+
+  return null
+}
+
+const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): string[] => {
+  const parsed = parseSelectedOptions(selectedOptions)
+  if (!parsed || !product?.product_options) return []
+
+  return Object.entries(parsed).flatMap(([optionId, optionValue]) => {
+    const option = (product.product_options as any[]).find((option: any) => option.id === optionId)
+    if (!option) return []
+
+    const values = option.product_option_values ?? []
+
+    if (option.type === "single") {
+      const value = values.find((v: any) => v.id === optionValue)
+      return [`${option.name}: ${value?.name ?? optionValue}`]
+    }
+
+    if (option.type === "multiple" && Array.isArray(optionValue)) {
+      const valueNames = optionValue
+        .map((valueId: string) => values.find((v: any) => v.id === valueId)?.name ?? valueId)
+        .filter(Boolean)
+      return [`${option.name}: ${valueNames.join(", ")}`]
+    }
+
+    if (option.type === "quantity" && typeof optionValue === "object" && optionValue !== null) {
+      const quantityLines = Object.entries(optionValue as Record<string, number>)
+        .map(([valueId, qty]) => {
+          const value = values.find((v: any) => v.id === valueId)
+          return `${qty} x ${value?.name ?? valueId}`
+        })
+        .filter(Boolean)
+      return quantityLines.length > 0 ? [`${option.name}: ${quantityLines.join(", ")}`] : []
+    }
+
+    return []
+  })
+}
+
 interface OrderPageProps {
   params: Promise<{ slug: string; orderId: string }>
 }
@@ -26,7 +79,15 @@ export default async function OrderPage({ params }: OrderPageProps) {
       stores (name, phone, address),
       order_items (
         *,
-        products (name, image_url)
+        selected_options,
+        products (
+          name,
+          image_url,
+          product_options (
+            *,
+            product_option_values (*)
+          )
+        )
       ),
       payments (provider, payment_method, status)
     `)
@@ -192,6 +253,13 @@ export default async function OrderPage({ params }: OrderPageProps) {
                   <p className="text-sm text-muted-foreground">
                     ${item.unit_price} x {item.quantity} = ${item.total_price}
                   </p>
+                  {getSelectedOptionsSummary(item.selected_options, item.products).length > 0 && (
+                    <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                      {getSelectedOptionsSummary(item.selected_options, item.products).map((line) => (
+                        <p key={line}>{line}</p>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

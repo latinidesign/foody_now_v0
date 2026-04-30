@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { parsePricingConfig } from "@/lib/utils/pricing"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -31,6 +32,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       productData.category_id = null
     }
 
+    const hasPricingConfig = productData.pricing_config != null
+
+    if (productData.price === "" || productData.price == null || Number.isNaN(productData.price)) {
+      productData.price = hasPricingConfig ? 0 : null
+    }
+
+    if (productData.sale_price === "" || productData.sale_price == null || Number.isNaN(productData.sale_price)) {
+      productData.sale_price = null
+    }
+
+    if (hasPricingConfig) {
+      try {
+        productData.pricing_config = parsePricingConfig(productData.pricing_config)
+      } catch (pricingError) {
+        return NextResponse.json({ error: String(pricingError) }, { status: 400 })
+      }
+    }
+
     // Update the product in the products table (without product_options)
     const { data: updatedProduct, error: productError } = await supabase
       .from("products")
@@ -41,7 +60,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (productError) {
       console.error("Product update error:", productError)
-      return NextResponse.json({ error: "Error al actualizar el producto" }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: productError.message || "Error al actualizar el producto",
+          details: productError,
+        },
+        { status: 500 },
+      )
     }
 
     if (product_options && Array.isArray(product_options)) {
@@ -50,7 +75,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       if (deleteOptionsError) {
         console.error("Error deleting existing options:", deleteOptionsError)
-        return NextResponse.json({ error: "Error al actualizar las opciones" }, { status: 500 })
+        return NextResponse.json(
+          {
+            error: deleteOptionsError.message || "Error al actualizar las opciones",
+            details: deleteOptionsError,
+          },
+          { status: 500 },
+        )
       }
 
       // Insert new options
@@ -68,7 +99,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         if (optionError) {
           console.error("Error creating option:", optionError)
-          return NextResponse.json({ error: "Error al crear las opciones" }, { status: 500 })
+          return NextResponse.json(
+            {
+              error: optionError.message || "Error al crear las opciones",
+              details: optionError,
+            },
+            { status: 500 },
+          )
         }
 
         // Insert option values
@@ -83,7 +120,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
           if (valuesError) {
             console.error("Error creating option values:", valuesError)
-            return NextResponse.json({ error: "Error al crear los valores de opciones" }, { status: 500 })
+            return NextResponse.json(
+              {
+                error: valuesError.message || "Error al crear los valores de opciones",
+                details: valuesError,
+              },
+              { status: 500 },
+            )
           }
         }
       }

@@ -8,9 +8,11 @@ interface CartItem {
   product_id?: string
   name: string
   price: number
+  total_price?: number
   quantity: number
   image_url?: string
   selectedOptions?: Record<string, any>
+  pricing_snapshot?: Record<string, any> | null
 }
 
 interface CartState {
@@ -34,6 +36,10 @@ const CartContext = createContext<{
   getItemQuantity: (id: string) => number
 } | null>(null)
 
+function getLineTotal(item: CartItem): number {
+  return typeof item.total_price === "number" ? item.total_price : item.price * item.quantity
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
@@ -41,12 +47,21 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
       if (existingItem) {
         const updatedItems = state.items.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: item.quantity + action.payload.quantity } : item,
+          item.id === action.payload.id
+            ? {
+                ...item,
+                quantity: item.quantity + action.payload.quantity,
+                total_price:
+                  typeof item.total_price === "number" && typeof action.payload.total_price === "number"
+                    ? item.total_price + action.payload.total_price
+                    : item.price * (item.quantity + action.payload.quantity),
+              }
+            : item,
         )
         return {
           ...state,
           items: updatedItems,
-          total: updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+          total: updatedItems.reduce((sum, item) => sum + getLineTotal(item), 0),
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
         }
       }
@@ -55,7 +70,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return {
         ...state,
         items: newItems,
-        total: newItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        total: newItems.reduce((sum, item) => sum + getLineTotal(item), 0),
         itemCount: newItems.reduce((sum, item) => sum + item.quantity, 0),
       }
     }
@@ -66,7 +81,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         return {
           ...state,
           items: filteredItems,
-          total: filteredItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+          total: filteredItems.reduce((sum, item) => sum + getLineTotal(item), 0),
           itemCount: filteredItems.reduce((sum, item) => sum + item.quantity, 0),
         }
       }
@@ -77,7 +92,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return {
         ...state,
         items: updatedItems,
-        total: updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        total: updatedItems.reduce((sum, item) => sum + getLineTotal(item), 0),
         itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
       }
     }
@@ -87,7 +102,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return {
         ...state,
         items: filteredItems,
-        total: filteredItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        total: filteredItems.reduce((sum, item) => sum + getLineTotal(item), 0),
         itemCount: filteredItems.reduce((sum, item) => sum + item.quantity, 0),
       }
     }

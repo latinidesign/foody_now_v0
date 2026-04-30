@@ -4,7 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getSubdomainFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
 import { getValidAccessToken } from "@/lib/mercadopago/SellerUtils"
-import { ensureSelectedOptionsQuantityWithinLimit } from "@/lib/utils/order-validation"
+import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
+import { calculateProductPrice, calculateSelectedOptionsPrice } from "@/lib/utils/pricing"
 
 
 export const runtime = "nodejs"
@@ -199,7 +200,7 @@ async function handleCheckoutSession(
   cid: string,
   fail: (status: number, message: string, context?: unknown) => Response
 ) {
-  const { storeId, items, orderData, subtotal, deliveryFee, total } = body
+  const { storeId, items, orderData } = body
 
   if (!Array.isArray(items) || items.length === 0) {
     return fail(400, "Items inválidos")
@@ -207,7 +208,7 @@ async function handleCheckoutSession(
 
   try {
     items.forEach((item) => {
-      ensureSelectedOptionsQuantityWithinLimit({
+      ensureOrderItemQuantityWithinLimit({
         quantity: item.quantity,
         selectedOptions: item.selectedOptions ?? null,
       })
@@ -224,7 +225,7 @@ async function handleCheckoutSession(
 
   const { data: store, error: storeError } = await supabase
     .from("stores")
-    .select("id, slug, is_active")
+    .select("id, slug, is_active, delivery_fee")
     .eq("id", storeId)
     .single()
 
@@ -235,6 +236,115 @@ async function handleCheckoutSession(
   if (!store.is_active) {
     return fail(403, "La tienda no está activa")
   }
+
+  const isValidUuid = (value: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+
+  const extractProductId = (item: any): string | null => {
+    const candidates = [item.product_id, item.productId, item.id]
+
+    for (const candidate of candidates) {
+      if (typeof candidate !== "string") {
+        continue
+      }
+
+      if (isValidUuid(candidate)) {
+        return candidate
+      }
+
+      if (candidate.includes(":")) {
+        const [variantProductId] = candidate.split(":")
+        if (variantProductId && isValidUuid(variantProductId)) {
+          return variantProductId
+        }
+      }
+    }
+
+    return null
+  }
+
+  const productIds = items
+    .map((item) => extractProductId(item))
+    .filter((id): id is string => Boolean(id))
+  const uniqueProductIds = Array.from(new Set(productIds))
+
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select(`id, price, sale_price, pricing_config, product_options (*, product_option_values (*))`)
+    .in("id", uniqueProductIds)
+
+  if (productsError) {
+    return fail(500, "Unable to load product pricing information", productsError)
+  }
+
+  const productMap = new Map<string, any>()
+  for (const product of products ?? []) {
+    if (product?.id) {
+      productMap.set(product.id, product)
+    }
+  }
+
+  const checkoutItems = [] as Array<any>
+
+  for (const item of items) {
+    const productId = extractProductId(item)
+    const quantity = Number(item.quantity ?? 0)
+
+    if (!productId) {
+      return fail(400, "Each item must include a product identifier")
+    }
+
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return fail(400, "Each item must include a valid quantity")
+    }
+
+    const product = productMap.get(productId)
+    if (!product) {
+      return fail(404, `Product not found: ${productId}`)
+    }
+
+    try {
+      ensureOrderItemQuantityWithinLimit({
+        quantity,
+        selectedOptions: item.selectedOptions ?? null,
+      })
+    } catch (validationError) {
+      return fail(400, (validationError as Error).message, validationError)
+    }
+
+    let pricing
+    try {
+      pricing = calculateProductPrice({
+        product,
+        quantity,
+      })
+    } catch (pricingError) {
+      return fail(400, "Invalid pricing configuration for product", pricingError)
+    }
+
+    const optionsTotal = calculateSelectedOptionsPrice(product, item.selectedOptions ?? null)
+    const totalPrice = pricing.total + optionsTotal
+    const unitPrice = Math.round(totalPrice / quantity)
+
+    checkoutItems.push({
+      id: item.id,
+      product_id: productId,
+      name: item.name,
+      quantity,
+      price: unitPrice,
+      total_price: totalPrice,
+      selectedOptions: item.selectedOptions ?? null,
+      pricing_snapshot: {
+        config: product.pricing_config ?? null,
+        breakdown: pricing.breakdown,
+        options_total: optionsTotal,
+      },
+    })
+  }
+
+  const computedSubtotal = checkoutItems.reduce((sum, item) => sum + item.total_price, 0)
+  const computedDeliveryFee = orderData?.deliveryType === "delivery" ? store.delivery_fee : 0
+  const computedTotal = computedSubtotal + computedDeliveryFee
 
   let accessToken: string
 
@@ -255,11 +365,11 @@ async function handleCheckoutSession(
     .from("checkout_sessions")
     .insert({
       store_id: store.id,
-      items,
+      items: checkoutItems,
       order_data: orderData,
-      subtotal,
-      delivery_fee: deliveryFee,
-      total,
+      subtotal: computedSubtotal,
+      delivery_fee: computedDeliveryFee,
+      total: computedTotal,
       external_reference: externalReference,
       status: "pending",
       payment_status: "pending",
@@ -277,7 +387,7 @@ async function handleCheckoutSession(
   const tenantBase = `${normalizedBaseUrl}/store/${store.slug}`
 
   const preferenceData = {
-    items: items.map((item: any) => ({
+    items: checkoutItems.map((item: any) => ({
       id: item.id,
       title: item.name,
       quantity: item.quantity,
