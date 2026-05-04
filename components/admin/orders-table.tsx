@@ -162,15 +162,26 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
     })
 
     const itemsHtml = order.order_items
-      .map(
-        (item) => `
-        <div class="item">
-          <span class="qty">${item.quantity}x</span>
-          <span class="name">${item.products.name}</span>
-          <span class="price">${formatCurrency(item.total_price)}</span>
-        </div>
-      `
-      )
+      .map((item) => {
+        const optionLines = getSelectedOptionsSummary(item.selected_options, item.products)
+          .map((line) => `
+            <div class="item option-line">
+              <span class="qty"></span>
+              <span class="name">${line}</span>
+              <span class="price"></span>
+            </div>
+          `)
+          .join("")
+
+        return `
+          <div class="item">
+            <span class="qty">${item.quantity}x</span>
+            <span class="name">${item.products.name}</span>
+            <span class="price">${formatCurrency(item.total_price)}</span>
+          </div>
+          ${optionLines}
+        `
+      })
       .join("")
 
     const deliveryLabel = order.delivery_type === "pickup" ? "Retiro en local" : "Delivery"
@@ -197,6 +208,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
             .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; gap: 6px; }
             .row-medium { font-size: 1.2rem; line-height: 1.4rem; }
             .item { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 3px; }
+            .option-line { font-size: 11px; color: #333; margin-left: 20px; }
             .qty { min-width: 28px; font-size: 1.5rem;}
             .name { flex: 1; font-size: 1.5rem; line-height: 1.6rem; }
             .price { min-width: 60px; text-align: right; }
