@@ -45,8 +45,17 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
 
   const selectedOptionsQuantity = getSelectedOptionsQuantityTotal(selectedOptions)
   const isPricingProduct = Boolean(product.pricing_config)
-  const maxOptionQuantity = isPricingProduct ? undefined : quantity
-  const pricingQuantity = isPricingProduct ? selectedOptionsQuantity : quantity
+  const packSize = product.pricing_config?.mode === "unit_only" ? Number(product.pricing_config.quantity) : undefined
+  const maxOptionQuantity = isPricingProduct
+    ? product.pricing_config?.mode === "unit_only"
+      ? packSize * quantity
+      : undefined
+    : quantity
+  const pricingQuantity = isPricingProduct
+    ? product.pricing_config?.mode === "unit_only"
+      ? Math.max(selectedOptionsQuantity, packSize * quantity)
+      : selectedOptionsQuantity
+    : quantity
 
   const pricing = pricingQuantity > 0
     ? calculateProductPrice({ product, quantity: pricingQuantity })
@@ -195,7 +204,11 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                       </Badge>
                       <div>
                         <span className="text-2xl font-bold text-primary">${pricingTotal.toFixed(2)}</span>
-                        <div className="text-sm text-muted-foreground mt-1">Precio unitario aprox. ${approximateUnitPrice}</div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {product.pricing_config.mode === "unit_only"
+                            ? `Pack de ${product.pricing_config.quantity} unidad(es)`
+                            : `Precio unitario aprox. $${approximateUnitPrice}`}
+                        </div>
                       </div>
                     </div>
                   ) : product.sale_price && product.sale_price < product.price ? (
@@ -236,13 +249,38 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
               <CardContent className="p-6">
                 <div className="space-y-4">
                   {isPricingProduct ? (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Cantidad de packs/conjuntos:</span>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            disabled={quantity <= 1}
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="font-medium min-w-[2rem] text-center">{quantity}</span>
+                          <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      {packSize && (
+                        <div className="text-sm text-muted-foreground">
+                          Total de unidades del pack: <span className="font-semibold">{quantity * packSize}</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Unidades seleccionadas:</span>
                         <span className="font-semibold">{selectedOptionsQuantity}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        La cantidad se determina mediante las variedades seleccionadas.
+                        Selecciona hasta {packSize ? quantity * packSize : "la cantidad deseada"} variedades.
+                        {product.pricing_config?.mode === "unit_only" && (
+                          <span> Se cobrará un pack completo de {product.pricing_config.quantity} unidad(es).</span>
+                        )}
                       </p>
                       {selectedOptionsQuantity === 0 && (
                         <p className="text-sm text-destructive">Selecciona sabores o variedades para calcular el precio.</p>
@@ -277,7 +315,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                             <span>
                               {item.type === "dozen" && `${item.quantity} docena(s)`}
                               {item.type === "half_dozen" && `${item.quantity} media docena(s)`}
-                              {item.type === "unit" && `${item.quantity} unidad(es)`}
+                              {item.type === "unit" && item.unit_size ? `${item.quantity} pack(s) de ${item.unit_size} unidad(es)` : `${item.quantity} unidad(es)`}
                             </span>
                             <span>${item.total.toFixed(2)}</span>
                           </div>

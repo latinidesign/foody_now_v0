@@ -65,6 +65,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
     pricingUnitPrice: product?.pricing_config?.unit_price?.toString() || "",
     pricingHalfDozenPrice: product?.pricing_config?.half_dozen_price?.toString() || "",
     pricingDozenPrice: product?.pricing_config?.dozen_price?.toString() || "",
+    pricingQuantity: product?.pricing_config?.quantity?.toString() || "",
     categoryId: product?.category_id || "0",
     imageUrl: product?.image_url || "",
     galleryImages: product?.gallery_images || [],
@@ -214,6 +215,13 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
         throw new Error("Ingresa un precio base válido")
       }
 
+      if (formData.pricingMode === "unit_only") {
+        const quantity = Number.parseInt(formData.pricingQuantity)
+        if (!formData.pricingQuantity.trim() || Number.isNaN(quantity) || quantity < 1 || quantity > 100) {
+          throw new Error("Ingresa una cantidad válida entre 1 y 100 para el pack/conjunto")
+        }
+      }
+
       const productData = {
         store_id: storeId,
         name: formData.name,
@@ -226,6 +234,11 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
             : {
                 mode: formData.pricingMode,
                 unit_price: Number.parseFloat(formData.pricingUnitPrice),
+                ...(formData.pricingMode === "unit_only"
+                  ? {
+                      quantity: Number.parseInt(formData.pricingQuantity),
+                    }
+                  : {}),
                 ...(formData.pricingMode === "unit_half_dozen_dozen"
                   ? {
                       half_dozen_price: Number.parseFloat(formData.pricingHalfDozenPrice),
@@ -402,7 +415,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   <SelectItem value="default">Usar precio base</SelectItem>
-                  <SelectItem value="unit_only">Precio por unidad fija</SelectItem>
+                  <SelectItem value="unit_only">Precio por unidad, pack o conjunto fijo</SelectItem>
                   <SelectItem value="unit_half_dozen_dozen">Precio por unidad / media docena / docena</SelectItem>
                 </SelectContent>
               </Select>
@@ -419,7 +432,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="pricingUnitPrice">Precio por unidad *</Label>
+                      <Label htmlFor="pricingUnitPrice">Precio por unidad, pack o conjunto</Label>
                       <Input
                         id="pricingUnitPrice"
                         type="number"
@@ -431,6 +444,21 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                         required
                       />
                     </div>
+                    {formData.pricingMode === "unit_only" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="pricingQuantity">Cantidad del pack/conjunto</Label>
+                        <Input
+                          id="pricingQuantity"
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={formData.pricingQuantity}
+                          onChange={(e) => setFormData({ ...formData, pricingQuantity: e.target.value })}
+                          placeholder="1"
+                          required
+                        />
+                      </div>
+                    )}
                     {formData.pricingMode === "unit_half_dozen_dozen" && (
                       <>
                         <div className="space-y-2">

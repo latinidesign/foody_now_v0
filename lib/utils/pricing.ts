@@ -1,6 +1,7 @@
 export type UnitOnlyPricing = {
   mode: "unit_only"
   unit_price: number
+  quantity: number
 }
 
 export type UnitHalfDozenDozenPricing = {
@@ -56,6 +57,7 @@ export function parsePricingConfig(raw: unknown): PricingConfig | undefined {
     return {
       mode: "unit_only",
       unit_price: ensureNumber(config.unit_price, "unit_price"),
+      quantity: ensureNumber(config.quantity, "quantity"),
     }
   }
 
@@ -123,13 +125,19 @@ function calculateUnitOnly(quantity: number, config: UnitOnlyPricing): PricingRe
     throw new Error("Invalid unit_price in pricing_config")
   }
 
-  const total = config.unit_price * quantity
+  if (!Number.isFinite(config.quantity) || config.quantity < 1) {
+    throw new Error("Invalid quantity in pricing_config")
+  }
+
+  const packs = Math.ceil(quantity / config.quantity)
+  const total = packs * config.unit_price
   return {
     total,
     breakdown: [
       {
         type: "unit",
-        quantity,
+        quantity: packs,
+        unit_size: config.quantity,
         unit_price: config.unit_price,
         total,
       },
@@ -224,17 +232,11 @@ export function calculateSelectedOptionsPrice(
     const optionValues = getOptionValues(option)
 
     if (option.type === "quantity" && selectedValue && typeof selectedValue === "object" && !Array.isArray(selectedValue)) {
-      const isPricingProduct = pricingConfigOverride || Boolean(product.pricing_config)
       for (const [valueId, qty] of Object.entries(selectedValue)) {
         const parsedQty = Number(qty)
         if (!Number.isFinite(parsedQty) || parsedQty <= 0) continue
         const value = optionValues.find((v: any) => String(v.id) === valueId)
-        if (isPricingProduct) {
-          // Pricing config already includes base unit pricing. Ignore quantity-option base modifiers.
-          total += 0
-        } else {
-          total += (value?.price_modifier ?? 0) * parsedQty
-        }
+        total += (value?.price_modifier ?? 0) * parsedQty
       }
       continue
     }

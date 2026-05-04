@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, DollarSign } from "lucide-react"
 import { useEffect, useState } from "react"
+import type { PricingConfig } from "@/lib/utils/pricing"
 
 interface ProductOptionsProps {
   options: any[]
   selectedOptions: Record<string, any>
   onOptionsChange: (options: Record<string, any>) => void
   maxQuantity?: number
-  pricingConfig?: { unit_price: number }
+  pricingConfig?: PricingConfig
 }
 
 const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
@@ -162,9 +163,6 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
     if (option.type === "quantity" && selectedQuantities) {
       return Object.entries(selectedQuantities).reduce((total, [valueId, qty]) => {
         const value = optionValues.find((v: any) => v.id === valueId)
-        if (pricingConfig) {
-          return total + pricingConfig.unit_price * qty + (value?.price_modifier || 0)
-        }
         return total + (value?.price_modifier || 0) * qty
       }, 0)
     }
@@ -251,7 +249,9 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                   )}
                   {pricingConfig && option.type === "quantity" ? (
                     <Badge variant="default" className="text-xs">
-                      ${pricingConfig.unit_price} c/u
+                      {pricingConfig.mode === "unit_only"
+                        ? `$${pricingConfig.unit_price} por pack`
+                        : `$${pricingConfig.unit_price} c/u`}
                     </Badge>
                   ) : optionPrice > 0 ? (
                     <Badge variant="default" className="text-xs">
@@ -337,9 +337,15 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                           </Badge>
                         )}
                         {pricingConfig ? (
-                          <Badge variant="default" className="text-xs">
-                            +${pricingConfig.unit_price} c/u
-                          </Badge>
+                          value.price_modifier > 0 ? (
+                            <Badge variant="default" className="text-xs">
+                              +${value.price_modifier} c/u
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              GRATIS
+                            </Badge>
+                          )
                         ) : value.price_modifier !== 0 ? (
                           <Badge variant={value.price_modifier > 0 ? "default" : "destructive"} className="text-xs">
                             {value.price_modifier > 0 ? "+" : ""}${value.price_modifier} c/u

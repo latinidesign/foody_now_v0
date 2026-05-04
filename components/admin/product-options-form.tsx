@@ -193,24 +193,14 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
         </div>
       </div>
 
-      {isPricingMode ? (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            En modo pricing, el precio por unidad/media docena/docena se configura en el producto.
-            Los valores de opción no tienen precio individual editable en este modo.
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Adicionales con costo:</strong> Configura diferentes precios para mostrar las diferencias al cliente.
-            <br />
-            <strong>Ejemplo:</strong> "Papas chicas ($0), Medianas (+$50), Grandes (+$100)"
-          </AlertDescription>
-        </Alert>
-      )}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          En modo pricing, el precio base se configura en el producto.
+          Los valores de opción pueden tener un costo adicional por unidad dentro del pack/conjunto.
+          Deja el precio en 0 para indicar que no hay costo extra.
+        </AlertDescription>
+      </Alert>
 
       {options.map((option, optionIndex) => (
         <Card key={optionIndex}>
@@ -311,8 +301,7 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                           Number.parseFloat(e.target.value) || 0,
                         )
                       }
-                      placeholder={isPricingMode ? "Precio no editable en pricing mode" : "Precio extra"}
-                      disabled={isPricingMode}
+                      placeholder="Costo extra (0 para sin costo)"
                       className={
                         value.priceModifier === 0
                           ? "border-green-200 bg-green-50"

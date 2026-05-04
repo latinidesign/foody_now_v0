@@ -40,6 +40,7 @@ export interface Category {
 export type UnitOnlyPricing = {
   mode: "unit_only"
   unit_price: number
+  quantity: number
 }
 
 export type UnitHalfDozenDozenPricing = {
