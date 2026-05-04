@@ -45,7 +45,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
 
   const selectedOptionsQuantity = getSelectedOptionsQuantityTotal(selectedOptions)
   const isPricingProduct = Boolean(product.pricing_config)
-  const maxOptionQuantity = isPricingProduct ? undefined : quantity * 12
+  const maxOptionQuantity = isPricingProduct ? undefined : quantity
   const pricingQuantity = isPricingProduct ? selectedOptionsQuantity : quantity
 
   const pricing = pricingQuantity > 0

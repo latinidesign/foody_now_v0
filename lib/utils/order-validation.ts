@@ -52,7 +52,7 @@ export function ensureOrderItemQuantityWithinLimit(
 
 export function ensureSelectedOptionsQuantityWithinLimit(
   item: { quantity: number; selectedOptions?: SelectedOptions | null },
-  maxUnitsPerProduct = 12,
+  maxUnitsPerProduct = 1,
 ) {
   const quantity = Number(item.quantity ?? 0)
   if (!Number.isFinite(quantity) || quantity <= 0) {
