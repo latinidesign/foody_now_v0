@@ -18,8 +18,9 @@ import { LocationMap } from "@/components/store/location-map"
 interface StoreSettingsFormProps {
   store: Store
   settings: StoreSettings | null
-  mp: string
-  mp_account_id?: string
+  mpStatus: "connected" | "disconnected"
+  mpData?: any
+  defaultTab?: string
 }
 
 interface BusinessHours {
@@ -62,11 +63,12 @@ export function MpAlert() {
   )
 }
 
-export function StoreSettingsForm({ store, settings, mp, mp_account_id }: StoreSettingsFormProps) {
+export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTab = "store" }: StoreSettingsFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [showToken, setShowToken] = useState(false)
+  const [showMpPublicKey, setShowMpPublicKey] = useState(false)
   const logoFileRef = useRef<HTMLInputElement>(null)
   const headerFileRef = useRef<HTMLInputElement>(null)
   const galleryFileRef = useRef<HTMLInputElement>(null)
@@ -262,7 +264,7 @@ export function StoreSettingsForm({ store, settings, mp, mp_account_id }: StoreS
   }
 
   return (
-    <Tabs defaultValue="store" className="space-y-6">
+    <Tabs defaultValue={defaultTab} className="space-y-6">
       <TabsList>
         <TabsTrigger value="store">Tienda</TabsTrigger>
         <TabsTrigger value="extended">Información Ampliada</TabsTrigger>
@@ -659,23 +661,60 @@ export function StoreSettingsForm({ store, settings, mp, mp_account_id }: StoreS
             <CardTitle>Configuración de MercadoPago</CardTitle>
           </CardHeader>
           <CardContent>
-            {mp === "connected" ? (
+            {mpStatus === "connected" && mpData ? (
               <div className="p-4 rounded-lg border border-green-300 bg-green-50 text-green-800">
-                <p className="font-bold mb-4">¡Cuenta conectada correctamente!</p>
-                <p className="text-sm">
-                  Usuario MP ID: {mp_account_id}
-                </p>
-                <p className="text-sm mt-2">
-                  Ya puedes empezar a recibir pagos a través de MercadoPago, directo a tu cuenta y sin comisiones. Si necesitas cambiar la cuenta vinculada,
-                  puedes contactarte con administración para reiniciar el proceso de vinculación.
+                <p className="font-bold mb-4">✓ Cuenta conectada correctamente</p>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="text-xs text-green-700 font-medium">ID de Usuario MercadoPago</p>
+                    <p className="font-mono text-sm">{mpData.mp_user_id}</p>
+                  </div>
+                  {mpData.public_key && (
+                    <div>
+                      <p className="text-xs text-green-700 font-medium">Clave Pública</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-mono text-sm break-all flex-1">
+                          {showMpPublicKey 
+                            ? mpData.public_key 
+                            : `${mpData.public_key.substring(0, 10)}${'*'.repeat(Math.max(0, mpData.public_key.length - 10))}`}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowMpPublicKey(!showMpPublicKey)}
+                          className="flex-shrink-0"
+                        >
+                          {showMpPublicKey ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {mpData.connected_at && (
+                    <div>
+                      <p className="text-xs text-green-700 font-medium">Conectado desde</p>
+                      <p className="text-sm">{new Date(mpData.connected_at).toLocaleDateString('es-AR')}</p>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm mt-4 pt-4 border-t border-green-200">
+                  Ya puedes recibir pagos a través de MercadoPago directamente a tu cuenta, sin comisiones adicionales. 
+                  Si necesitas cambiar la cuenta vinculada, contacta a administración.
                 </p>
               </div>
             ) : (
               <div className="p-4 rounded-lg border border-blue-300 bg-blue-50 text-blue-800">
-                <p className="font-medium mb-10">Conectá tu cuenta de MercadoPago para empezar a cobrar con tu cuenta, automático y sin comisiones.</p>
+                <p className="font-medium mb-4">Conecta tu cuenta de MercadoPago para empezar a cobrar</p>
+                <p className="text-sm mb-4">
+                  Con MercadoPago, recibirás los pagos automáticamente a tu cuenta sin comisiones adicionales.
+                </p>
                 <a
                   href="/api/mp/connect"
-                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md"
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition"
                 >
                   Conectar MercadoPago
                 </a>

@@ -101,7 +101,7 @@ if (!decodedStateCookie || !codeVerifier || decodedStateCookie !== state) {
   }
 
   // Limpia las cookies de estado
-  const response = NextResponse.redirect(process.env.APP_URL! + '/admin/settings?mp=connected');
+  const response = NextResponse.redirect(process.env.APP_URL! + '/store-settings?section=payments');
   response.headers.set('Set-Cookie', [
     'mp_oauth_state=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
     'mp_code_verifier=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',

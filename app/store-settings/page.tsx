@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { getBrowserClient } from "@/lib/supabase/client"
 import { StoreSettingsForm } from "@/components/admin/store-settings-form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -10,11 +10,13 @@ import type { Store, StoreSettings } from "@/lib/types/database"
 
 export default function StoreSettingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [store, setStore] = useState<Store | null>(null)
   const [settings, setSettings] = useState<StoreSettings | null>(null)
-  const [mp, setMp] = useState("")
-  const [mpAccountId, setMpAccountId] = useState("")
+  const [mpStatus, setMpStatus] = useState<"connected" | "disconnected">("disconnected")
+  const [mpData, setMpData] = useState<any>(null)
+  const [defaultTab, setDefaultTab] = useState<string>("store")
   const [error, setError] = useState("")
 
   useEffect(() => {
@@ -27,6 +29,12 @@ export default function StoreSettingsPage() {
       if (!user) {
         router.replace("/auth/login")
         return
+      }
+
+      // Detectar si venimos del callback de MercadoPago
+      const section = searchParams.get("section")
+      if (section === "payments") {
+        setDefaultTab("payments")
       }
 
       try {
@@ -51,11 +59,23 @@ export default function StoreSettingsPage() {
           .eq("store_id", storeData.id)
           .single()
 
+        // Cargar datos de cuenta de MercadoPago
+        const { data: mpAccountData } = await supabase
+          .from("mp_accounts")
+          .select("*")
+          .eq("store_id", storeData.id)
+          .single()
+
         if (mounted) {
           setStore(storeData)
           setSettings(settingsData || null)
-          setMp(settingsData?.mercadopago_public_key || "")
-          setMpAccountId(settingsData?.mercadopago_account_id || "")
+          
+          if (mpAccountData && mpAccountData.status === "connected") {
+            setMpStatus("connected")
+            setMpData(mpAccountData)
+          } else {
+            setMpStatus("disconnected")
+          }
         }
       } catch (err) {
         if (mounted) {
@@ -113,7 +133,7 @@ export default function StoreSettingsPage() {
         <p className="text-muted-foreground">Gestiona la información, imágenes, horarios y métodos de pago</p>
       </div>
 
-      <StoreSettingsForm store={store} settings={settings} mp={mp} mp_account_id={mpAccountId} />
+      <StoreSettingsForm store={store} settings={settings} mpStatus={mpStatus} mpData={mpData} defaultTab={defaultTab} />
     </div>
   )
 }
