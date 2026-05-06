@@ -117,9 +117,16 @@ export async function POST(request: NextRequest) {
       return
     }
 
+    const orderStatus = paymentStatus === "completed" ? "confirmed" : undefined
+
+    const updateData: Record<string, unknown> = { payment_status: paymentStatus }
+    if (orderStatus) {
+      updateData.status = orderStatus
+    }
+
     const { error: orderUpdateError } = await supabase
       .from("orders")
-      .update({ payment_status: paymentStatus })
+      .update(updateData)
       .eq("id", session.order_id)
 
     if (orderUpdateError) {
@@ -180,6 +187,28 @@ export async function POST(request: NextRequest) {
   }
 
   if (payment.status === "approved") {
+    // Re-check order_id to handle race conditions
+    const { data: freshSession } = await supabase
+      .from("checkout_sessions")
+      .select("order_id")
+      .eq("id", session.id)
+      .single()
+
+    if (freshSession?.order_id) {
+      // Another webhook already created the order, just update status
+      await supabase
+        .from("orders")
+        .update({ status: "confirmed", payment_status: mappedPaymentStatus })
+        .eq("id", freshSession.order_id)
+
+      await updateSession({
+        status: payment.status,
+        payment_status: mappedPaymentStatus,
+        processed_at: new Date().toISOString(),
+      })
+      return NextResponse.json({ received: true })
+    }
+
     const sessionOrderData = (session.order_data ?? {}) as any
     const customerName = sessionOrderData.customerName ?? ""
     const customerPhone = sessionOrderData.customerPhone ?? ""
@@ -193,15 +222,15 @@ export async function POST(request: NextRequest) {
       .insert({
         store_id: session.store_id,
         customer_name: customerName,
-        customer_phone: customerPhone,
         customer_email: customerEmail,
+        customer_phone: customerPhone,
         delivery_type: deliveryType,
         delivery_address: deliveryAddress,
         delivery_notes: deliveryNotes,
         subtotal: session.subtotal ?? 0,
         delivery_fee: session.delivery_fee ?? 0,
         total: session.total ?? 0,
-        status: "pending",
+        status: "confirmed",
         payment_status: mappedPaymentStatus,
         payment_id: paymentIdString,
       })

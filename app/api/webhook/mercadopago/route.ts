@@ -573,6 +573,42 @@ async function handleMerchantOrderWebhook(
 
     let finalOrderId = checkoutSession.order_id
 
+    // Re-check order_id to handle race conditions
+    const { data: freshSession } = await supabase
+      .from("checkout_sessions")
+      .select("order_id")
+      .eq("id", checkoutSession.id)
+      .single()
+
+    if (freshSession?.order_id) {
+      // Another webhook already created the order, just update status
+      const { error: orderUpdateError } = await supabase
+        .from("orders")
+        .update({ status: "confirmed", payment_status: "completed" })
+        .eq("id", freshSession.order_id)
+
+      if (orderUpdateError) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Error updating existing order:`, orderUpdateError)
+      } else {
+        console.log(`[webhooks:mercadopago][cid:${cid}] Updated existing order ${freshSession.order_id} to confirmed`)
+      }
+      continue
+    }
+
+    // Actualizar orden existente a confirmado si ya existe (caso donde order_id se seteó pero no se actualizó el status)
+    if (checkoutSession.order_id) {
+      const { error: orderUpdateError } = await supabase
+        .from("orders")
+        .update({ status: "confirmed", payment_status: "completed" })
+        .eq("id", checkoutSession.order_id)
+
+      if (orderUpdateError) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Error updating existing order:`, orderUpdateError)
+      } else {
+        console.log(`[webhooks:mercadopago][cid:${cid}] Updated existing order ${checkoutSession.order_id} to confirmed`)
+      }
+    }
+
     // Crear la orden si no existe
     if (!checkoutSession.order_id) {
       console.log(`[webhooks:mercadopago][cid:${cid}] Creating order for approved payment ${paymentId}`)
@@ -606,7 +642,7 @@ async function handleMerchantOrderWebhook(
           subtotal: checkoutSession.subtotal ?? 0,
           delivery_fee: checkoutSession.delivery_fee ?? 0,
           total: checkoutSession.total ?? 0,
-          status: "pending",
+          status: "confirmed",
           payment_status: "completed",
           payment_id: String(paymentId),
         })
