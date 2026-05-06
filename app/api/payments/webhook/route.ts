@@ -143,6 +143,39 @@ export async function POST(request: NextRequest) {
   if (session.order_id) {
     await updateSession({ status: payment.status, payment_status: mappedPaymentStatus })
     await updateOrderPaymentStatus(mappedPaymentStatus)
+    
+    // Registrar el pago en la tabla payments si no existe ya
+    const paymentRecord = {
+      order_id: session.order_id,
+      store_id: session.store_id,
+      provider: "mercadopago",
+      provider_payment_id: paymentIdString,
+      preference_id: session.preference_id ?? null,
+      status: mappedPaymentStatus,
+      transaction_amount: payment.transaction_amount ?? session.total ?? 0,
+      currency: payment.currency_id ?? "ARS",
+      payer_email: payment.payer?.email ?? null,
+      payment_method: payment.payment_method_id ?? null,
+      source_type: payment.payment_type_id ?? null,
+      status_detail: payment.status_detail ?? null,
+      metadata: {
+        checkout_session_id: session.id,
+        external_reference: payment.external_reference,
+      },
+      raw: payment,
+    }
+
+    const { error: paymentInsertError } = await supabase
+      .from("payments")
+      .upsert(paymentRecord, { onConflict: "provider,provider_payment_id" })
+
+    if (paymentInsertError) {
+      console.error(
+        `[payments:webhook][cid:${cid}] Error al registrar pago en tabla payments`,
+        paymentInsertError,
+      )
+    }
+    
     return NextResponse.json({ received: true })
   }
 
@@ -190,6 +223,39 @@ export async function POST(request: NextRequest) {
       delivery_fee: null,
       total: null,
     })
+
+    // Registrar el pago en la tabla payments para rastreabilidad
+    const paymentRecord = {
+      order_id: order.id,
+      store_id: session.store_id,
+      provider: "mercadopago",
+      provider_payment_id: paymentIdString,
+      preference_id: session.preference_id ?? null,
+      status: mappedPaymentStatus,
+      transaction_amount: payment.transaction_amount ?? session.total ?? 0,
+      currency: payment.currency_id ?? "ARS",
+      payer_email: payment.payer?.email ?? null,
+      payment_method: payment.payment_method_id ?? null,
+      source_type: payment.payment_type_id ?? null,
+      status_detail: payment.status_detail ?? null,
+      metadata: {
+        checkout_session_id: session.id,
+        external_reference: payment.external_reference,
+      },
+      raw: payment,
+    }
+
+    const { error: paymentInsertError } = await supabase
+      .from("payments")
+      .upsert(paymentRecord, { onConflict: "provider,provider_payment_id" })
+
+    if (paymentInsertError) {
+      console.error(
+        `[payments:webhook][cid:${cid}] Error al registrar pago en tabla payments`,
+        paymentInsertError,
+      )
+      // No fallar el webhook por error en payments, ya que la orden se creó correctamente
+    }
 
     const sessionItems = Array.isArray(session.items) ? session.items : []
 
@@ -246,10 +312,74 @@ export async function POST(request: NextRequest) {
       total: null,
     })
 
+    // Registrar el pago fallido en la tabla payments para auditoría
+    const paymentRecord = {
+      order_id: null,
+      store_id: session.store_id,
+      provider: "mercadopago",
+      provider_payment_id: paymentIdString,
+      preference_id: session.preference_id ?? null,
+      status: mappedPaymentStatus,
+      transaction_amount: payment.transaction_amount ?? session.total ?? 0,
+      currency: payment.currency_id ?? "ARS",
+      payer_email: payment.payer?.email ?? null,
+      payment_method: payment.payment_method_id ?? null,
+      source_type: payment.payment_type_id ?? null,
+      status_detail: payment.status_detail ?? null,
+      metadata: {
+        checkout_session_id: session.id,
+        external_reference: payment.external_reference,
+      },
+      raw: payment,
+    }
+
+    const { error: paymentInsertError } = await supabase
+      .from("payments")
+      .upsert(paymentRecord, { onConflict: "provider,provider_payment_id" })
+
+    if (paymentInsertError) {
+      console.error(
+        `[payments:webhook][cid:${cid}] Error al registrar pago fallido en tabla payments`,
+        paymentInsertError,
+      )
+    }
+
     return NextResponse.json({ received: true })
   }
 
   await updateSession({ status: payment.status, payment_status: mappedPaymentStatus })
+
+  // Registrar el pago en estado pending o indeterminado
+  const paymentRecord = {
+    order_id: session.order_id ?? null,
+    store_id: session.store_id,
+    provider: "mercadopago",
+    provider_payment_id: paymentIdString,
+    preference_id: session.preference_id ?? null,
+    status: mappedPaymentStatus,
+    transaction_amount: payment.transaction_amount ?? session.total ?? 0,
+    currency: payment.currency_id ?? "ARS",
+    payer_email: payment.payer?.email ?? null,
+    payment_method: payment.payment_method_id ?? null,
+    source_type: payment.payment_type_id ?? null,
+    status_detail: payment.status_detail ?? null,
+    metadata: {
+      checkout_session_id: session.id,
+      external_reference: payment.external_reference,
+    },
+    raw: payment,
+  }
+
+  const { error: paymentInsertError } = await supabase
+    .from("payments")
+    .upsert(paymentRecord, { onConflict: "provider,provider_payment_id" })
+
+  if (paymentInsertError) {
+    console.error(
+      `[payments:webhook][cid:${cid}] Error al registrar pago en tabla payments`,
+      paymentInsertError,
+    )
+  }
 
   return NextResponse.json({ received: true })
 }
