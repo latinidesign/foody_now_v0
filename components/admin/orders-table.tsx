@@ -220,7 +220,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
             .item { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 3px; }
             .option-line { font-size: 8px; color: #333; margin-left: 20px; }
             .qty { min-width: 28px; font-size: 1.5rem;}
-            .name { flex: 1; font-size: 0.9rem; line-height: 1.1rem; }
+            .name { flex: 1; font-size: 0.9rem; line-height: 1.1rem; font-weight: 600; }
             .price { min-width: 60px; text-align: right; }
             .bold { font-weight: 700; }
             .notes { background: #f0f0f0; padding: 6px; border-radius: 4px; font-size: 1.5rem; line-height: 1.6rem; }
@@ -235,6 +235,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
             <div class="meta order-number">Pedido #${order.id.slice(-8)}</div>
             <div class="meta meta-large">${date} ${time}</div>
             <div class="meta meta-large">${deliveryLabel}</div>
+            <div class="meta">Pago: ${getPaymentMethodText(order.payments)}${order.payment_status === "completed" ? " (Pagado)" : " (Pendiente)"}</div>
 
             <div class="section">
               <div class="row row-medium"><span class="bold">Cliente</span><span>${order.customer_name}</span></div>
@@ -753,16 +754,14 @@ Estado: ${getStatusText(status)}
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {order.status === "pending" && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handlePrintTicket(order)}
-                      title="Imprimir ticket 80mm"
-                    >
-                      <Printer className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handlePrintTicket(order)}
+                    title="Imprimir ticket 80mm"
+                  >
+                    <Printer className="w-4 h-4" />
+                  </Button>
 
                   <Select
                     value={order.status}
@@ -817,18 +816,16 @@ Estado: ${getStatusText(status)}
                 </DialogDescription>
               </DialogHeader>
 
-              {selectedOrder.status === "pending" && (
-                <div className="flex justify-end">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handlePrintTicket(selectedOrder)}
-                  >
-                    <Printer className="w-4 h-4 mr-2" />
-                    Imprimir ticket 80mm
-                  </Button>
-                </div>
-              )}
+              <div className="flex justify-end">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handlePrintTicket(selectedOrder)}
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimir ticket 80mm
+                </Button>
+              </div>
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
