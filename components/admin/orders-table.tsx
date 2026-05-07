@@ -78,6 +78,18 @@ const parseSelectedOptions = (raw: unknown): Record<string, any> | null => {
   return null
 }
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 2,
+  }).format(value)
+
+const formatPriceModifier = (price: number): string => {
+  if (price === 0) return ""
+  return ` (+${formatCurrency(price)})`
+}
+
 const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): string[] => {
   const parsed = parseSelectedOptions(selectedOptions)
   if (!parsed || !product?.product_options) return []
@@ -90,24 +102,28 @@ const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): stri
 
     if (option.type === "single") {
       const value = values.find((v: any) => v.id === optionValue)
-      return [`${option.name}: ${value?.name ?? optionValue}`]
+      if (!value) return [optionValue]
+      return [`${value.name}${formatPriceModifier(value.price_modifier ?? 0)}`]
     }
 
     if (option.type === "multiple" && Array.isArray(optionValue)) {
-      const valueNames = optionValue
-        .map((valueId: string) => values.find((v: any) => v.id === valueId)?.name ?? valueId)
-        .filter(Boolean)
-      return [`${option.name}: ${valueNames.join(", ")}`]
+      return optionValue.map((valueId: string) => {
+        const value = values.find((v: any) => v.id === valueId)
+        if (!value) return valueId
+        return `${value.name}${formatPriceModifier(value.price_modifier ?? 0)}`
+      })
     }
 
     if (option.type === "quantity" && typeof optionValue === "object" && optionValue !== null) {
-      const quantityLines = Object.entries(optionValue as Record<string, number>)
+      return Object.entries(optionValue as Record<string, number>)
         .map(([valueId, qty]) => {
           const value = values.find((v: any) => v.id === valueId)
-          return `${qty} x ${value?.name ?? valueId}`
+          if (!value) return `${qty} x ${valueId}`
+          const unitPrice = value.price_modifier ?? 0
+          const totalPrice = unitPrice * qty
+          return `${qty} x ${value.name}${formatPriceModifier(totalPrice)}`
         })
         .filter(Boolean)
-      return quantityLines.length > 0 ? [`${option.name}: ${quantityLines.join(", ")}`] : []
     }
 
     return []
@@ -146,13 +162,6 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
 
   const startDate = searchParams.get("startDate")
   const endDate = searchParams.get("endDate")
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-    }).format(value)
 
   const buildTicketHtml = (order: OrderWithItems) => {
     const createdAt = new Date(order.created_at)
@@ -209,9 +218,9 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
             .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; gap: 6px; }
             .row-medium { font-size: 1.2rem; line-height: 1.4rem; }
             .item { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 3px; }
-            .option-line { font-size: 11px; color: #333; margin-left: 20px; }
+            .option-line { font-size: 8px; color: #333; margin-left: 20px; }
             .qty { min-width: 28px; font-size: 1.5rem;}
-            .name { flex: 1; font-size: 1.5rem; line-height: 1.6rem; }
+            .name { flex: 1; font-size: 0.9rem; line-height: 1.1rem; }
             .price { min-width: 60px; text-align: right; }
             .bold { font-weight: 700; }
             .notes { background: #f0f0f0; padding: 6px; border-radius: 4px; font-size: 1.5rem; line-height: 1.6rem; }
