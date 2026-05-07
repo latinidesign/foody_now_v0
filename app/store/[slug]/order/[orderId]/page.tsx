@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getPaymentMethodLabel } from "@/lib/payments/methods"
 import { CheckCircle, Clock, MapPin, Store, Phone } from "lucide-react"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
@@ -302,6 +303,8 @@ export default async function OrderPage({ params }: OrderPageProps) {
                   <span className="font-medium">
                     {order.payments[0].provider === "manual" && order.payments[0].payment_method === "cash"
                       ? "Pago en Efectivo"
+                      : order.payments[0].provider === "mercadopago"
+                      ? getPaymentMethodLabel("mercadopago", order.payments[0].payment_method ?? null)
                       : "Pago con MercadoPago"}
                   </span>
                 </div>

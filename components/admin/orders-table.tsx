@@ -34,6 +34,7 @@ import {
 import { getBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
+import { getPaymentMethodLabel } from "@/lib/payments/methods"
 
 interface OrderWithItems extends Order {
   order_items: Array<{
@@ -384,6 +385,9 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
     const payment = payments?.[0]
     if (!payment) return "Sin pago"
     if (payment.provider === "manual") return "Efectivo"
+    if (payment.provider === "mercadopago") {
+      return getPaymentMethodLabel("mercadopago", payment.payment_method ?? null)
+    }
     return payment.payment_method || "MercadoPago"
   }
 
