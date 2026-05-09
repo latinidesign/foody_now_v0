@@ -180,7 +180,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
       <div className="container mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Product Gallery */}
-          <div>
+          <div className="w-full max-w-full overflow-hidden">
             <ProductGallery images={galleryImages} productName={product.name} />
           </div>
 

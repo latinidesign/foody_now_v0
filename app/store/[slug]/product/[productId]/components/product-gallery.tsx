@@ -29,7 +29,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-full space-y-4">
       {/* Main Image */}
       <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted group">
         <img
@@ -37,6 +37,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           alt={`${productName} - Imagen ${currentImageIndex + 1}`}
           className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
           onClick={() => setIsZoomed(true)}
+          loading="lazy"
         />
 
         {/* Zoom Icon */}
@@ -94,6 +95,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 src={image || "/placeholder.svg"}
                 alt={`${productName} - Miniatura ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </button>
           ))}
@@ -107,7 +109,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             <img
               src={galleryImages[currentImageIndex] || "/placeholder.svg"}
               alt={`${productName} - Imagen ${currentImageIndex + 1}`}
-              className="w-full h-full object-contain text-[rgba(255,255,255,0.22282608695652173)]"
+              className="w-full h-full object-contain"
+              loading="lazy"
             />
 
             {/* Close Button */}
@@ -157,6 +160,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                           src={image || "/placeholder.svg"}
                           alt={`${productName} - Miniatura ${index + 1}`}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       </button>
                     ))}

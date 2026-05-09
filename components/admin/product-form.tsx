@@ -297,12 +297,8 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
 
   const handleImageUpload = async (file: File) => {
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string
-      setFormData({ ...formData, imageUrl: base64 })
-    }
-    reader.readAsDataURL(file)
+    const resizedImage = await resizeImage(file, 800, 800)
+    setFormData({ ...formData, imageUrl: resizedImage })
   }
 
   return (
