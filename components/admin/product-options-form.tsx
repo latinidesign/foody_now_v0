@@ -310,11 +310,6 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                             : "border-red-200 bg-red-50"
                       }
                     />
-                    {value.priceModifier === 0 && !isPricingMode && (
-                      <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs px-1 py-0">
-                        GRATIS
-                      </Badge>
-                    )}
                     {value.priceModifier > 0 && (
                       <Badge variant="default" className="absolute -top-2 -right-2 text-xs px-1 py-0">
                         +${value.priceModifier}

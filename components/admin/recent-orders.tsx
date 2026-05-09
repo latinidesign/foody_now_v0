@@ -61,7 +61,11 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <Link
+                key={order.id}
+                href={`/admin/orders?orderId=${order.id}`}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
                 <div className="space-y-1">
                   <p className="font-medium">#{order.id.slice(-8)}</p>
                   <p className="text-sm text-muted-foreground">{order.customer_name}</p>
@@ -73,7 +77,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                   <p className="font-semibold">${order.total}</p>
                   <Badge variant={getStatusColor(order.status)}>{getStatusText(order.status)}</Badge>
                 </div>
-              </div>
+              </Link>
             ))}
             <div className="pt-4">
               <Link href="/admin/orders">

@@ -209,7 +209,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
               margin: 0 auto;
               color: #000;
             }
-            .ticket { padding: 6px; }
+            .ticket { padding: 6px; padding-bottom: 2cm; }
             .title { text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
             .meta { text-align: center; font-size: 12px; margin-bottom: 6px; }
             .order-number { font-size: 1.2rem; line-height: 1.4rem; }
@@ -235,7 +235,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
             <div class="meta order-number">Pedido #${order.id.slice(-8)}</div>
             <div class="meta meta-large">${date} ${time}</div>
             <div class="meta meta-large">${deliveryLabel}</div>
-            <div class="meta">Pago: ${getPaymentMethodText(order.payments)}${order.payment_status === "completed" ? " (Pagado)" : " (Pendiente)"}</div>
+            <div class="meta">Pago: ${getPaymentMethodText(order.payments)}${order.payments?.[0]?.provider === "manual" ? "" : order.payment_status === "completed" ? " (Pagado)" : " (Pendiente)"}</div>
 
             <div class="section">
               <div class="row row-medium"><span class="bold">Cliente</span><span>${order.customer_name}</span></div>
@@ -319,6 +319,16 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
 
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    const orderId = searchParams.get("orderId")
+    if (orderId && ordersData.length > 0) {
+      const order = ordersData.find((o) => o.id === orderId)
+      if (order) {
+        setSelectedOrder(order)
+      }
+    }
+  }, [searchParams, ordersData])
 
   const filteredAndSortedOrders = useMemo(() => {
     const filtered = ordersData.filter((order) => {
