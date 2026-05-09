@@ -29,8 +29,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         address: storeData.address,
         logo_url: storeData.logo_url,
         header_image_url: storeData.header_image_url,
-        delivery_radius: storeData.delivery_radius,
-        delivery_fee: storeData.delivery_fee,
+        delivery_radius: 0,
+        delivery_fee: 0,
         min_order_amount: storeData.min_order_amount,
         updated_at: new Date().toISOString(),
       })

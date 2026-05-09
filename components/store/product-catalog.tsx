@@ -125,17 +125,17 @@ export function ProductCatalog({ store, categories }: ProductCatalogProps) {
             <p className="font-medium">Retiro en Local</p>
             <p className="text-muted-foreground">Gratis - {store.address}</p>
           </div>
-          {store.delivery_fee > 0 && (
-            <div>
-              <p className="font-medium">Delivery</p>
-              <p className="text-muted-foreground">
-                ${store.delivery_fee} - Radio de {store.delivery_radius}km
-              </p>
-              {store.min_order_amount > 0 && (
-                <p className="text-muted-foreground">Pedido mínimo: ${store.min_order_amount}</p>
-              )}
-            </div>
-          )}
+          <div>
+            <p className="font-medium">Delivery</p>
+            <p className="text-muted-foreground">
+              {store.delivery_fee > 0
+                ? `$${store.delivery_fee} - Radio de ${store.delivery_radius}km`
+                : "No incluye precio de delivery"}
+            </p>
+            {store.min_order_amount > 0 && (
+              <p className="text-muted-foreground">Pedido mínimo: ${store.min_order_amount}</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

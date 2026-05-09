@@ -83,8 +83,8 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
     address: store.address || "",
     logoUrl: store.logo_url || "",
     headerImageUrl: store.header_image_url || "",
-    deliveryRadius: store.delivery_radius.toString(),
-    deliveryFee: store.delivery_fee.toString(),
+    deliveryRadius: "0",
+    deliveryFee: "0",
     minOrderAmount: store.min_order_amount.toString(),
   })
 
@@ -183,8 +183,6 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
           gallery_images: storeData.galleryImages,
           logo_url: storeData.logoUrl,
           header_image_url: storeData.headerImageUrl,
-          delivery_radius: Number.parseInt(storeData.deliveryRadius),
-          delivery_fee: Number.parseFloat(storeData.deliveryFee),
           min_order_amount: Number.parseFloat(storeData.minOrderAmount),
         }),
       })
@@ -450,7 +448,7 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
                     id="deliveryRadius"
                     type="number"
                     value={storeData.deliveryRadius}
-                    onChange={(e) => setStoreData({ ...storeData, deliveryRadius: e.target.value })}
+                    disabled
                   />
                 </div>
                 <div className="space-y-2">
@@ -460,7 +458,7 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
                     type="number"
                     step="0.01"
                     value={storeData.deliveryFee}
-                    onChange={(e) => setStoreData({ ...storeData, deliveryFee: e.target.value })}
+                    disabled
                   />
                 </div>
                 <div className="space-y-2">

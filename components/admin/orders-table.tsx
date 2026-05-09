@@ -1,7 +1,7 @@
 "use client"
 
 import type { Order } from "@/lib/types/database"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { memo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -144,6 +144,7 @@ interface OrdersTableProps {
 export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTableProps) {
   const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
+  const handledOrderIdRef = useRef<string | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -253,7 +254,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
 
             <div class="section totals">
               <div class="row"><span>Subtotal</span><span>${formatCurrency(order.subtotal ?? 0)}</span></div>
-              <div class="row"><span>Envío</span><span>${formatCurrency(order.delivery_fee ?? 0)}</span></div>
+              <div class="row"><span>Envío</span><span>${(order.delivery_fee ?? 0) > 0 ? formatCurrency(order.delivery_fee!) : "No incluye precio de delivery"}</span></div>
               <div class="row total-row"><span>Total</span><span>${formatCurrency(order.total ?? 0)}</span></div>
             </div>
 
@@ -322,10 +323,11 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
 
   useEffect(() => {
     const orderId = searchParams.get("orderId")
-    if (orderId && ordersData.length > 0) {
+    if (orderId && ordersData.length > 0 && handledOrderIdRef.current !== orderId) {
       const order = ordersData.find((o) => o.id === orderId)
       if (order) {
         setSelectedOrder(order)
+        handledOrderIdRef.current = orderId
       }
     }
   }, [searchParams, ordersData])

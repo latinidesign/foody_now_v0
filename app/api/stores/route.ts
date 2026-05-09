@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
         phone: storeData.phone || null,
         email: storeData.email || null,
         address: storeData.address || null,
-        delivery_radius: storeData.delivery_radius,
-        delivery_fee: storeData.delivery_fee,
+        delivery_radius: 0,
+        delivery_fee: 0,
         min_order_amount: storeData.min_order_amount,
       })
       .select()
