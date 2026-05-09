@@ -237,7 +237,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                       Por cantidad
                     </Badge>
                   )}
-                  {(!pricingConfig || option.type !== "quantity") && getOptionValues(option).some((v: any) => v.price_modifier === 0) && (
+                  {!pricingConfig && getOptionValues(option).some((v: any) => v.price_modifier === 0) && (
                     <Badge variant="secondary" className="text-xs">
                       Opciones gratis
                     </Badge>
@@ -281,7 +281,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         <RadioGroupItem value={value.id} id={value.id} />
                         <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
                           {value.name}
-                          {!(pricingConfig && option.type === "quantity") && value.price_modifier === 0 && (
+                          {!pricingConfig && value.price_modifier === 0 && (
                             <Badge variant="secondary" className="text-xs">
                               GRATIS
                             </Badge>
@@ -310,7 +310,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         />
                         <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
                           {value.name}
-                          {!(pricingConfig && option.type === "quantity") && value.price_modifier === 0 && (
+                          {!pricingConfig && value.price_modifier === 0 && (
                             <Badge variant="secondary" className="text-xs">
                               GRATIS
                             </Badge>
@@ -331,7 +331,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                     <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{value.name}</span>
-                        {!(pricingConfig && option.type === "quantity") && value.price_modifier === 0 && (
+                        {!pricingConfig && value.price_modifier === 0 && (
                           <Badge variant="secondary" className="text-xs">
                             GRATIS
                           </Badge>
@@ -341,11 +341,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                             <Badge variant="default" className="text-xs">
                               +${value.price_modifier} c/u
                             </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="text-xs">
-                              GRATIS
-                            </Badge>
-                          )
+                          ) : null
                         ) : value.price_modifier !== 0 ? (
                           <Badge variant={value.price_modifier > 0 ? "default" : "destructive"} className="text-xs">
                             {value.price_modifier > 0 ? "+" : ""}${value.price_modifier} c/u

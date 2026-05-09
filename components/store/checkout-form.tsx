@@ -233,23 +233,25 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
               </Label>
             </div>
 
-            <div className="flex items-center space-x-2 p-4 border rounded-lg">
-              <RadioGroupItem value="delivery" id="delivery" />
-              <Label htmlFor="delivery" className="flex-1 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="font-medium">Delivery</p>
-                    <p className="text-sm text-muted-foreground">
-                      ${deliveryFee} - Radio de {store.delivery_radius}km
-                    </p>
-                    {store.min_order_amount > 0 && (
-                      <p className="text-sm text-muted-foreground">Pedido mínimo: ${store.min_order_amount}</p>
-                    )}
+            {store.delivery_fee > 0 && (
+              <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                <RadioGroupItem value="delivery" id="delivery" />
+                <Label htmlFor="delivery" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium">Delivery</p>
+                      <p className="text-sm text-muted-foreground">
+                        ${deliveryFee} - Radio de {store.delivery_radius}km
+                      </p>
+                      {store.min_order_amount > 0 && (
+                        <p className="text-sm text-muted-foreground">Pedido mínimo: ${store.min_order_amount}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Label>
-            </div>
+                </Label>
+              </div>
+            )}
           </RadioGroup>
 
           {orderData.deliveryType === "delivery" && (
