@@ -1,0 +1,50 @@
+services:
+  foodynow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: foodynow-dev
+    ports:
+      - "3000:3000"
+    
+    env_file:
+      - .env.local
+
+    # Variables de entorno
+    environment:
+      NODE_ENV: production
+      # Agregar aquí variables necesarias (Supabase, MercadoPago, etc.)
+      # NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      # NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    
+    # Seguridad - restricciones de recursos
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # No permitir escalado de privilegios
+    security_opt:
+      - no-new-privileges:true
+    
+    # Capabilities limitadas
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    
+    tmpfs:
+      - /tmp
+      - /run
+    
+    # Red aislada
+    networks:
+      - foodynow-network
+
+networks:
+  foodynow-network:
+    driver: bridge
