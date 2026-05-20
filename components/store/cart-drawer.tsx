@@ -70,25 +70,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         </p>
 
                         <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <span className="text-sm font-medium min-w-[2rem] text-center">{item.quantity}</span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          </div>
+                          <span className="text-sm font-medium">Cantidad: {item.quantity}</span>
 
                           <Button
                             size="sm"
