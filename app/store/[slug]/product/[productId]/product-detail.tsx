@@ -57,13 +57,21 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
       : selectedOptionsQuantity
     : quantity
 
+  const requiredOptionsQuantity = isPricingProduct && product.pricing_config?.mode === "unit_only"
+    ? packSize * quantity
+    : undefined
+  const remainingOptionsToSelect = requiredOptionsQuantity !== undefined
+    ? Math.max(0, requiredOptionsQuantity - selectedOptionsQuantity)
+    : undefined
+  const isPackSelectionIncomplete = remainingOptionsToSelect !== undefined && remainingOptionsToSelect > 0
+
   const pricing = pricingQuantity > 0
     ? calculateProductPrice({ product, quantity: pricingQuantity })
     : { total: 0, breakdown: [] }
   const optionsTotal = calculateSelectedOptionsPrice(product, selectedOptions, isPricingProduct)
   const pricingTotal = pricing.total + optionsTotal
   const approximateUnitPrice = pricingQuantity > 0 ? Math.round(pricingTotal / pricingQuantity) : 0
-  const canAddToCart = !isPricingProduct || selectedOptionsQuantity > 0
+  const canAddToCart = !isPricingProduct || (!isPackSelectionIncomplete && selectedOptionsQuantity > 0)
 
   const calculateAdditionalPrice = () => {
     if (!product.product_options) return 0
@@ -285,6 +293,11 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                       {selectedOptionsQuantity === 0 && (
                         <p className="text-sm text-destructive">Selecciona sabores o variedades para calcular el precio.</p>
                       )}
+                      {isPackSelectionIncomplete && (
+                        <p className="text-sm font-semibold text-destructive">
+                          Aún faltan {remainingOptionsToSelect} variedad(es) por seleccionar para completar el pack.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
@@ -358,6 +371,11 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                       </>
                     )}
                   </Button>
+                  {isPackSelectionIncomplete && (
+                    <p className="text-sm font-semibold text-destructive mt-2">
+                      Aún faltan {remainingOptionsToSelect} variedad(es) por seleccionar antes de agregar al carrito.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
