@@ -288,17 +288,27 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
           <CardTitle>Resumen del Pedido</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {state.items.map((item) => (
-            <div key={item.id} className="flex justify-between items-center">
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  ${item.price} x {item.quantity}
-                </p>
+          {state.items.map((item) => {
+            const packQuantity =
+              item.pricing_snapshot?.config?.mode === "unit_only" &&
+              typeof item.pricing_snapshot.config.quantity === "number" &&
+              item.pricing_snapshot.config.quantity > 0
+                ? Math.round(item.quantity / item.pricing_snapshot.config.quantity)
+                : null
+
+            return (
+              <div key={item.id} className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    ${item.price} x {item.quantity} unidad{item.quantity === 1 ? "" : "es"}
+                    {packQuantity !== null && ` (${packQuantity} pack${packQuantity === 1 ? "" : "s"})`}
+                  </p>
+                </div>
+                <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
               </div>
-              <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
-            </div>
-          ))}
+            )
+          })}
 
           <div className="border-t pt-4 space-y-2">
             <div className="flex justify-between">

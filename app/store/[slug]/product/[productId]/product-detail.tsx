@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Plus, Minus, ShoppingCart } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 import { useCart } from "@/components/store/cart-context"
 import { CartButton } from "@/components/store/cart-button"
 import { ProductGallery } from "./components/product-gallery"
@@ -114,25 +115,47 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
 
   const handleAddToCart = async () => {
     setIsAdding(true)
-    // Use the variant id when adding the item so different option selections
-    // create separate entries in the cart.
-    await addItem({
-      id: variantId,
-      // keep original product id for reference
-      product_id: product.id,
-      name: product.name,
-      price: approximateUnitPrice,
-      total_price: pricingTotal,
-      image_url: product.image_url,
-      quantity: pricingQuantity,
-      selectedOptions,
-      pricing_snapshot: {
-        config: product.pricing_config ?? null,
-        breakdown: pricing.breakdown,
-        options_total: optionsTotal,
-      },
-    })
-    setIsAdding(false)
+    try {
+      // Use the variant id when adding the item so different option selections
+      // create separate entries in the cart.
+      await addItem({
+        id: variantId,
+        // keep original product id for reference
+        product_id: product.id,
+        name: product.name,
+        price: approximateUnitPrice,
+        total_price: pricingTotal,
+        image_url: product.image_url,
+        quantity: pricingQuantity,
+        selectedOptions,
+        pricing_snapshot: {
+          config: product.pricing_config ?? null,
+          breakdown: pricing.breakdown,
+          options_total: optionsTotal,
+        },
+      })
+
+      toast.success("¡Agregado al carrito!", {
+        description: product.name,
+        icon: "🛒",
+        className: "bg-emerald-600 text-white font-bold shadow-2xl text-center",
+        style: {
+          border: "4px solid var(--primary)",
+          padding: "1rem 1.5rem",
+          fontSize: "1.2rem",
+          width: "100%",
+          maxWidth: "calc(100% - 2rem)",
+          minWidth: "16rem",
+          boxSizing: "border-box",
+          margin: "0 auto",
+          display: "block",
+        },
+      })
+    } catch (error) {
+      toast.error("No se pudo agregar el producto al carrito")
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   const handleUpdateCartQuantity = (newQuantity: number) => {
@@ -258,23 +281,6 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                 <div className="space-y-4">
                   {isPricingProduct ? (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Cantidad de packs/conjuntos:</span>
-                        <div className="flex items-center gap-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            disabled={quantity <= 1}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="font-medium min-w-[2rem] text-center">{quantity}</span>
-                          <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
                       {packSize && (
                         <div className="text-sm text-muted-foreground">
                           Total de unidades del pack: <span className="font-semibold">{quantity * packSize}</span>

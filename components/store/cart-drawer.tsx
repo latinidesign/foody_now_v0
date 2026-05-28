@@ -30,6 +30,22 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     onClose()
   }
 
+  const getPackQuantity = (item: any) => {
+    const config = item.pricing_snapshot?.config
+    if (config?.mode === "unit_only" && typeof config.quantity === "number" && config.quantity > 0) {
+      return Math.round(item.quantity / config.quantity)
+    }
+    return null
+  }
+
+  const renderQuantityLabel = (item: any) => {
+    const packQuantity = getPackQuantity(item)
+    if (packQuantity !== null) {
+      return `Cantidad: ${packQuantity} pack${packQuantity === 1 ? "" : "s"} (${item.quantity} unidad${item.quantity === 1 ? "" : "es"})`
+    }
+    return `Cantidad: ${item.quantity}`
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-md">
@@ -70,7 +86,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         </p>
 
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm font-medium">Cantidad: {item.quantity}</span>
+                          <span className="text-sm font-medium">{renderQuantityLabel(item)}</span>
 
                           <Button
                             size="sm"
