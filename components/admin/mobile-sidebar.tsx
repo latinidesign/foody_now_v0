@@ -17,13 +17,10 @@ import {
   Tags,
   ExternalLink,
   MessageCircle,
-  Bell,
   Menu,
   LifeBuoy,
-  ChevronDown,
-  ChevronRight,
+  CreditCard,
 } from "lucide-react"
-import { adminHelpLinks } from "./help-links"
 import { memo } from "react"
 
 interface MobileSidebarProps {
@@ -32,18 +29,18 @@ interface MobileSidebarProps {
 
 const navigation = [
   { name: "Info General", href: "/admin", icon: LayoutDashboard },
-  { name: "Productos", href: "/admin/products", icon: Package },
   { name: "Categorías", href: "/admin/categories", icon: Tags },
+  { name: "Productos", href: "/admin/products", icon: Package },
   { name: "Pedidos", href: "/admin/orders", icon: ShoppingBag },
   { name: "Estadísticas", href: "/admin/analytics", icon: BarChart3 },
-  { name: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
+  { name: "Comunicación", href: "/admin/settings/whatsapp", icon: MessageCircle },
+  { name: "Suscripción", href: "/admin/subscription", icon: CreditCard },
   { name: "Configuración", href: "/store-settings", icon: Settings },
 ]
 
 export const MobileSidebar = memo(function MobileSidebar({ store }: MobileSidebarProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(false)
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -84,51 +81,20 @@ export const MobileSidebar = memo(function MobileSidebar({ store }: MobileSideba
             })}
           </nav>
 
+          {/* Ayuda - Simple Link */}
           <div className="p-4 border-t">
-            <Button
-              variant={helpOpen ? "default" : "ghost"}
-              className={cn(
-                "w-full justify-start",
-                helpOpen ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-              )}
-              onClick={() => setHelpOpen((prev) => !prev)}
-            >
-              <LifeBuoy className="mr-3 h-4 w-4" />
-              Ayuda
-              <ChevronDown
-                className={cn("ml-auto h-4 w-4 transition-transform", helpOpen ? "rotate-180" : "")}
-              />
-            </Button>
-
-            {helpOpen && (
-              <div className="mt-3 space-y-1">
-                {adminHelpLinks.map((item) => {
-                  const itemPath = item.href.split("#")[0]
-                  const isActive = pathname === itemPath
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => {
-                        setOpen(false)
-                        setHelpOpen(false)
-                      }}
-                    >
-                      <Button
-                        variant="ghost"
-                        className={cn(
-                          "w-full justify-start text-sm text-muted-foreground pl-8",
-                          isActive && "text-primary"
-                        )}
-                      >
-                        <ChevronRight className="mr-2 h-4 w-4" />
-                        {item.name}
-                      </Button>
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
+            <Link href="/admin/help" onClick={() => setOpen(false)}>
+              <Button
+                variant={pathname === "/admin/help" ? "default" : "ghost"}
+                className={cn(
+                  "w-full justify-start",
+                  pathname === "/admin/help" && "bg-primary text-primary-foreground"
+                )}
+              >
+                <LifeBuoy className="mr-3 h-4 w-4" />
+                Ayuda
+              </Button>
+            </Link>
           </div>
 
           {/* Store Link */}

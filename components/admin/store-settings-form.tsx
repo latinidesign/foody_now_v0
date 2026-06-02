@@ -441,7 +441,10 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
                 <p className="text-xs text-muted-foreground">Dirección completa donde se encuentra tu tienda</p>
               </div>
 
+              <Label className="text-base font-semibold">Configuración de Delivery (Opcional)</Label>
+
               <div className="grid md:grid-cols-3 gap-4">
+
                 <div className="space-y-2">
                   <Label htmlFor="deliveryRadius">Radio de Entrega (km)</Label>
                   <Input

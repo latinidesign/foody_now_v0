@@ -35,6 +35,7 @@ import { getBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
 import { getPaymentMethodLabel } from "@/lib/payments/methods"
+import { formatOrderNumber } from "@/lib/utils"
 
 interface OrderWithItems extends Order {
   order_items: Array<{
@@ -201,7 +202,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Pedido #${order.id.slice(-8)}</title>
+          <title>Pedido #${formatOrderNumber(order.order_number)}</title>
           <style>
             @page { size: 80mm auto; margin: 5mm; }
             body {
@@ -233,7 +234,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
           <div class="ticket">
             <div class="title">${store?.name || "Pedido"}</div>
             <div class="meta">${[store?.address, store?.phone].filter(Boolean).join(" · ")}</div>
-            <div class="meta order-number">Pedido #${order.id.slice(-8)}</div>
+            <div class="meta order-number">Pedido #${formatOrderNumber(order.order_number)}</div>
             <div class="meta meta-large">${date} ${time}</div>
             <div class="meta meta-large">${deliveryLabel}</div>
             <div class="meta">Pago: ${getPaymentMethodText(order.payments)}${order.payments?.[0]?.provider === "manual" ? "" : order.payment_status === "completed" ? " (Pagado)" : " (Pendiente)"}</div>
@@ -423,7 +424,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
       case "confirmed":
         return `🎉 *¡Pedido Confirmado!*
 
-📦 Pedido: #${order.id.slice(-8)}
+📦 Pedido: #${formatOrderNumber(order.order_number)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
@@ -444,7 +445,7 @@ ${orderItems}
       case "preparing":
         return `👨‍🍳 *¡Tu pedido se está preparando!*
 
-📦 Pedido: #${order.id.slice(-8)}
+📦 Pedido: #${formatOrderNumber(order.order_number)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
@@ -461,7 +462,7 @@ ${orderItems}
       case "ready":
         return `🎉 *¡Tu pedido está LISTO para retirar!*
 
-📦 Pedido: #${order.id.slice(-8)}
+📦 Pedido: #${formatOrderNumber(order.order_number)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
@@ -487,7 +488,7 @@ Lun a Dom: 11:00 - 23:00
       case "sent":
         return `🚴‍♂️ *¡Tu pedido está EN CAMINO!*
 
-📦 Pedido: #${order.id.slice(-8)}
+📦 Pedido: #${formatOrderNumber(order.order_number)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
@@ -511,7 +512,7 @@ ${order.delivery_address || "Sin dirección registrada"}
       case "delivered":
         return `✅ *¡Pedido Entregado!*
 
-📦 Pedido: #${order.id.slice(-8)}
+📦 Pedido: #${formatOrderNumber(order.order_number)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
@@ -532,7 +533,7 @@ Tu opinión nos ayuda a mejorar.
       case "cancelled":
         return `❌ *Pedido Cancelado*
 
-📦 Pedido: #${order.id.slice(-8)}
+📦 Pedido: #${formatOrderNumber(order.order_number)}
 🏪 ${storeName}
 👤 ${order.customer_name}
 
@@ -549,7 +550,7 @@ Tu opinión nos ayuda a mejorar.
       default:
         return `📦 *Actualización de Pedido*
 
-Pedido: #${order.id.slice(-8)}
+Pedido: #${formatOrderNumber(order.order_number)}
 Estado: ${getStatusText(status)}
 
 ¡Te mantendremos informado!
@@ -726,11 +727,19 @@ Estado: ${getStatusText(status)}
             {filteredAndSortedOrders.map((order) => (
               <div
                 key={order.id}
-                className="flex items-center gap-4 p-4 border rounded-lg"
+                className={`flex items-center gap-4 p-4 border rounded-lg ${
+                  order.status === "pending"
+                    ? "bg-fuchsia-50"
+                    : order.status === "delivered"
+                      ? "bg-gray-50"
+                      : order.status === "ready" || order.status === "sent"
+                        ? "bg-lime-50"
+                        : ""
+                }`}
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold">#{order.id.slice(-8)}</h3>
+                    <h3 className="font-semibold">#{formatOrderNumber(order.order_number)}</h3>
                     <Badge variant={getStatusColor(order.status)}>
                       {getStatusText(order.status)}
                     </Badge>
@@ -757,7 +766,7 @@ Estado: ${getStatusText(status)}
                       </p>
                     </div>
                     <div>
-                      <p className="font-medium text-primary">
+                      <p className="font-extrabold">
                         {formatCurrency(order.total ?? 0)}
                       </p>
                       <p>{order.order_items.length} productos</p>
@@ -820,7 +829,7 @@ Estado: ${getStatusText(status)}
             <>
               <DialogHeader>
                 <DialogTitle>
-                  Pedido #{selectedOrder.id.slice(-8)}
+                  Pedido #{formatOrderNumber(selectedOrder.order_number)}
                 </DialogTitle>
                 <DialogDescription>
                   Detalles completos del pedido y opciones para cambiar el

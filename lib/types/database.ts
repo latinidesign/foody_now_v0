@@ -105,6 +105,7 @@ export interface ProductOptionValue {
 export interface Order {
   id: string
   store_id: string
+  order_number?: number
   customer_name: string
   customer_phone: string
   customer_email?: string

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle, ArrowRight, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
+import { formatOrderNumber } from "@/lib/utils"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 interface PaymentSuccessPageProps {
@@ -144,7 +145,7 @@ export default async function PaymentSuccessPage({ params, searchParams }: Payme
         <CardContent className="text-center space-y-4">
           <div>
             <p className="text-muted-foreground mb-2">Tu pedido ha sido confirmado</p>
-            <p className="font-semibold">Pedido #{order.id.slice(-8)}</p>
+            <p className="font-semibold">Pedido #{formatOrderNumber(order.order_number)}</p>
             <p className="text-2xl font-bold text-primary">{formatCurrency(order.total)}</p>
           </div>
 

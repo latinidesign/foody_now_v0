@@ -36,7 +36,7 @@ export function WhatsAppSettings({
   const [testing, setTesting] = useState(false)
   const [testLink, setTestLink] = useState<string | null>(null)
   const [testError, setTestError] = useState<string | null>(null)
-  const storeUrl = `https://${storeSlug}.foodynow.com.ar`
+  const storeUrl = typeof window !== "undefined" ? `${window.location.origin}/store/${storeSlug}` : ""
   const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
   const responseMessage = customMessage || defaultMessage
 
@@ -144,9 +144,79 @@ export function WhatsAppSettings({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Mensaje para clientes</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Phone className="h-5 w-5 text-green-500" />
+            Número de Contacto de la Tienda
+          </CardTitle>
+          <CardDescription>Tu número personal de WhatsApp para recibir notificaciones.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp-phone">Número de WhatsApp Personal</Label>
+            <Input
+              id="whatsapp-phone"
+              placeholder="+54 9 11 1234-5678"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Tu número personal donde recibirás las notificaciones de pedidos
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Notificaciones automáticas</Label>
+              <p className="text-sm text-muted-foreground">Recibe notificaciones automáticas de nuevos pedidos</p>
+            </div>
+            <Switch checked={autoNotifications} onCheckedChange={setAutoNotifications} />
+          </div>
+
+          <Button onClick={handleSave} className="w-full" disabled={saving}>
+            {saving ? "Guardando..." : "Guardar configuración"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5 text-emerald-500" />
+            Probar integración de WhatsApp
+          </CardTitle>
+          <CardDescription>Envía un mensaje de prueba para confirmar que la integración responde correctamente</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button onClick={handleSendTestMessage} className="w-full" variant="secondary" disabled={testing}>
+            {testing ? "Enviando prueba..." : "Enviar mensaje de prueba"}
+          </Button>
+          {testError && <p className="text-sm text-destructive">{testError}</p>}
+          {testLink && (
+            <div className="rounded-lg border border-dashed border-muted-foreground/50 p-4 space-y-3">
+              <p className="text-sm">
+                No pudimos enviar el mensaje automáticamente. Usa este enlace para abrir WhatsApp y probar manualmente.
+              </p>
+              <a
+                href={testLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium transition hover:bg-muted"
+              >
+                <ExternalLink className="h-4 w-4" /> Abrir WhatsApp
+              </a>
+              <Button onClick={handleCopyTestLink} variant="outline" className="w-full">
+                <Copy className="h-4 w-4 mr-2" /> Copiar enlace
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Mensaje automático para clientes</CardTitle>
           <CardDescription>
-            Utilizá este mensaje o personalizalo, para compartir el acceso a la tienda cuando los clientes te pidan el menú. 
+            Personaliza el mensaje que enviarás cuando los clientes te pidan el link de tu tienda
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

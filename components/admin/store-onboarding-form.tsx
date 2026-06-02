@@ -202,7 +202,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
                 Subdominio (URL: {formData.slug || 'mi-tienda'}.foodynow.com.ar) *
                 {store?.slug && (
                   <span className="text-xs text-muted-foreground ml-2">
-                    (No se puede cambiar después de crear la tienda)
+                    (Recomendamos usar un subdominio corto y fácil de recordar. No se puede cambiar después de crear la tienda)
                   </span>
                 )}
               </Label>
@@ -229,7 +229,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
               )}
               {!SUBDOMAIN_REGEX.test(formData.slug) && formData.slug && (
                 <p className="text-sm text-red-600">
-                  Solo letras minúsculas, números, guión y guión bajo
+                  Usá solo letras minúsculas, números, guión y guión bajo
                 </p>
               )}
             </div>

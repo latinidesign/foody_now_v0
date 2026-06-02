@@ -210,7 +210,7 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                 <CardTitle className="text-lg">Opción {optionIndex + 1}</CardTitle>
                 {!isPricingMode && getFreeOptionsCount(option) > 0 && (
                   <Badge variant="secondary" className="text-xs">
-                    {getFreeOptionsCount(option)} gratis
+                    {getFreeOptionsCount(option)} Sin costo adicionalç
                   </Badge>
                 )}
                 {getPaidOptionsCount(option) > 0 && (
