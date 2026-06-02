@@ -28,9 +28,9 @@ export default async function WhatsAppSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">WhatsApp</h1>
+        <h1 className="text-3xl font-bold">Comunicación</h1>
         <p className="text-muted-foreground">
-          Configura la integración con WhatsApp para recibir y enviar notificaciones
+          Personaliza el mensaje para compartir en WhatsApp y tus redes con el link a tu tienda.
         </p>
       </div>
 

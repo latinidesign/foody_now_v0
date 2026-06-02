@@ -80,7 +80,7 @@ export class WhatsAppService {
 
   // Generate WhatsApp link with store URL
   generateStoreLinkResponse(storeSlug: string, storeName: string): string {
-    const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/store/${storeSlug}`
+    const storeUrl = `https://${storeSlug}.foodynow.com.ar`
     const message = encodeURIComponent(
       `¡Hola! Aquí tienes el link de nuestra tienda online de ${storeName}: ${storeUrl}\n\n¡Esperamos tu pedido!`,
     )

@@ -7,6 +7,7 @@ import { getPaymentMethodLabel } from "@/lib/payments/methods"
 import { CheckCircle, Clock, MapPin, Store, Phone } from "lucide-react"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
+import { formatOrderNumber } from "@/lib/utils"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 
 const parseSelectedOptions = (raw: unknown): Record<string, any> | null => {
@@ -146,7 +147,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
               <CheckCircle className="w-6 h-6 text-primary" />
               <h1 className="text-2xl font-bold text-primary">¡Pedido Confirmado!</h1>
             </div>
-            <p className="text-muted-foreground">Pedido #{order.id.slice(-8)}</p>
+            <p className="text-muted-foreground">Pedido #{formatOrderNumber(order.order_number)}</p>
           </div>
         </div>
       </header>

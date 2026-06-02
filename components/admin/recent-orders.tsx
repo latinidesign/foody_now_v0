@@ -1,4 +1,5 @@
 import type { Order } from "@/lib/types/database"
+import { formatOrderNumber } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -67,7 +68,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="space-y-1">
-                  <p className="font-medium">#{order.id.slice(-8)}</p>
+                  <p className="font-medium">#{formatOrderNumber(order.order_number)}</p>
                   <p className="text-sm text-muted-foreground">{order.customer_name}</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString("es-AR")}

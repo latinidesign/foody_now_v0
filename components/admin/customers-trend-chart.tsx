@@ -44,17 +44,32 @@ export function CustomersTrendChart({ data }: CustomersTrendChartProps) {
       stroke: {
         curve: "smooth" as const,
         width: 2,
+        colors: ["#c026d3"], // fuchsia-600 para la línea
+      },
+      markers: {
+        size: 4,
+        colors: ["#c026d3"], // color de relleno del punto
+        strokeColors: ["#ffffff"], // borde blanco para contraste
+        hover: {
+          size: 6,
+        },
       },
       fill: {
         type: "gradient",
         gradient: {
+          shade: "light",
+          type: "vertical",
           shadeIntensity: 1,
+          gradientToColors: ["#f7fee7"], // lime-50 (final)
+          inverseColors: false,
           opacityFrom: 0.7,
           opacityTo: 0.3,
-          stops: [0, 90, 100],
+          stops: [0, 100],
         },
+        // color base (desde) — lime-100
+        colors: ["#ecfccb"],
       },
-      colors: ["hsl(var(--chart-3))"],
+      colors: ["#c026d3"], // fallback / serie color (fuchsia-600)
       xaxis: {
         categories: data.map((item) => format(new Date(item.date), "dd/MM", { locale: es })),
         labels: {

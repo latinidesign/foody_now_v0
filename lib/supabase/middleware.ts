@@ -44,13 +44,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-   const publicPathPrefixes = [
+ const publicPathPrefixes = [
     "/login",
     "/auth",
     "/store",
     "/subscriptions",
     "/privacy",
     "/terms",
+    "/ayuda",
+    "/que-es",
+    "/que-es-foody-now",
     "/api",
     "/robots",
     "/favicon",

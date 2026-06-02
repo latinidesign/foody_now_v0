@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, RefreshCw, XCircle } from "lucide-react"
 import Link from "next/link"
 import { combineStorePath } from "@/lib/store/path"
+import { formatOrderNumber } from "@/lib/utils"
 import { getStoreBasePathFromHeaders } from "@/lib/store/server-path"
 import { notFound, redirect } from "next/navigation"
 
@@ -63,7 +64,7 @@ export default async function PaymentFailurePage({ searchParams }: PaymentFailur
         <CardContent className="text-center space-y-4">
           <div>
             <p className="text-muted-foreground mb-2">Hubo un problema con el pago</p>
-            <p className="font-semibold">Pedido #{order.id.slice(-8)}</p>
+            <p className="font-semibold">Pedido #{formatOrderNumber(order.order_number)}</p>
             <p className="text-2xl font-bold text-muted-foreground">{formatCurrency(order.total)}</p>
           </div>
 

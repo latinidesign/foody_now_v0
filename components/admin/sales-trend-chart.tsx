@@ -1,4 +1,4 @@
-"use client"
+"use client" 
 
 import dynamic from "next/dynamic"
 import { format } from "date-fns"
@@ -44,17 +44,31 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
       stroke: {
         curve: "smooth" as const,
         width: 2,
+        colors: ["#c026d3"], // fuchsia-600
+      },
+      markers: {
+        size: 4,
+        colors: ["#c026d3"], // fuchsia-600
+        strokeColors: ["#ffffff"],
+        hover: {
+          size: 6,
+        },
       },
       fill: {
         type: "gradient",
         gradient: {
+          shade: "light",
+          type: "vertical",
           shadeIntensity: 1,
+          gradientToColors: ["#f7fee7"], // lime-50
+          inverseColors: false,
           opacityFrom: 0.7,
           opacityTo: 0.3,
-          stops: [0, 90, 100],
+          stops: [0, 100],
         },
+        colors: ["#ecfccb"], // lime-100
       },
-      colors: ["hsl(var(--chart-1))"],
+      colors: ["#c026d3"], // fuchsia-600
       xaxis: {
         categories: data.map((item) => format(new Date(item.date), "dd/MM", { locale: es })),
         labels: {
