@@ -231,10 +231,20 @@ export async function POST(request: Request) {
   }))
 
   try {
+    // Get the next order number atomically (prevents number consumption if insert fails)
+    const { data: orderNumberData, error: orderNumberError } = await supabase
+      .rpc("get_next_order_number", { p_store_id: storeRecord.id })
+
+    if (orderNumberError || orderNumberData === null || orderNumberData === undefined) {
+      console.error(`[orders:create-cash][cid:${cid}] Failed to get next order number`, orderNumberError)
+      return fail(500, "Unable to assign order number", orderNumberError)
+    }
+
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         store_id: storeRecord.id,
+        order_number: orderNumberData,
         customer_name: orderData.customerName,
         customer_phone: orderData.customerPhone,
         customer_email: orderData.customerEmail ?? null,

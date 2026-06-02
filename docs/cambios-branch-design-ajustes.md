@@ -65,7 +65,9 @@ El UUID interno (`id`) **no se tocó** — sigue siendo la clave en todas las ru
 
 Ejecutar el script en Supabase SQL Editor:
 
-**`scripts/15-order-number.sql`** (archivo nuevo)
+**`scripts/15-order-number-safe.sql`** (archivo nuevo y recomendado)
+
+> Nota: este script evita race conditions con una serialización por `store_id` y agrega un índice único de seguridad.
 
 ```sql
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INTEGER;
@@ -78,11 +80,21 @@ WITH numbered AS (
 UPDATE orders SET order_number = numbered.rn
 FROM numbered WHERE orders.id = numbered.id;
 
+-- Agrega un índice único para asegurar un único order_number por tienda.
+CREATE UNIQUE INDEX IF NOT EXISTS orders_store_order_number_unique_idx
+  ON orders (store_id, order_number);
+
 CREATE OR REPLACE FUNCTION set_order_number()
 RETURNS TRIGGER AS $$
+DECLARE
+  next_num INTEGER;
 BEGIN
+  PERFORM pg_advisory_xact_lock(hashtext(NEW.store_id::text)::bigint);
+
   SELECT COALESCE(MAX(order_number), 0) + 1
-  INTO NEW.order_number FROM orders WHERE store_id = NEW.store_id;
+  INTO next_num FROM orders WHERE store_id = NEW.store_id;
+
+  NEW.order_number := next_num;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -97,7 +109,8 @@ EXECUTE FUNCTION set_order_number();
 ### Cambios en código
 
 **Nuevos archivos:**
-- `scripts/15-order-number.sql`
+- `scripts/15-order-number-safe.sql`
+- `scripts/15-order-number.sql` (migración original)
 
 **Archivos modificados:**
 
@@ -152,7 +165,8 @@ export function formatOrderNumber(n?: number | null): string {
 ## Resumen de archivos tocados
 
 ```
-scripts/15-order-number.sql           ← NUEVO — ejecutar en Supabase
+scripts/15-order-number-safe.sql      ← NUEVO — ejecutar en Supabase (recomendado)
+scripts/15-order-number.sql           ← NUEVO — migración original
 lib/types/database.ts
 lib/utils.ts
 lib/whatsapp/client.ts
