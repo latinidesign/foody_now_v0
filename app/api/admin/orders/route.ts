@@ -30,6 +30,7 @@ export async function GET() {
     .select(`
       id,
       store_id,
+      order_number,
       customer_name,
       customer_phone,
       customer_email,

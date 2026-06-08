@@ -4,7 +4,6 @@ import type { Store as StoreType } from "@/lib/types/database"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,
   Package,
@@ -21,7 +20,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { memo } from "react"
 
 interface AdminSidebarProps {
@@ -41,6 +40,11 @@ const navigation = [
 
 export const AdminSidebar = memo(function AdminSidebar({ store }: AdminSidebarProps) {
   const pathname = usePathname()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   return (
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r lg:block hidden">
@@ -59,46 +63,49 @@ export const AdminSidebar = memo(function AdminSidebar({ store }: AdminSidebarPr
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = isMounted && pathname === item.href
             return (
-              <Link key={item.name} href={item.href}>
-                <Button
-                  variant={isActive ? "default" : "ghost"}
-                  className={cn("w-full justify-start", isActive && "bg-primary text-primary-foreground")}
-                >
-                  <item.icon className="mr-3 h-4 w-4" />
-                  {item.name}
-                </Button>
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "inline-flex w-full items-center justify-start gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all",
+                  isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon className="mr-3 h-4 w-4" />
+                {item.name}
               </Link>
             )
           })}
         </nav>
 
         <div className="p-4 border-t">
-          {/* CAMBIO: Botón Ayuda que redirige a /admin/help */}
-          <Link href="/admin/help">
-            <Button
-              variant={pathname === "/admin/help" ? "default" : "ghost"}
-              className={cn(
-                "w-full justify-start",
-                pathname === "/admin/help" && "bg-primary text-primary-foreground"
-              )}
-            >
-              <LifeBuoy className="mr-3 h-4 w-4" />
-              Ayuda
-            </Button>
+          <Link
+            href="/admin/help"
+            className={cn(
+              "inline-flex w-full items-center justify-start gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all",
+              isMounted && pathname === "/admin/help"
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <LifeBuoy className="mr-3 h-4 w-4" />
+            Ayuda
           </Link>
         </div>
 
         {/* Store Link */}
         {store && (
           <div className="p-4 border-t">
-            <Link href={`/store/${store.slug}`} target="_blank">
-              <Button variant="outline" className="w-full justify-start bg-transparent">
-                <StoreIcon className="mr-3 h-4 w-4" />
-                Ver Mi Tienda
-                <ExternalLink className="ml-auto h-4 w-4" />
-              </Button>
+            <Link
+              href={`/store/${store.slug}`}
+              target="_blank"
+              className="inline-flex w-full items-center justify-start gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground"
+            >
+              <StoreIcon className="mr-3 h-4 w-4" />
+              Ver Mi Tienda
+              <ExternalLink className="ml-auto h-4 w-4" />
             </Link>
           </div>
         )}

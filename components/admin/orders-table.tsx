@@ -315,11 +315,29 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
   }
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      refreshOrders()
-    }, 15000) // cada 15 segundos
+    if (ordersData.length === 0) return
 
-    return () => clearInterval(interval)
+    const storeId = ordersData[0].store_id
+
+    const channel = supabase
+      .channel(`orders-realtime-${storeId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "orders",
+          filter: `store_id=eq.${storeId}`,
+        },
+        () => {
+          refreshOrders()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   useEffect(() => {

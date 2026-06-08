@@ -42,7 +42,6 @@ export const TrialAlert = memo(function TrialAlert({ trialEndsAt, userCreatedAt 
       }
       
       const remaining = Math.ceil((trialEndsAtDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-      console.log("Días restantes calculados:", remaining, { effectiveEndDate, now })
       setDaysLeft(remaining)
     }
 
