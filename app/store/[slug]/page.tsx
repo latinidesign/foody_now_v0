@@ -73,9 +73,9 @@ export default async function StorePage({ params }: StorePageProps) {
     return (
       <div className="min-h-screen bg-background">
         <StoreHeader store={demoStore} />
-        <main className="container mx-auto px-4 py-6">
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h3 className="font-semibold text-yellow-800 mb-2">Modo Demostración</h3>
+        <main>
+          <div className="mx-3.5 md:mx-7 mt-4 mb-2 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <h3 className="font-semibold text-yellow-800 mb-1">Modo Demostración</h3>
             <p className="text-yellow-700 text-sm">
               Esta tienda está en modo demostración. Para ver datos reales, configura las variables de entorno de
               Supabase.
@@ -210,7 +210,7 @@ export default async function StorePage({ params }: StorePageProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <StoreHeader store={storeWithSettings} />
-      <main className="container mx-auto px-4 py-6 flex-1">
+      <main className="flex-1">
         <ProductCatalog store={storeWithSettings} categories={categories || []} />
       </main>
       <StoreFooter />

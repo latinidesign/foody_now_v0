@@ -1,10 +1,7 @@
 "use client"
 
 import type { Product } from "@/lib/types/database"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Minus } from "lucide-react"
+import { ArrowRight, Minus, Plus } from "lucide-react"
 import { useCart } from "./cart-context"
 import { useState } from "react"
 import Link from "next/link"
@@ -14,6 +11,90 @@ interface ProductCardProps {
   product: Product
   viewMode: "grid" | "list"
   storeSlug: string
+}
+
+function PriceDisplay({ product, align = "left" }: { product: Product; align?: "left" | "right" }) {
+  const alignClass = align === "right" ? "text-right" : ""
+
+  if (product.pricing_config) {
+    return (
+      <div className={alignClass}>
+        <div className="font-heading font-extrabold text-[13.5px] md:text-base text-[#538013] leading-none">
+          Precio según cantidad
+        </div>
+        <div className="text-[11px] text-muted-foreground mt-0.5">Calculado en la ficha</div>
+      </div>
+    )
+  }
+
+  if (product.sale_price && product.sale_price < product.price) {
+    return (
+      <div className={`flex items-baseline gap-1.5 flex-wrap ${alignClass}`}>
+        <span className="font-heading font-extrabold text-base md:text-xl text-[#538013] leading-none">
+          ${product.sale_price.toLocaleString("es-AR")}
+        </span>
+        <span className="text-[12px] text-muted-foreground line-through">
+          ${product.price.toLocaleString("es-AR")}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`flex items-baseline ${alignClass}`}>
+      <span className="font-heading font-extrabold text-base md:text-xl text-[#538013] leading-none">
+        ${product.price.toLocaleString("es-AR")}
+      </span>
+    </div>
+  )
+}
+
+function BuyButton({ href, compact = false }: { href: string; compact?: boolean }) {
+  return (
+    <Link href={href} className="block">
+      <button
+        className={`
+          w-full rounded-full bg-lime-300 text-[#18260a] font-semibold
+          inline-flex items-center justify-center gap-1.5
+          hover:bg-lime-400 active:scale-[0.97] transition-all duration-150
+          ${compact
+            ? "h-8 px-4 text-[12.5px] w-auto whitespace-nowrap"
+            : "h-[38px] md:h-11 text-[13px] md:text-[14.5px]"
+          }
+        `}
+      >
+        Ver <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.2} />
+      </button>
+    </Link>
+  )
+}
+
+function QuantityControls({
+  quantity,
+  onDecrement,
+  onIncrement,
+  compact = false,
+}: {
+  quantity: number
+  onDecrement: () => void
+  onIncrement: () => void
+  compact?: boolean
+}) {
+  const btnClass = compact
+    ? "w-7 h-7 rounded-full border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
+    : "w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
+
+  return (
+    <div className={`flex items-center gap-2 ${compact ? "" : "w-full justify-between"}`}>
+      <button className={btnClass} onClick={onDecrement}>
+        <Minus className={compact ? "w-3 h-3" : "w-3.5 h-3.5"} />
+      </button>
+      <span className="font-semibold min-w-[1.5rem] text-center text-sm">{quantity}</span>
+      <button className={btnClass} onClick={onIncrement}>
+        <Plus className={compact ? "w-3 h-3" : "w-3.5 h-3.5"} />
+      </button>
+    </div>
+  )
 }
 
 export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) {
@@ -37,149 +118,182 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
     setIsAdding(false)
   }
 
-  const handleUpdateQuantity = (newQuantity: number) => {
-    if (newQuantity === 0) {
-      updateQuantity(product.id, 0)
-    } else {
-      updateQuantity(product.id, newQuantity)
-    }
-  }
+  const hasOffer = !!(product.sale_price && product.sale_price < product.price)
 
   if (viewMode === "list") {
-    return (
-      <Card className="overflow-hidden hover:shadow-md transition-shadow">
-        <CardContent className="p-4">
-          <div className="flex gap-4">
-            {product.image_url && (
-              <Link href={productLink}>
-                <img
-                  src={product.image_url || "/placeholder.svg"}
-                  alt={product.name}
-                  className="w-20 h-20 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                />
-              </Link>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start mb-2">
-                <Link href={productLink}>
-                  <h3 className="font-semibold text-lg truncate hover:text-primary cursor-pointer">{product.name}</h3>
-                </Link>
-                <div className="text-right flex-shrink-0 ml-4">
-                  {product.pricing_config ? (
-                    <div className="text-right">
-                      <span className="font-bold text-lg text-primary">Precio según cantidad</span>
-                      <div className="text-sm text-muted-foreground">Calculado en la ficha</div>
-                    </div>
-                  ) : product.sale_price && product.sale_price < product.price ? (
-                    <div>
-                      <Badge variant="destructive" className="text-xs mb-1">
-                        Oferta
-                      </Badge>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-lg text-primary">${product.sale_price}</span>
-                        <span className="text-sm text-muted-foreground line-through">${product.price}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="font-bold text-lg text-primary">${product.price}</span>
-                  )}
-                </div>
-              </div>
-              {product.description && (
-                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{product.description}</p>
-              )}
-              <div className="flex items-center justify-between">
-                <div className="flex-1" />
-                {quantity > 0 ? (
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateQuantity(quantity - 1)}>
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="font-medium min-w-[2rem] text-center">{quantity}</span>
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateQuantity(quantity + 1)}>
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Link href={productLink}>
-                    <Button size="sm">
-                      Ver Producto
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return <ProductListCard product={product} productLink={productLink} quantity={quantity} updateQuantity={updateQuantity} hasOffer={hasOffer} />
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow group">
+    <div className="bg-card rounded-2xl shadow-sm overflow-hidden flex flex-col cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 group">
       <Link href={productLink}>
-        <div className="aspect-square relative overflow-hidden">
+        <div className="relative aspect-square md:aspect-[4/3] overflow-hidden bg-neutral-100">
           {product.image_url ? (
             <img
-              src={product.image_url || "/placeholder.svg"}
+              src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center cursor-pointer">
-              <span className="text-muted-foreground text-sm">Sin imagen</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-muted-foreground text-xs">Sin imagen</span>
             </div>
           )}
-          {product.sale_price && product.sale_price < product.price && (
-            <Badge variant="destructive" className="absolute top-2 left-2">
+          {hasOffer && (
+            <span className="absolute top-2 left-2 bg-[#e23b3b] text-white text-[10.5px] md:text-xs font-bold rounded-full px-2 py-0.5 shadow-sm z-10">
               Oferta
-            </Badge>
+            </span>
           )}
         </div>
       </Link>
 
-      <CardContent className="p-4">
+      <div className="flex flex-col flex-1 p-2.5 md:p-[15px] gap-1.5 md:gap-[7px]">
         <Link href={productLink}>
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2 hover:text-primary cursor-pointer">{product.name}</h3>
+          <h3 className="font-heading font-bold text-[14.5px] md:text-lg text-foreground leading-tight line-clamp-2 hover:text-primary transition-colors">
+            {product.name}
+          </h3>
         </Link>
         {product.description && (
-          <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{product.description}</p>
+          <p className="text-muted-foreground text-[12px] md:text-[13.5px] leading-snug line-clamp-2">
+            {product.description}
+          </p>
         )}
 
-        <div className="flex items-center justify-between mb-4">
-          {product.pricing_config ? (
-            <div>
-              <span className="font-bold text-lg text-primary">Precio según cantidad</span>
-              <span className="text-sm text-muted-foreground block">Calculado en la ficha</span>
-            </div>
-          ) : product.sale_price && product.sale_price < product.price ? (
-            <div>
-              <span className="font-bold text-lg text-primary">${product.sale_price}</span>
-              <span className="text-sm text-muted-foreground line-through ml-2">${product.price}</span>
-            </div>
-          ) : (
-            <span className="font-bold text-lg text-primary">${product.price}</span>
+        <div className="mt-auto pt-1 md:pt-1.5">
+          <PriceDisplay product={product} />
+          <div className="mt-2 md:mt-3">
+            {quantity > 0 ? (
+              <QuantityControls
+                quantity={quantity}
+                onDecrement={() => updateQuantity(product.id, quantity - 1)}
+                onIncrement={() => updateQuantity(product.id, quantity + 1)}
+              />
+            ) : (
+              <BuyButton href={productLink} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProductListCard({
+  product,
+  productLink,
+  quantity,
+  updateQuantity,
+  hasOffer,
+}: {
+  product: Product
+  productLink: string
+  quantity: number
+  updateQuantity: (id: string, qty: number) => void
+  hasOffer: boolean
+}) {
+  return (
+    <>
+      {/* Mobile list card */}
+      <div className="md:hidden bg-card rounded-2xl shadow-sm flex gap-2.5 p-2.5 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+        <Link href={productLink}>
+          <div className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-neutral-100">
+            {product.image_url ? (
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-muted-foreground text-[10px]">Sin imagen</span>
+              </div>
+            )}
+            {hasOffer && (
+              <span className="absolute top-1.5 left-1.5 bg-[#e23b3b] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none z-10">
+                Oferta
+              </span>
+            )}
+          </div>
+        </Link>
+        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+          <Link href={productLink}>
+            <h3 className="font-heading font-bold text-[15px] text-foreground leading-tight line-clamp-1 hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+          </Link>
+          {product.description && (
+            <p className="text-muted-foreground text-[12.5px] leading-snug line-clamp-2">
+              {product.description}
+            </p>
+          )}
+          <div className="flex items-center justify-between mt-auto pt-1.5 gap-2">
+            <PriceDisplay product={product} />
+            {quantity > 0 ? (
+              <QuantityControls
+                quantity={quantity}
+                onDecrement={() => updateQuantity(product.id, quantity - 1)}
+                onIncrement={() => updateQuantity(product.id, quantity + 1)}
+                compact
+              />
+            ) : (
+              <BuyButton href={productLink} compact />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop list card */}
+      <div className="hidden md:flex bg-card rounded-2xl shadow-sm gap-5 p-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 items-center group">
+        <Link href={productLink}>
+          <div className="relative flex-shrink-0 w-[190px] h-[140px] rounded-xl overflow-hidden bg-neutral-100">
+            {product.image_url ? (
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-muted-foreground text-xs">Sin imagen</span>
+              </div>
+            )}
+            {hasOffer && (
+              <span className="absolute top-2 left-2 bg-[#e23b3b] text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-sm z-10">
+                Oferta
+              </span>
+            )}
+          </div>
+        </Link>
+        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+          <Link href={productLink}>
+            <h3 className="font-heading font-bold text-xl text-foreground leading-tight line-clamp-2 hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+          </Link>
+          {product.description && (
+            <p className="text-muted-foreground text-sm leading-snug line-clamp-2 max-w-[60ch]">
+              {product.description}
+            </p>
           )}
         </div>
-
-        {quantity > 0 ? (
-          <div className="flex items-center justify-between">
-            <Button size="sm" variant="outline" onClick={() => handleUpdateQuantity(quantity - 1)}>
-              <Minus className="w-4 h-4" />
-            </Button>
-            <span className="font-medium">{quantity}</span>
-            <Button size="sm" variant="outline" onClick={() => handleUpdateQuantity(quantity + 1)}>
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <Link href={productLink}>
-            <Button className="w-full">
-              Ver Producto
-            </Button>
-          </Link>
-        )}
-      </CardContent>
-    </Card>
+        <div className="flex flex-col items-end justify-center gap-3 flex-shrink-0 min-w-[170px]">
+          <PriceDisplay product={product} align="right" />
+          {quantity > 0 ? (
+            <QuantityControls
+              quantity={quantity}
+              onDecrement={() => updateQuantity(product.id, quantity - 1)}
+              onIncrement={() => updateQuantity(product.id, quantity + 1)}
+            />
+          ) : (
+            <div className="w-[170px]">
+              <BuyButton href={productLink} />
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
