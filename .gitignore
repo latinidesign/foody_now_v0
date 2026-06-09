@@ -61,6 +61,9 @@ check-git-status.js
 /signing-cert.pem
 /override.crt
 
+# logs
+build.log
+
 # Keep important permanent files:
 # - setup-subscriptions.js (permanent setup)
 # - process-*.js (permanent processing)
