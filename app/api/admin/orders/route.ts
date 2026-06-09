@@ -47,6 +47,7 @@ export async function GET() {
       notes,
       created_at,
       updated_at,
+      auto_printed_at,
       order_items (
         id,
         quantity,

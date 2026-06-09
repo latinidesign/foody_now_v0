@@ -539,6 +539,14 @@ Frontend: SubscriptionGuard verifica trial | subscription activa
 - **Documentado no operativo**: WhatsApp Cloud API (`graph.facebook.com/v20.0`) implementada en `WhatsAppService.sendCloudApiMessage()`. Requiere verificación business (no disponible actualmente)
 - **Fallback**: Si Cloud API falla (falta de credenciales o error), devuelve link `wa.me`
 
+### QZ Tray
+
+- **Propósito**: Aplicación de escritorio instalada en la máquina del owner que permite enviar comandos de impresión desde el browser directamente a la impresora del sistema sin diálogo de confirmación
+- **Integración**: Vía paquete npm `qz-tray`. Encapsulada en hook `useQzTray` del lado del cliente
+- **Auto-impresión**: Al recibir un pedido nuevo (evento Realtime de Supabase), si el toggle está activado y QZ Tray está disponible, el ticket se imprime automáticamente sin intervención del user. El campo `auto_printed_at` en la tabla `orders` marca los tickets ya impresos automáticamente
+- **Disponibilidad**: Opcional. Si no está disponible, se muestra aviso no invasivo en el panel de pedidos. La impresión manual sigue disponible siempre
+- **Requerimientos**: QZ Tray 2.2+ con Java bundleado. El owner debe aceptar el diálogo de confianza en la primera conexión desde el browser
+
 ## Servicios principales
 
 | Servicio | Archivo | Responsabilidad |

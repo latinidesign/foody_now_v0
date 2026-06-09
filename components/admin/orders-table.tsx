@@ -30,14 +30,18 @@ import {
   X,
   MessageCircle,
   Printer,
+  AlertCircle,
 } from "lucide-react"
 import { getBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
 import { getPaymentMethodLabel } from "@/lib/payments/methods"
 import { formatOrderNumber } from "@/lib/utils"
+import { useQzTray } from "@/hooks/use-qz-tray"
+import { Switch } from "@/components/ui/switch"
 
 interface OrderWithItems extends Order {
+  auto_printed_at: string | null
   order_items: Array<{
     id: string
     quantity: number
@@ -138,11 +142,17 @@ interface StoreInfo {
 }
 
 interface OrdersTableProps {
+  storeId: string
   orders: OrderWithItems[]
   store?: StoreInfo
 }
 
-export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTableProps) {
+// Keys para localStorage: estado de dispositivo, no de cuenta
+const MOUNTED_AT_KEY = "orders_panel_mounted_at"
+const AUTO_PRINT_ENABLED_KEY = "orders_auto_print_enabled"
+const LAST_CONNECTION_ERROR_KEY = "qz_last_connection_error"
+
+export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }: OrdersTableProps) {
   const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const handledOrderIdRef = useRef<string | null>(null)
@@ -157,6 +167,22 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
     message: string
     link: string | null
   }>({ isOpen: false, order: null, message: "", link: null })
+
+  // Estado de auto-impresión: activado por defecto, persistido en localStorage
+  const [autoPrintEnabled, setAutoPrintEnabled] = useState<boolean>(
+    () => localStorage.getItem(AUTO_PRINT_ENABLED_KEY) !== "false"
+  )
+
+  // Hook para conexión con QZ Tray
+  const { isAvailable: isQzAvailable, connectionStatus, attempt, maxAttempts, print: qzPrint, retry } = useQzTray()
+
+  // Banner verde de éxito: se muestra 1.5s y desaparece
+  const [showConnectedBanner, setShowConnectedBanner] = useState(false)
+
+  // Último resultado de conexión: true si falló, false si conectó
+  const [lastConnectionError, setLastConnectionError] = useState<boolean>(
+    () => localStorage.getItem(LAST_CONNECTION_ERROR_KEY) === 'true'
+  )
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -305,6 +331,57 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
       const data = await response.json()
       if (Array.isArray(data.orders)) {
         setOrdersData(data.orders)
+
+        // Lógica de auto-impresión: detectar y imprimir pedidos nuevos
+        const mountedAt = localStorage.getItem(MOUNTED_AT_KEY)
+        console.log("[AutoPrint] refreshOrders ejecutado.", {
+          autoPrintEnabled,
+          mountedAt,
+          isQzAvailable,
+          ordersCount: data.orders.length,
+        })
+
+        if (autoPrintEnabled && mountedAt && isQzAvailable) {
+          const mountedAtDate = new Date(mountedAt)
+          console.log("[AutoPrint] Buscando candidatos. mountedAt =", mountedAt)
+
+          const candidates = data.orders.filter((order: OrderWithItems) => {
+            const isCandidate =
+              order.auto_printed_at === null &&
+              new Date(order.created_at) > mountedAtDate
+            if (isCandidate) {
+              console.log(`[AutoPrint] Candidato: order #${order.order_number} (${order.id}) created=${order.created_at} auto_printed_at=${order.auto_printed_at}`)
+            }
+            return isCandidate
+          })
+
+          console.log(`[AutoPrint] ${candidates.length} candidato(s) encontrado(s).`)
+
+          for (const order of candidates) {
+            try {
+              console.log(`[AutoPrint] Imprimiendo order #${order.order_number}...`)
+              const html = buildTicketHtml(order)
+              const safeName = order.customer_name.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]/g, "")
+              const ts = new Date(order.created_at).toISOString().replace(/[:.]/g, "-").slice(0, 19)
+              const jobName = `${order.order_number}_${safeName}_${ts}`
+              await qzPrint(html, jobName)
+              console.log(`[AutoPrint] Impresión completada para order #${order.order_number}.`)
+
+              // Marcar como impreso en Supabase
+              await markOrderAsPrinted(order.id)
+              console.log(`[AutoPrint] Order #${order.order_number} marcado como impreso en Supabase.`)
+            } catch (error) {
+              // No interrumpir el loop si falla un pedido individual
+              console.error(`[AutoPrint] Error auto-printing order ${order.id}:`, error)
+            }
+          }
+        } else {
+          const razones: string[] = []
+          if (!autoPrintEnabled) razones.push("autoPrintEnabled=false")
+          if (!mountedAt) razones.push("mountedAt es null")
+          if (!isQzAvailable) razones.push("isQzAvailable=false")
+          console.log("[AutoPrint] Auto-impresión saltada. Razones:", razones.join(", "))
+        }
       }
     } catch (error) {
       console.error("Error refreshing orders:", error)
@@ -314,11 +391,59 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
     }
   }
 
+  // Marcar pedido como impreso en Supabase
+  const markOrderAsPrinted = async (orderId: string): Promise<void> => {
+    const { error } = await supabase
+      .from("orders")
+      .update({ auto_printed_at: new Date().toISOString() })
+      .eq("id", orderId)
+
+    if (error) {
+      // Loggear pero no throw: protección contra reimprimir por timestamp de montaje
+      console.error(`Error marking order ${orderId} as printed:`, error)
+    }
+  }
+
+  const handleAutoPrintToggle = (enabled: boolean) => {
+    setAutoPrintEnabled(enabled)
+    localStorage.setItem(AUTO_PRINT_ENABLED_KEY, String(enabled))
+    if (enabled) {
+      retry()
+    }
+  }
+
+  // Guardar referencia estable a refreshOrders para usarla en efectos
+  const refreshOrdersRef = useRef(refreshOrders)
+  refreshOrdersRef.current = refreshOrders
+
+  // Inicializar timestamp de montaje: sobreescribir en cada visita
+  // Garantiza que pedidos históricos no se reimpriman en nueva sesión
   useEffect(() => {
-    if (ordersData.length === 0) return
+    localStorage.setItem(MOUNTED_AT_KEY, new Date().toISOString())
+  }, [])
 
-    const storeId = ordersData[0].store_id
+  // Sincronizar estado de conexión: banner verde + flag de error
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      setShowConnectedBanner(true)
+      setLastConnectionError(false)
+      const timer = setTimeout(() => setShowConnectedBanner(false), 1500)
+      return () => clearTimeout(timer)
+    } else if (connectionStatus === 'failed') {
+      setLastConnectionError(true)
+    }
+  }, [connectionStatus])
 
+  // Cuando QZ Tray se vuelve disponible, refrescar pedidos para procesar
+  // los que llegaron durante la ventana de conexión inicial
+  useEffect(() => {
+    if (isQzAvailable && autoPrintEnabled) {
+      console.log("[AutoPrint] QZ Tray ahora disponible, refrescando pedidos...")
+      refreshOrdersRef.current()
+    }
+  }, [isQzAvailable])
+
+  useEffect(() => {
     const channel = supabase
       .channel(`orders-realtime-${storeId}`)
       .on(
@@ -330,7 +455,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
           filter: `store_id=eq.${storeId}`,
         },
         () => {
-          refreshOrders()
+          refreshOrdersRef.current()
         }
       )
       .subscribe()
@@ -338,7 +463,7 @@ export const OrdersTable = memo(function OrdersTable({ orders, store }: OrdersTa
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [storeId])
 
   useEffect(() => {
     const orderId = searchParams.get("orderId")
@@ -713,6 +838,17 @@ Estado: ${getStatusText(status)}
               {isRefreshing ? "Actualizando..." : "Refrescar ahora"}
             </Button>
 
+            <div className="flex items-center gap-2 ml-auto">
+              <label htmlFor="auto-print-toggle" className="text-sm font-medium">
+                Impresión automática
+              </label>
+              <Switch
+                id="auto-print-toggle"
+                checked={autoPrintEnabled}
+                onCheckedChange={handleAutoPrintToggle}
+              />
+            </div>
+
             {(searchTerm ||
               statusFilter !== "all" ||
               deliveryFilter !== "all" ||
@@ -732,6 +868,37 @@ Estado: ${getStatusText(status)}
       </CardHeader>
 
       <CardContent>
+        {/* Banner de estado de conexión QZ Tray — solo visible con toggle activado */}
+        {autoPrintEnabled && connectionStatus === 'failed' && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+            <p className="text-sm text-red-700 flex-1">
+              QZ Tray no está disponible. Verificá que la aplicación esté instalada y corriendo.
+            </p>
+            <Button variant="outline" size="sm" onClick={retry}>
+              Reintentar
+            </Button>
+          </div>
+        )}
+
+        {autoPrintEnabled && connectionStatus === 'connecting' && (
+          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-gray-500">
+              Conectando con QZ Tray...{attempt > 0 ? ` (intento ${attempt}/${maxAttempts})` : ''}
+            </p>
+          </div>
+        )}
+
+        {autoPrintEnabled && connectionStatus === 'connected' && showConnectedBanner && !lastConnectionError && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-green-700">
+              ¡Conectado! Impresión automática lista.
+            </p>
+          </div>
+        )}
+
         {filteredAndSortedOrders.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">

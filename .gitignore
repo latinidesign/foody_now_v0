@@ -53,6 +53,9 @@ final-states-verification.js
 test-webhook-*.js
 check-git-status.js
 
+# Dev resources
+/qztray
+
 # Keep important permanent files:
 # - setup-subscriptions.js (permanent setup)
 # - process-*.js (permanent processing)

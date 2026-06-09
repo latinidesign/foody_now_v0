@@ -57,6 +57,7 @@ export default async function OrdersPage() {
       notes,
       created_at,
       updated_at,
+      auto_printed_at,
       order_items (
         id,
         quantity,
@@ -100,6 +101,7 @@ export default async function OrdersPage() {
       </div>
 
       <OrdersTable
+        storeId={store.id}
         orders={safeOrders}
         store={{
           name: store.name ?? "",
