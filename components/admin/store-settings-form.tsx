@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
+import { QzTrayInstructions } from "@/components/admin/qztray-instructions"
 import { Loader2, Eye, EyeOff, Upload, MapPin, X, Plus } from "lucide-react"
 import type { Store, StoreSettings } from "@/lib/types/database"
 import { LocationMap } from "@/components/store/location-map"
@@ -87,6 +89,10 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
     deliveryFee: "0",
     minOrderAmount: store.min_order_amount.toString(),
   })
+
+  const [autoPrintEnabled, setAutoPrintEnabled] = useState<boolean>(
+    () => localStorage.getItem("orders_auto_print_enabled") !== "false",
+  )
 
   const [paymentSettings, setPaymentSettings] = useState({
     mercadopagoAccessToken: settings?.mercadopago_access_token || "",
@@ -268,6 +274,7 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
         <TabsTrigger value="extended">Información Ampliada</TabsTrigger>
         <TabsTrigger value="hours">Horarios</TabsTrigger>
         <TabsTrigger value="payments">Pagos</TabsTrigger>
+        <TabsTrigger value="printing">Impresión</TabsTrigger>
       </TabsList>
 
       {(error || success) && (
@@ -721,6 +728,37 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
                 </a>
               </div>
             )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="printing">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuración de Impresión</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="auto-print-toggle">Impresión automática de tickets</Label>
+                <p className="text-sm text-muted-foreground">
+                  Imprime automáticamente cada nuevo pedido cuando QZ Tray está
+                  corriendo en esta computadora.
+                </p>
+              </div>
+              <Switch
+                id="auto-print-toggle"
+                checked={autoPrintEnabled}
+                onCheckedChange={(checked) => {
+                  setAutoPrintEnabled(checked)
+                  localStorage.setItem("orders_auto_print_enabled", String(checked))
+                }}
+              />
+            </div>
+
+            <hr className="border-t border-border" />
+
+            <QzTrayInstructions />
           </CardContent>
         </Card>
       </TabsContent>

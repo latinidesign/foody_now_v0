@@ -151,9 +151,9 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
         setSuccess("¡Configuración actualizada exitosamente!")
       }
 
-      // Redirigir al admin después de 1 segundo
+      // Redirigir a la página de bienvenida post-onboarding
       setTimeout(() => {
-        router.push("/admin")
+        router.push("/onboarding/complete")
       }, 1000)
     } catch (err) {
       console.error("Error saving store:", err)
