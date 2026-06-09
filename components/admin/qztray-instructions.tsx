@@ -27,7 +27,23 @@ export function QzTrayInstructions() {
           Windows.
         </li>
         <li>
-          <strong>Paso 5:</strong> Volvé al panel de pedidos — la impresión
+          <strong>Paso 5:</strong>{" "}
+          <a
+            href="/override.crt"
+            target="_blank"
+            className="underline hover:no-underline"
+          >
+            Descargá el archivo override.crt
+          </a>{" "}
+          y copialo a{" "}
+          <code className="bg-muted px-1 rounded text-xs">
+            C:\Program Files\QZ Tray\override.crt
+          </code>
+          . Esto permite que QZ Tray confíe en FoodyNow para imprimir sin
+          diálogos de confirmación.
+        </li>
+        <li>
+          <strong>Paso 6:</strong> Volvé al panel de pedidos — la impresión
           automática estará activa.
         </li>
       </ol>

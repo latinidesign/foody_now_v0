@@ -56,6 +56,11 @@ check-git-status.js
 # Dev resources
 /qztray
 
+# QZ Tray generated certificates (keep only public/override.crt committed)
+/private-key.pem
+/signing-cert.pem
+/override.crt
+
 # Keep important permanent files:
 # - setup-subscriptions.js (permanent setup)
 # - process-*.js (permanent processing)

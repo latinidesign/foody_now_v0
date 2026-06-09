@@ -21,8 +21,10 @@ interface UseQzTrayReturn {
 }
 
 // ── Certificado y clave de desarrollo ──
-// Generados con QZ Tray. Solo para desarrollo local. No van a producción.
-const DEV_CERT = `-----BEGIN CERTIFICATE-----
+// Solo incluidos en builds de desarrollo. Tree-shaken en producción.
+// En producción se usa server-side signing via /api/qz/sign.
+if (process.env.NODE_ENV === "development") {
+  var DEV_CERT = `-----BEGIN CERTIFICATE-----
 MIIECzCCAvOgAwIBAgIGAZ6obMouMA0GCSqGSIb3DQEBCwUAMIGiMQswCQYDVQQG
 EwJVUzELMAkGA1UECAwCTlkxEjAQBgNVBAcMCUNhbmFzdG90YTEbMBkGA1UECgwS
 UVogSW5kdXN0cmllcywgTExDMRswGQYDVQQLDBJRWiBJbmR1c3RyaWVzLCBMTEMx
@@ -47,7 +49,7 @@ uM+bF/c0rmTCHgmVrxKWCPfvgiRYnuTIORSBOfyC+8fXxm1AGSwCdWkemQVPC7Iv
 FH7wtvrSJKeNeW8qGxQqce6SKhHchvVhxod89MiIaw==
 -----END CERTIFICATE-----`
 
-const DEV_KEY = `-----BEGIN PRIVATE KEY-----
+  var DEV_KEY = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCyc+j7po9wECUI
 PtIDi43nlhcVCeyqB4pHdNTm88CSpHj8grN5rKPYYGTeY6owDPyLs0L/z/lNQJjl
 UJuqwqeLsu5ETSv7C+w39sSDBrn+BS/EP7JV2PzPoF30m9sBNiVDq61eLeeo9jHl
@@ -75,6 +77,7 @@ j7UH2dX9SBuCWhTcn9j6cPzgqs9W8kyZ5KJALrT1zEsN+i7W/xLQS7VzXplHkSIi
 RW8LLHC2ksx2AiPz+cCnb1zwB5eJi+fk9wb996YD1j3kilkFsVzjEF7ez7t5Xrgl
 ivdST22eTYbxOW3mYSft+RU=
 -----END PRIVATE KEY-----`
+}
 
 // ── Module-level singleton ──
 // Connection persists across component mounts and page navigations.
@@ -95,7 +98,9 @@ const listeners = new Set<() => void>()
 const LOG_PREFIX = "[QZ Tray]"
 const LAST_CONNECTION_ERROR_KEY = "qz_last_connection_error"
 
-// ── Helpers para firma criptográfica ──
+// ── Helpers para firma criptográfica (solo desarrollo) ──
+// Tree-shaken en producción. En prod se usa server-side signing via /api/qz/sign.
+if (process.env.NODE_ENV === "development") {
 
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem.replace(/-----[A-Z ]+-----/g, "").replace(/\s/g, "")
@@ -135,17 +140,45 @@ async function signRequest(toSign: string): Promise<string> {
   return arrayBufferToBase64(sig)
 }
 
+} // end dev-only helpers
+
 let signingConfigured = false
 
 async function setupSigning(qz: any): Promise<void> {
   if (signingConfigured) return
   console.log(`${LOG_PREFIX} Configurando firma de requests...`)
-  qz.security.setCertificatePromise((resolve: (cert: string) => void) => resolve(DEV_CERT))
-  qz.security.setSignaturePromise((toSign: string) => {
-    return (resolve: (sig: string) => void, reject: (err: any) => void) => {
-      signRequest(toSign).then(resolve).catch(reject)
-    }
-  })
+
+  if (process.env.NODE_ENV === "development") {
+    // Desarrollo: firma client-side con claves hardcodeadas
+    qz.security.setCertificatePromise((resolve: (cert: string) => void) => resolve(DEV_CERT))
+    qz.security.setSignaturePromise((toSign: string) => {
+      return (resolve: (sig: string) => void, reject: (err: any) => void) => {
+        signRequest(toSign).then(resolve).catch(reject)
+      }
+    })
+  } else {
+    // Producción: firma server-side via API endpoints
+    qz.security.setCertificatePromise((resolve: (cert: string) => void) => {
+      fetch("/api/qz/certificate")
+        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text() })
+        .then(resolve)
+        .catch((err) => console.error(`${LOG_PREFIX} Error obteniendo certificado:`, err))
+    })
+    qz.security.setSignatureAlgorithm("SHA512")
+    qz.security.setSignaturePromise((toSign: string) => {
+      return (resolve: (sig: string) => void, reject: (err: any) => void) => {
+        fetch("/api/qz/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ toSign }),
+        })
+          .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+          .then((data) => resolve(data.signature))
+          .catch(reject)
+      }
+    })
+  }
+
   signingConfigured = true
   console.log(`${LOG_PREFIX} Firma de requests configurada.`)
 }
