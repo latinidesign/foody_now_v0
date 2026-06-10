@@ -177,6 +177,9 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
     print: browserPrint,
     isChromeOrEdge,
     browserName,
+    isEdge,
+    isChrome,
+    isFirefox,
     kioskConfirmed,
     confirmKioskMode,
   } = useBrowserPrint()
@@ -846,11 +849,11 @@ Estado: ${getStatusText(status)}
 
       <CardContent>
         {/* Banners de diagnóstico de impresión */}
-        {autoPrintEnabled && !isChromeOrEdge && (
+        {autoPrintEnabled && !isChromeOrEdge && !isFirefox && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md space-y-2">
             <p className="text-sm text-amber-800">
-              Navegador no soportado ({browserName}). Usá Chrome o Edge para
-              impresión automática sin diálogos.
+              Navegador no soportado ({browserName}). Usá Chrome, Edge o
+              Firefox para impresión automática sin diálogos.
             </p>
             <Button
               variant="ghost"
@@ -863,7 +866,64 @@ Estado: ${getStatusText(status)}
           </div>
         )}
 
-        {autoPrintEnabled && isChromeOrEdge && !kioskConfirmed && (
+        {autoPrintEnabled && isFirefox && !kioskConfirmed && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md space-y-2">
+            <p className="text-sm text-blue-800">
+              Firefox requiere configurar{" "}
+              <code className="bg-blue-100 px-1 rounded text-xs">about:config</code>
+              {" → "}<code className="bg-blue-100 px-1 rounded text-xs">print.always_print_silent = true</code>
+              {" "}seguí las instrucciones.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={confirmKioskMode}
+              >
+                Ya lo configuré
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-blue-700"
+                onClick={() => setShowPrintInstructions(!showPrintInstructions)}
+              >
+                {showPrintInstructions ? "Ocultar instrucciones" : "Ver instrucciones"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {autoPrintEnabled && isEdge && !kioskConfirmed && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md space-y-2">
+            <p className="text-sm text-blue-800">
+              Edge requiere full kiosk mode: creá un acceso directo con{" "}
+              <code className="bg-blue-100 px-1 rounded text-xs">--kiosk --edge-kiosk-type=fullscreen --kiosk-printing</code>.
+              (El navegador queda en pantalla completa, sin barra de direcciones).
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={confirmKioskMode}
+              >
+                Ya lo configuré
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-blue-700"
+                onClick={() => setShowPrintInstructions(!showPrintInstructions)}
+              >
+                {showPrintInstructions ? "Ocultar instrucciones" : "Ver instrucciones"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {autoPrintEnabled && isChrome && !kioskConfirmed && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md space-y-2">
             <p className="text-sm text-blue-800">
               Impresión sin diálogo: creá un acceso directo con{" "}
@@ -891,18 +951,17 @@ Estado: ${getStatusText(status)}
           </div>
         )}
 
-        {autoPrintEnabled && isChromeOrEdge && kioskConfirmed && (
+        {autoPrintEnabled && kioskConfirmed && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-700">
-              Impresión silenciosa activa. Chrome/Edge con{" "}
-              <code className="bg-green-100 px-1 rounded text-xs">--kiosk-printing</code>.
+              Impresión silenciosa activa ({browserName}).
             </p>
           </div>
         )}
 
         {showPrintInstructions && (
           <div className="mb-4 p-4 bg-muted border rounded-md">
-            <PrintingInstructions />
+            <PrintingInstructions browserName={browserName} />
           </div>
         )}
 

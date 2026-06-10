@@ -28,6 +28,9 @@ export function useBrowserPrint() {
   })
 
   const { isChromeOrEdge, browserName } = detectBrowser()
+  const isChrome = browserName === "chrome"
+  const isEdge = browserName === "edge"
+  const isFirefox = browserName === "firefox"
 
   useEffect(() => {
     console.log(`${LOG} Browser: ${browserName}, Chrome/Edge: ${isChromeOrEdge}, Kiosk: ${kioskConfirmed}, userAgent: ${navigator.userAgent}`)
@@ -124,6 +127,9 @@ export function useBrowserPrint() {
     print: enqueue,
     isChromeOrEdge,
     browserName,
+    isChrome,
+    isEdge,
+    isFirefox,
     kioskConfirmed,
     confirmKioskMode,
     denyKioskMode,
