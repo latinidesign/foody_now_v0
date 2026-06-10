@@ -56,6 +56,15 @@ export function PrintingInstructions() {
         <strong>Imprimir ticket</strong> de cada pedido. La impresión automática
         solo funciona en Chrome o Edge con el flag indicado.
       </p>
+      <details className="text-xs text-muted-foreground">
+        <summary className="cursor-pointer hover:text-foreground">Info de diagnóstico</summary>
+        <p className="mt-2">
+          Si algo no funciona, abrí la consola del navegador (F12 → Console) y
+          buscá mensajes con <code className="bg-muted px-1 rounded">[BrowserPrint]</code>.
+          También verificá que el acceso directo incluya exactamente{" "}
+          <code className="bg-muted px-1 rounded">--kiosk-printing</code> (dos guiones).
+        </p>
+      </details>
     </div>
   )
 }

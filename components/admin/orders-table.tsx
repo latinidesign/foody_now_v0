@@ -36,8 +36,9 @@ import { toast } from "sonner"
 import { AnalyticsDateSelector } from "@/components/admin/analytics-date-selector"
 import { getPaymentMethodLabel } from "@/lib/payments/methods"
 import { formatOrderNumber } from "@/lib/utils"
-import { useBrowserPrint } from "@/hooks/use-browser-print"
+import { useBrowserPrint, buildTestTicketHtml } from "@/hooks/use-browser-print"
 import { Switch } from "@/components/ui/switch"
+import { PrintingInstructions } from "@/components/admin/printing-instructions"
 
 interface OrderWithItems extends Order {
   auto_printed_at: string | null
@@ -172,7 +173,15 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
   )
 
   // Browser printing hook
-  const { print: browserPrint } = useBrowserPrint()
+  const {
+    print: browserPrint,
+    isChromeOrEdge,
+    browserName,
+    kioskConfirmed,
+    confirmKioskMode,
+  } = useBrowserPrint()
+
+  const [showPrintInstructions, setShowPrintInstructions] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -807,6 +816,14 @@ Estado: ${getStatusText(status)}
                 checked={autoPrintEnabled}
                 onCheckedChange={handleAutoPrintToggle}
               />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => browserPrint(buildTestTicketHtml())}
+                title="Probar impresión"
+              >
+                <Printer className="w-4 h-4" />
+              </Button>
             </div>
 
             {(searchTerm ||
@@ -828,6 +845,67 @@ Estado: ${getStatusText(status)}
       </CardHeader>
 
       <CardContent>
+        {/* Banners de diagnóstico de impresión */}
+        {autoPrintEnabled && !isChromeOrEdge && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md space-y-2">
+            <p className="text-sm text-amber-800">
+              Navegador no soportado ({browserName}). Usá Chrome o Edge para
+              impresión automática sin diálogos.
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-amber-700 hover:text-amber-800 -ml-2"
+              onClick={() => setShowPrintInstructions(!showPrintInstructions)}
+            >
+              {showPrintInstructions ? "Ocultar instrucciones" : "Ver instrucciones"}
+            </Button>
+          </div>
+        )}
+
+        {autoPrintEnabled && isChromeOrEdge && !kioskConfirmed && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md space-y-2">
+            <p className="text-sm text-blue-800">
+              Impresión sin diálogo: creá un acceso directo con{" "}
+              <code className="bg-blue-100 px-1 rounded text-xs">--kiosk-printing</code>{" "}
+              siguiendo las instrucciones.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={confirmKioskMode}
+              >
+                Ya lo configuré
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-blue-700"
+                onClick={() => setShowPrintInstructions(!showPrintInstructions)}
+              >
+                {showPrintInstructions ? "Ocultar instrucciones" : "Ver instrucciones"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {autoPrintEnabled && isChromeOrEdge && kioskConfirmed && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-700">
+              Impresión silenciosa activa. Chrome/Edge con{" "}
+              <code className="bg-green-100 px-1 rounded text-xs">--kiosk-printing</code>.
+            </p>
+          </div>
+        )}
+
+        {showPrintInstructions && (
+          <div className="mb-4 p-4 bg-muted border rounded-md">
+            <PrintingInstructions />
+          </div>
+        )}
+
         {filteredAndSortedOrders.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
