@@ -14,6 +14,20 @@ export async function POST(request: NextRequest) {
 
   const privateKeyPem = normalizePem(rawKey)
 
+  console.log("[QZ sign] Header del PEM normalizado:", privateKeyPem.slice(0, 60))
+
+  try {
+    crypto.createPrivateKey(privateKeyPem)
+    console.log("[QZ sign] createPrivateKey OK")
+  } catch (parseErr) {
+    const parseMsg = parseErr instanceof Error ? parseErr.message : String(parseErr)
+    console.error("[QZ sign] createPrivateKey falló:", parseMsg)
+    return NextResponse.json(
+      { error: `Clave privada inválida: ${parseMsg}` },
+      { status: 500 },
+    )
+  }
+
   let body: { toSign?: string }
   try {
     body = await request.json()
