@@ -150,6 +150,8 @@ async function setupSigning(qz: any): Promise<void> {
 
   if (process.env.NODE_ENV === "development") {
     // Desarrollo: firma client-side con claves hardcodeadas
+    console.log(`${LOG_PREFIX} [DEBUG] DEV_CERT existe, longitud: ${DEV_CERT.length} caracteres`)
+    console.log(`${LOG_PREFIX} [DEBUG] DEV_KEY existe, longitud: ${DEV_KEY.length} caracteres`)
     qz.security.setCertificatePromise((resolve: (cert: string) => void) => resolve(DEV_CERT))
     qz.security.setSignaturePromise((toSign: string) => {
       return (resolve: (sig: string) => void, reject: (err: any) => void) => {
@@ -157,11 +159,19 @@ async function setupSigning(qz: any): Promise<void> {
       }
     })
   } else {
-    // Producción: firma server-side via API endpoints
+    // Producción: debug de variables de entorno
+    fetch("/api/qz/env-debug")
+      .then((r) => r.json())
+      .then((debug) => console.log(`${LOG_PREFIX} [DEBUG] Env vars:`, JSON.stringify(debug)))
+      .catch((err) => console.warn(`${LOG_PREFIX} [DEBUG] No se pudo obtener env-debug:`, err))
+
     qz.security.setCertificatePromise((resolve: (cert: string) => void) => {
       fetch("/api/qz/certificate")
         .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text() })
-        .then(resolve)
+        .then((cert) => {
+          console.log(`${LOG_PREFIX} [DEBUG] Certificado recibido, longitud: ${cert.length} caracteres, empieza con: ${cert.slice(0, 50)}...`)
+          resolve(cert)
+        })
         .catch((err) => console.error(`${LOG_PREFIX} Error obteniendo certificado:`, err))
     })
     qz.security.setSignatureAlgorithm("SHA512")
