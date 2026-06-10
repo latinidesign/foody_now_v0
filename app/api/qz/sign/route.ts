@@ -12,28 +12,15 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const privateKeyPem = normalizePem(rawKey)
-  const rawPrefix = privateKeyPem.slice(0, 120)
-  const pemType = rawPrefix.match(/-----BEGIN (.+?)-----/)?.[1] || "desconocido"
-
-  console.log("[QZ sign] Raw prefix:", JSON.stringify(rawPrefix))
-  console.log("[QZ sign] Raw key length:", rawKey.length)
+  const privateKeyPem = normalizePem(rawKey, "PRIVATE KEY")
 
   try {
     crypto.createPrivateKey(privateKeyPem)
-    console.log("[QZ sign] createPrivateKey OK")
   } catch (parseErr) {
     const parseMsg = parseErr instanceof Error ? parseErr.message : String(parseErr)
     console.error("[QZ sign] createPrivateKey falló:", parseMsg)
     return NextResponse.json(
-      {
-        error: `Clave privada inválida: ${parseMsg}`,
-        debug: {
-          pemType,
-          pemLength: privateKeyPem.length,
-          rawPrefix,
-        },
-      },
+      { error: `Clave privada inválida: ${parseMsg}` },
       { status: 500 },
     )
   }

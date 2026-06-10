@@ -8,7 +8,7 @@ export async function GET() {
     return new NextResponse("QZ_CERTIFICATE no está configurada", { status: 500 })
   }
 
-  const cert = normalizePem(rawCert)
+  const cert = normalizePem(rawCert, "CERTIFICATE")
 
   return new NextResponse(cert, {
     headers: { "Content-Type": "text/plain" },
