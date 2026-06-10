@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
-import { QzTrayInstructions } from "@/components/admin/qztray-instructions"
+import { PrintingInstructions } from "@/components/admin/printing-instructions"
 import { Loader2, Eye, EyeOff, Upload, MapPin, X, Plus } from "lucide-react"
 import type { Store, StoreSettings } from "@/lib/types/database"
 import { LocationMap } from "@/components/store/location-map"
@@ -742,8 +742,9 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
               <div className="space-y-1">
                 <Label htmlFor="auto-print-toggle">Impresión automática de tickets</Label>
                 <p className="text-sm text-muted-foreground">
-                  Imprime automáticamente cada nuevo pedido cuando QZ Tray está
-                  corriendo en esta computadora.
+                  Imprime automáticamente cada nuevo pedido. Funciona sin
+                  intervención si abrís el panel con Chrome o Edge y el flag
+                  <code className="bg-muted px-1 rounded text-xs"> --kiosk-printing</code>.
                 </p>
               </div>
               <Switch
@@ -758,7 +759,7 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
 
             <hr className="border-t border-border" />
 
-            <QzTrayInstructions />
+            <PrintingInstructions />
           </CardContent>
         </Card>
       </TabsContent>

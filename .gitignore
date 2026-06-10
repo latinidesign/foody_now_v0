@@ -56,7 +56,7 @@ check-git-status.js
 # Dev resources
 /qztray
 
-# QZ Tray generated certificates (keep only public/override.crt committed)
+# QZ Tray generated certificates (ya no se usan)
 /private-key.pem
 /signing-cert.pem
 /override.crt

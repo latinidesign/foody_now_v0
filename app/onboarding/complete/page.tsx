@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { QzTrayInstructions } from "@/components/admin/qztray-instructions"
+import { PrintingInstructions } from "@/components/admin/printing-instructions"
 
 export default function OnboardingCompletePage() {
   return (
@@ -15,7 +15,7 @@ export default function OnboardingCompletePage() {
 
         <hr className="border-t border-border" />
 
-        <QzTrayInstructions />
+        <PrintingInstructions />
 
         <div className="text-center pt-4">
           <Button asChild>
