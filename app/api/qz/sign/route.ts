@@ -13,10 +13,11 @@ export async function POST(request: NextRequest) {
   }
 
   const privateKeyPem = normalizePem(rawKey)
-  const pemHeader = privateKeyPem.slice(0, 60)
-  const pemType = pemHeader.match(/-----BEGIN (.+)-----/)?.[1] || "desconocido"
+  const rawPrefix = privateKeyPem.slice(0, 120)
+  const pemType = rawPrefix.match(/-----BEGIN (.+?)-----/)?.[1] || "desconocido"
 
-  console.log("[QZ sign] Header del PEM normalizado:", pemHeader)
+  console.log("[QZ sign] Raw prefix:", JSON.stringify(rawPrefix))
+  console.log("[QZ sign] Raw key length:", rawKey.length)
 
   try {
     crypto.createPrivateKey(privateKeyPem)
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
         debug: {
           pemType,
           pemLength: privateKeyPem.length,
+          rawPrefix,
         },
       },
       { status: 500 },
