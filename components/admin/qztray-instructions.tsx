@@ -40,7 +40,9 @@ export function QzTrayInstructions() {
             C:\Program Files\QZ Tray\override.crt
           </code>
           . Esto permite que QZ Tray confíe en FoodyNow para imprimir sin
-          diálogos de confirmación.
+          diálogos de confirmación. Si QZ Tray ya estaba abierto, reinicialo
+          (clic derecho en el ícono de la bandeja → <em>Exit</em>, y volvé a
+          abrirlo).
         </li>
         <li>
           <strong>Paso 6:</strong> Volvé al panel de pedidos — la impresión
