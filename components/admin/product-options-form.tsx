@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Plus, X, Trash2, Info, DollarSign } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -14,6 +15,7 @@ interface ProductOption {
   name: string
   type: "single" | "multiple" | "quantity"
   isRequired: boolean
+  isAvailable: boolean
   values: ProductOptionValue[]
 }
 
@@ -21,6 +23,7 @@ interface ProductOptionValue {
   id?: string
   name: string
   priceModifier: number
+  isAvailable: boolean
 }
 
 interface ProductOptionsFormProps {
@@ -35,6 +38,7 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
       name: "",
       type: "single",
       isRequired: false,
+      isAvailable: true,
       values: [],
     }
     onChange([...options, newOption])
@@ -49,13 +53,14 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           name: "Elegir gustos de empanadas",
           type: "quantity",
           isRequired: true,
+          isAvailable: true,
           values: [
-            { name: "Carne", priceModifier: 0 },
-            { name: "Pollo", priceModifier: 0 },
-            { name: "Jamón y Queso", priceModifier: 0 },
-            { name: "Verdura", priceModifier: 0 },
-            { name: "Humita", priceModifier: 0 },
-            { name: "Caprese", priceModifier: 0 },
+            { name: "Carne", priceModifier: 0, isAvailable: true },
+            { name: "Pollo", priceModifier: 0, isAvailable: true },
+            { name: "Jamón y Queso", priceModifier: 0, isAvailable: true },
+            { name: "Verdura", priceModifier: 0, isAvailable: true },
+            { name: "Humita", priceModifier: 0, isAvailable: true },
+            { name: "Caprese", priceModifier: 0, isAvailable: true },
           ],
         }
         break
@@ -64,10 +69,11 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           name: "Tamaño de papas",
           type: "single",
           isRequired: true,
+          isAvailable: true,
           values: [
-            { name: "Chicas", priceModifier: 0 },
-            { name: "Medianas", priceModifier: 50 },
-            { name: "Grandes", priceModifier: 100 },
+            { name: "Chicas", priceModifier: 0, isAvailable: true },
+            { name: "Medianas", priceModifier: 50, isAvailable: true },
+            { name: "Grandes", priceModifier: 100, isAvailable: true },
           ],
         }
         break
@@ -76,11 +82,12 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           name: "Combo Hamburguesa Doble",
           type: "single",
           isRequired: true,
+          isAvailable: true,
           values: [
-            { name: "Solo hamburguesa", priceModifier: 0 },
-            { name: "Con papas chicas y gaseosa chica", priceModifier: 200 },
-            { name: "Con papas medianas y gaseosa mediana", priceModifier: 350 },
-            { name: "Con papas grandes y gaseosa grande", priceModifier: 500 },
+            { name: "Solo hamburguesa", priceModifier: 0, isAvailable: true },
+            { name: "Con papas chicas y gaseosa chica", priceModifier: 200, isAvailable: true },
+            { name: "Con papas medianas y gaseosa mediana", priceModifier: 350, isAvailable: true },
+            { name: "Con papas grandes y gaseosa grande", priceModifier: 500, isAvailable: true },
           ],
         }
         break
@@ -89,11 +96,12 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           name: "Tamaño de pizza",
           type: "single",
           isRequired: true,
+          isAvailable: true,
           values: [
-            { name: "Personal (25cm)", priceModifier: 0 },
-            { name: "Mediana (30cm)", priceModifier: 300 },
-            { name: "Grande (35cm)", priceModifier: 600 },
-            { name: "Familiar (40cm)", priceModifier: 900 },
+            { name: "Personal (25cm)", priceModifier: 0, isAvailable: true },
+            { name: "Mediana (30cm)", priceModifier: 300, isAvailable: true },
+            { name: "Grande (35cm)", priceModifier: 600, isAvailable: true },
+            { name: "Familiar (40cm)", priceModifier: 900, isAvailable: true },
           ],
         }
         break
@@ -102,11 +110,12 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           name: "Tamaño de bebida",
           type: "single",
           isRequired: false,
+          isAvailable: true,
           values: [
-            { name: "Sin bebida", priceModifier: 0 },
-            { name: "Chica (350ml)", priceModifier: 80 },
-            { name: "Mediana (500ml)", priceModifier: 120 },
-            { name: "Grande (1L)", priceModifier: 180 },
+            { name: "Sin bebida", priceModifier: 0, isAvailable: true },
+            { name: "Chica (350ml)", priceModifier: 80, isAvailable: true },
+            { name: "Mediana (500ml)", priceModifier: 120, isAvailable: true },
+            { name: "Grande (1L)", priceModifier: 180, isAvailable: true },
           ],
         }
         break
@@ -130,6 +139,7 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
     const newValue: ProductOptionValue = {
       name: "",
       priceModifier: 0,
+      isAvailable: true,
     }
     const updatedOptions = [...options]
     updatedOptions[optionIndex].values.push(newValue)
@@ -224,9 +234,21 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                   </Badge>
                 )}
               </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(optionIndex)}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={option.isAvailable}
+                    onCheckedChange={(checked) => updateOption(optionIndex, "isAvailable", checked)}
+                    id={`option-available-${optionIndex}`}
+                  />
+                  <Label htmlFor={`option-available-${optionIndex}`} className="text-xs cursor-pointer">
+                    {option.isAvailable ? "Disponible" : "No disponible"}
+                  </Label>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(optionIndex)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -281,11 +303,19 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
 
               {option.values.map((value, valueIndex) => (
                 <div key={valueIndex} className="flex items-center gap-2 p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={value.isAvailable}
+                      onCheckedChange={(checked) => updateOptionValue(optionIndex, valueIndex, "isAvailable", checked)}
+                      id={`value-available-${optionIndex}-${valueIndex}`}
+                    />
+                  </div>
                   <div className="flex-1">
                     <Input
                       value={value.name}
                       onChange={(e) => updateOptionValue(optionIndex, valueIndex, "name", e.target.value)}
                       placeholder="Ej: Papas medianas, Gaseosa grande"
+                      className={!value.isAvailable ? "opacity-60" : ""}
                     />
                   </div>
                   <div className="w-32 relative">
@@ -321,6 +351,11 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                       </Badge>
                     )}
                   </div>
+                  {!value.isAvailable && (
+                    <Badge variant="outline" className="text-xs text-muted-foreground whitespace-nowrap">
+                      No disponible
+                    </Badge>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"

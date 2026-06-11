@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
             name: option.name,
             type: option.type,
             is_required: option.is_required,
+            is_available: option.is_available ?? true,
           })
           .select()
           .single()
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
             option_id: newOption.id,
             name: value.name,
             price_modifier: value.price_modifier,
+            is_available: value.is_available ?? true,
           }))
 
           const { error: valuesError } = await supabase.from("product_option_values").insert(optionValues)

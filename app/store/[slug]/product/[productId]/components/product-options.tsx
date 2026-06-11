@@ -19,7 +19,15 @@ interface ProductOptionsProps {
 }
 
 const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
+
+const getAvailableOptions = (options: any[]) =>
+  options.filter((o) => o.is_available !== false)
+
+const getAvailableValues = (values: any[]) =>
+  values.filter((v: any) => v.is_available !== false)
+
 export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQuantity, pricingConfig }: ProductOptionsProps) {
+  const availableOptions = getAvailableOptions(options)
   const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({})
 
   const handleOptionChange = (optionId: string, value: any) => {
@@ -105,7 +113,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
     let changed = false
     const nextQuantities = { ...quantities }
 
-    options.forEach((option) => {
+    availableOptions.forEach((option) => {
       if (option.type !== "quantity") {
         return
       }
@@ -198,7 +206,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
     }, 0)
   }
 
-  if (!options.length) return null
+  if (!availableOptions.length) return null
 
   return (
     <div className="space-y-4">
@@ -212,7 +220,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
         )}
       </div>
 
-      {options.map((option) => {
+      {availableOptions.map((option) => {
         const selectedValue = selectedOptions[option.id]
         const selectedQuantities = option.type === "quantity" ? selectedValue : undefined
         const optionPrice = calculateOptionPrice(option, selectedValue, selectedQuantities)
@@ -275,7 +283,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                   value={selectedOptions[option.id] || ""}
                   onValueChange={(value) => handleOptionChange(option.id, value)}
                 >
-                  {getOptionValues(option).map((value: any) => (
+                  {getAvailableValues(getOptionValues(option)).map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value={value.id} id={value.id} />
@@ -298,7 +306,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                 </RadioGroup>
               ) : option.type === "multiple" ? (
                 <div className="space-y-2">
-                  {getOptionValues(option).map((value: any) => (
+                  {getAvailableValues(getOptionValues(option)).map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -327,7 +335,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {getOptionValues(option).map((value: any) => (
+                  {getAvailableValues(getOptionValues(option)).map((value: any) => (
                     <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{value.name}</span>

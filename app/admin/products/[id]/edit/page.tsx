@@ -35,10 +35,12 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         name,
         type,
         is_required,
+        is_available,
         product_option_values (
           id,
           name,
-          price_modifier
+          price_modifier,
+          is_available
         )
       )
     `)

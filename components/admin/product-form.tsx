@@ -29,6 +29,7 @@ interface ProductOption {
   name: string
   type: "single" | "multiple" | "quantity"
   isRequired: boolean
+  isAvailable: boolean
   values: ProductOptionValue[]
 }
 
@@ -36,6 +37,7 @@ interface ProductOptionValue {
   id?: string
   name: string
   priceModifier: number
+  isAvailable: boolean
 }
 
 interface ProductFormProps {
@@ -78,11 +80,13 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
       name: option.name,
       type: option.type,
       isRequired: option.is_required,
+      isAvailable: option.is_available ?? true,
       values:
         option.product_option_values?.map((value: any) => ({
           id: value.id,
           name: value.name,
           priceModifier: value.price_modifier,
+          isAvailable: value.is_available ?? true,
         })) || [],
     })) || [],
   )
@@ -255,9 +259,11 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
           name: option.name,
           type: option.type,
           is_required: option.isRequired,
+          is_available: option.isAvailable,
           values: option.values.map((value) => ({
             name: value.name,
             price_modifier: value.priceModifier,
+            is_available: value.isAvailable,
           })),
         })),
       }

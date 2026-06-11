@@ -196,10 +196,37 @@ export default async function StorePage({ params }: StorePageProps) {
     .select(`
       *,
       products (
-        *,
+        id,
+        store_id,
+        category_id,
+        name,
+        description,
+        price,
+        sale_price,
+        pricing_config,
+        image_url,
+        gallery_images,
+        is_available,
+        sort_order,
+        created_at,
+        updated_at,
         product_options (
-          *,
-          product_option_values (*)
+          id,
+          product_id,
+          name,
+          type,
+          is_required,
+          is_available,
+          created_at,
+          product_option_values (
+            id,
+            option_id,
+            name,
+            price_modifier,
+            sort_order,
+            is_available,
+            created_at
+          )
         )
       )
     `)

@@ -89,6 +89,7 @@ export interface ProductOption {
   name: string
   type: "single" | "multiple" | "quantity"
   is_required: boolean
+  is_available: boolean
   created_at: string
   values?: ProductOptionValue[]
 }
@@ -99,6 +100,7 @@ export interface ProductOptionValue {
   name: string
   price_modifier: number
   sort_order: number
+  is_available: boolean
   created_at: string
 }
 

@@ -6,6 +6,9 @@ interface ProductPageProps {
   params: Promise<{ slug: string; productId: string }>
 }
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug, productId } = await params
   const supabase = await createClient()
@@ -32,8 +35,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .select(`
       *,
       product_options (
-        *,
-        product_option_values (*)
+        id,
+        product_id,
+        name,
+        type,
+        is_required,
+        is_available,
+        created_at,
+        product_option_values (
+          id,
+          option_id,
+          name,
+          price_modifier,
+          sort_order,
+          is_available,
+          created_at
+        )
       ),
       categories (name)
     `)
