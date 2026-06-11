@@ -176,6 +176,7 @@ export interface StoreSettings {
   mercadopago_public_key?: string
   business_hours?: Record<string, any>
   cash_discount_percent?: number
+  order_status_messages?: Record<string, string>
   is_open: boolean
   welcome_message?: string
   order_confirmation_message?: string

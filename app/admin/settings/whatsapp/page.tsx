@@ -41,6 +41,7 @@ export default async function WhatsAppSettingsPage() {
         currentPhone={storeSettings?.whatsapp_number || store.whatsapp_number || undefined}
         autoNotifications={storeSettings?.whatsapp_notifications_enabled ?? undefined}
         initialMessage={storeSettings?.whatsapp_message ?? undefined}
+        orderStatusMessages={storeSettings?.order_status_messages as Record<string, string> | undefined}
       />
     </div>
   )

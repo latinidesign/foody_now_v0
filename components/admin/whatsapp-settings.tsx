@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { Copy, Check, Phone, Send, ExternalLink } from "lucide-react"
+import { Copy, Check, Phone, Send, ExternalLink, RotateCcw, Save } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
 import { toast } from "sonner"
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, DEFAULT_MESSAGES } from "@/lib/whatsapp/default-messages"
+import type { OrderStatus } from "@/lib/whatsapp/default-messages"
 
 interface WhatsAppSettingsProps {
   storeId: string
@@ -18,6 +20,7 @@ interface WhatsAppSettingsProps {
   currentPhone?: string
   autoNotifications?: boolean
   initialMessage?: string
+  orderStatusMessages?: Record<string, string>
 }
 
 export function WhatsAppSettings({
@@ -27,6 +30,7 @@ export function WhatsAppSettings({
   currentPhone,
   autoNotifications: initialAutoNotifications,
   initialMessage,
+  orderStatusMessages: initialStatusMessages,
 }: WhatsAppSettingsProps) {
   const [phone, setPhone] = useState(currentPhone || "")
   const [autoNotifications, setAutoNotifications] = useState(initialAutoNotifications ?? true)
@@ -36,6 +40,15 @@ export function WhatsAppSettings({
   const [testing, setTesting] = useState(false)
   const [testLink, setTestLink] = useState<string | null>(null)
   const [testError, setTestError] = useState<string | null>(null)
+
+  const [statusMessages, setStatusMessages] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {}
+    for (const s of ORDER_STATUSES) {
+      initial[s] = initialStatusMessages?.[s] ?? ""
+    }
+    return initial
+  })
+
   const storeUrl = `https://${storeSlug}.foodynow.com.ar`
   const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
   const responseMessage = customMessage || defaultMessage
@@ -53,6 +66,14 @@ export function WhatsAppSettings({
   const handleSave = async () => {
     setSaving(true)
     try {
+      // Filtrar vacíos y armar objeto final
+      const finalStatusMessages: Record<string, string> = {}
+      for (const s of ORDER_STATUSES) {
+        if (statusMessages[s]?.trim()) {
+          finalStatusMessages[s] = statusMessages[s].trim()
+        }
+      }
+
       const response = await fetch(`/api/stores/${storeId}/whatsapp`, {
         method: "PUT",
         headers: {
@@ -62,6 +83,7 @@ export function WhatsAppSettings({
           whatsapp_number: phone,
           whatsapp_notifications: autoNotifications,
           whatsapp_message: customMessage,
+          order_status_messages: Object.keys(finalStatusMessages).length > 0 ? finalStatusMessages : null,
         }),
       })
 
@@ -69,7 +91,7 @@ export function WhatsAppSettings({
         throw new Error("Error al guardar configuración")
       }
 
-      toast.success("Configuración de WhatsApp guardada correctamente")
+      toast.success("Configuración guardada correctamente")
     } catch (error) {
       console.error("Error saving WhatsApp settings:", error)
       toast.error("Error al guardar la configuración")
@@ -78,7 +100,7 @@ export function WhatsAppSettings({
     }
   }
 
- const handleSendTestMessage = async () => {
+  const handleSendTestMessage = async () => {
     setTesting(true)
     setTestLink(null)
     setTestError(null)
@@ -144,9 +166,145 @@ export function WhatsAppSettings({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Mensaje para clientes</CardTitle>
+          <CardTitle>Mensajes por estado del pedido</CardTitle>
           <CardDescription>
-            Utilizá este mensaje o personalizalo, para compartir el acceso a la tienda cuando los clientes te pidan el menú. 
+            Personalizá los mensajes que se envían a los clientes cuando cambia el estado de su pedido.
+            Dejá un campo vacío para usar el mensaje por defecto.
+            Podés usar las variables: <code className="text-xs bg-muted px-1 rounded">{`{customer_name}`}</code>,{" "}
+            <code className="text-xs bg-muted px-1 rounded">{`{order_number}`}</code>,{" "}
+            <code className="text-xs bg-muted px-1 rounded">{`{store_name}`}</code>,{" "}
+            <code className="text-xs bg-muted px-1 rounded">{`{items}`}</code>,{" "}
+            <code className="text-xs bg-muted px-1 rounded">{`{total}`}</code>,{" "}
+            <code className="text-xs bg-muted px-1 rounded">{`{delivery_address}`}</code>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {ORDER_STATUSES.map((status) => (
+            <div key={status} className="space-y-2 p-4 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <Label className="font-semibold">{ORDER_STATUS_LABELS[status]}</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setStatusMessages((prev) => ({
+                      ...prev,
+                      [status]: "",
+                    }))
+                  }
+                >
+                  <RotateCcw className="w-3 h-3 mr-1" />
+                  Restablecer
+                </Button>
+              </div>
+              <Textarea
+                value={statusMessages[status]}
+                onChange={(e) =>
+                  setStatusMessages((prev) => ({
+                    ...prev,
+                    [status]: e.target.value,
+                  }))
+                }
+                placeholder={`Usar mensaje por defecto`}
+                rows={4}
+                className="text-sm"
+              />
+              <details className="text-xs text-muted-foreground">
+                <summary className="cursor-pointer hover:text-foreground">Vista previa del mensaje por defecto</summary>
+                <div className="mt-2 bg-muted p-3 rounded whitespace-pre-wrap">
+                  {DEFAULT_MESSAGES[status]}
+                </div>
+              </details>
+            </div>
+          ))}
+
+          <Button onClick={handleSave} disabled={saving} className="w-full">
+            <Save className="w-4 h-4 mr-2" />
+            {saving ? "Guardando..." : "Guardar todos los mensajes"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Número de teléfono y notificaciones</CardTitle>
+          <CardDescription>
+            Configurá el número desde el cual te contactarán los clientes y las notificaciones automáticas.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Número de WhatsApp</Label>
+            <div className="flex gap-2">
+              <Input
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Ej: 5491123456789"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Número donde los clientes pueden contactarte. Incluí código de país.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="auto-notifications">Notificaciones automáticas</Label>
+              <p className="text-sm text-muted-foreground">
+                Enviar automáticamente mensajes de WhatsApp al cambiar el estado del pedido.
+              </p>
+            </div>
+            <Switch
+              id="auto-notifications"
+              checked={autoNotifications}
+              onCheckedChange={setAutoNotifications}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Probar conexión</CardTitle>
+          <CardDescription>
+            Enviá un mensaje de prueba a tu número para verificar que la configuración funciona.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button onClick={handleSendTestMessage} disabled={testing} variant="outline">
+            <Send className="h-4 w-4 mr-2" />
+            {testing ? "Enviando..." : "Enviar mensaje de prueba"}
+          </Button>
+
+          {testError && (
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              {testError}
+            </div>
+          )}
+
+          {testLink && (
+            <div className="flex gap-2">
+              <Input value={testLink} readOnly className="text-xs" />
+              <Button onClick={handleCopyTestLink} variant="outline" size="sm">
+                <Copy className="h-4 w-4" />
+              </Button>
+              <a href={testLink} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </a>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Mensaje para clientes (compartir tienda)</CardTitle>
+          <CardDescription>
+            Utilizá este mensaje o personalizalo, para compartir el acceso a la tienda cuando los clientes te pidan el menú.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

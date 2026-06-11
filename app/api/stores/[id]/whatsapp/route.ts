@@ -25,6 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       wa_business_account_id,
       wa_access_token,
       wa_metadata,
+      order_status_messages,
     } = body
 
     // Verificar que la tienda pertenece al usuario
@@ -39,6 +40,37 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 })
     }
 
+    // Si se envía order_status_messages, hacer merge con los existentes
+    let mergedMessages: Record<string, string> | null = null
+    if (order_status_messages != null && typeof order_status_messages === "object") {
+      const { data: existing } = await supabase
+        .from("store_settings")
+        .select("order_status_messages")
+        .eq("store_id", id)
+        .maybeSingle()
+
+      const existingMessages =
+        existing?.order_status_messages && typeof existing.order_status_messages === "object"
+          ? (existing.order_status_messages as Record<string, string>)
+          : {}
+
+      mergedMessages = { ...existingMessages }
+
+      for (const [key, val] of Object.entries(order_status_messages)) {
+        if (val === null) {
+          delete mergedMessages[key]
+        } else {
+          mergedMessages[key] = val as string
+        }
+      }
+
+      if (Object.keys(mergedMessages).length === 0) {
+        mergedMessages = null
+      }
+    } else if (order_status_messages === null) {
+      mergedMessages = null
+    }
+
     const { data, error } = await supabase
       .from("store_settings")
       .upsert(
@@ -51,6 +83,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           wa_business_account_id,
           wa_access_token,
           ...(wa_metadata !== undefined ? { wa_metadata } : {}),
+          ...(mergedMessages !== null ? { order_status_messages: mergedMessages } : {}),
+          ...(order_status_messages !== undefined && mergedMessages === null ? { order_status_messages: null } : {}),
           updated_at: new Date().toISOString(),
         },
         {

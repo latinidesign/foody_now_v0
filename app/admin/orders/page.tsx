@@ -34,6 +34,13 @@ export default async function OrdersPage() {
     redirect("/onboarding")
   }
 
+  // Obtener mensajes personalizados por estado
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("order_status_messages")
+    .eq("store_id", store.id)
+    .maybeSingle()
+
   // 3. Pedidos de la tienda (en paralelo podríamos traer más cosas si hiciera falta)
   const { data: orders, error: ordersError } = await supabase
     .from("orders")
@@ -109,6 +116,7 @@ export default async function OrdersPage() {
           phone: store.phone ?? "",
           address: store.address ?? "",
         }}
+        orderStatusMessages={storeSettings?.order_status_messages as Record<string, string> | undefined}
       />
     </div>
   )

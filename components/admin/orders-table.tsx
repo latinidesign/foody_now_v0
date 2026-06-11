@@ -30,6 +30,8 @@ import {
   X,
   MessageCircle,
   Printer,
+  Edit3,
+  RotateCcw,
 } from "lucide-react"
 import { getBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
@@ -39,6 +41,9 @@ import { formatOrderNumber } from "@/lib/utils"
 import { useBrowserPrint, buildTestTicketHtml } from "@/hooks/use-browser-print"
 import { Switch } from "@/components/ui/switch"
 import { PrintingInstructions } from "@/components/admin/printing-instructions"
+import { Textarea } from "@/components/ui/textarea"
+import { DEFAULT_MESSAGES, fillVariables } from "@/lib/whatsapp/default-messages"
+import type { OrderStatus } from "@/lib/whatsapp/default-messages"
 
 interface OrderWithItems extends Order {
   auto_printed_at: string | null
@@ -146,13 +151,14 @@ interface OrdersTableProps {
   storeId: string
   orders: OrderWithItems[]
   store?: StoreInfo
+  orderStatusMessages?: Record<string, string>
 }
 
 // Keys para localStorage: estado de dispositivo, no de cuenta
 const MOUNTED_AT_KEY = "orders_panel_mounted_at"
 const AUTO_PRINT_ENABLED_KEY = "orders_auto_print_enabled"
 
-export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }: OrdersTableProps) {
+export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, orderStatusMessages }: OrdersTableProps) {
   const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const handledOrderIdRef = useRef<string | null>(null)
@@ -166,7 +172,9 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
     order: OrderWithItems | null
     message: string
     link: string | null
-  }>({ isOpen: false, order: null, message: "", link: null })
+    editing: boolean
+    currentStatus: string | null
+  }>({ isOpen: false, order: null, message: "", link: null, editing: false, currentStatus: null })
 
   // Estado de auto-impresión: activado por defecto, persistido en localStorage
   const [autoPrintEnabled, setAutoPrintEnabled] = useState<boolean>(
@@ -545,144 +553,36 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
       .map((item) => `• ${item.quantity}x ${item.products.name}`)
       .join("\n")
 
-    switch (status) {
-      case "confirmed":
-        return `🎉 *¡Pedido Confirmado!*
-
-📦 Pedido: #${formatOrderNumber(order.order_number)}
-🏪 ${storeName}
-👤 ${order.customer_name}
-
-✅ *Tu pedido ha sido confirmado y está en proceso*
-
-📋 *Resumen del pedido:*
-${orderItems}
-
-💰 Total: ${formatCurrency(order.total ?? 0)}
-
-⏰ *Tiempo estimado:* 30-45 minutos
-📱 Te mantendremos informado del progreso.
-
-¡Gracias por tu pedido!
-
----
-*${storeName} - FoodyNow*`
-      case "preparing":
-        return `👨‍🍳 *¡Tu pedido se está preparando!*
-
-📦 Pedido: #${formatOrderNumber(order.order_number)}
-🏪 ${storeName}
-👤 ${order.customer_name}
-
-🔥 *Nuestros chefs están preparando tu pedido*
-
-📋 *Tu pedido incluye:*
-${orderItems}
-
-⏰ *Tiempo estimado restante:* 15-20 minutos
-🍕 ¡Ya casi está listo!
-
----
-*${storeName} - FoodyNow*`
-      case "ready":
-        return `🎉 *¡Tu pedido está LISTO para retirar!*
-
-📦 Pedido: #${formatOrderNumber(order.order_number)}
-🏪 ${storeName}
-👤 ${order.customer_name}
-
-✅ *Tu pedido está preparado y listo para retirar*
-
-📋 *Tu pedido:*
-${orderItems}
-
-💰 Total: ${formatCurrency(order.total ?? 0)}
-
-📍 *Dirección para retirar:*
-${order.delivery_address || "Ver ubicación en la app"}
-
-⏰ *Horario de retiro:*
-Lun a Dom: 11:00 - 23:00
-
-🚗 ¡Vení a retirarlo! Te esperamos.
-
-¡Gracias por elegirnos!
-
----
-*${storeName} - FoodyNow*`
-      case "sent":
-        return `🚴‍♂️ *¡Tu pedido está EN CAMINO!*
-
-📦 Pedido: #${formatOrderNumber(order.order_number)}
-🏪 ${storeName}
-👤 ${order.customer_name}
-
-📦 *Nuestro repartidor está en camino hacia tu ubicación*
-
-📋 *Tu pedido:*
-${orderItems}
-
-💰 Total: ${formatCurrency(order.total ?? 0)}
-
-📍 *Dirección de entrega:*
-${order.delivery_address || "Sin dirección registrada"}
-
-📱 Te contactaremos al llegar a tu puerta.
-⏰ Tiempo estimado: 10-15 minutos
-
-¡Gracias por tu paciencia!
-
----
-*${storeName} - FoodyNow*`
-      case "delivered":
-        return `✅ *¡Pedido Entregado!*
-
-📦 Pedido: #${formatOrderNumber(order.order_number)}
-🏪 ${storeName}
-👤 ${order.customer_name}
-
-🎉 *Tu pedido ha sido entregado exitosamente*
-
-📋 *Pedido completado:*
-${orderItems}
-
-💰 Total: ${formatCurrency(order.total ?? 0)}
-
-⭐ *¿Cómo estuvo tu experiencia?*
-Tu opinión nos ayuda a mejorar.
-
-¡Esperamos verte pronto de nuevo!
-
----
-*${storeName} - FoodyNow*`
-      case "cancelled":
-        return `❌ *Pedido Cancelado*
-
-📦 Pedido: #${formatOrderNumber(order.order_number)}
-🏪 ${storeName}
-👤 ${order.customer_name}
-
-😔 *Tu pedido ha sido cancelado*
-
-💰 Si realizaste un pago, será reembolsado en 2-3 días hábiles.
-
-📱 Si tienes preguntas, no dudes en contactarnos.
-
-¡Esperamos poder atenderte pronto!
-
----
-*${storeName} - FoodyNow*`
-      default:
-        return `📦 *Actualización de Pedido*
-
-Pedido: #${formatOrderNumber(order.order_number)}
-Estado: ${getStatusText(status)}
-
-¡Te mantendremos informado!
-
----
-*${storeName} - FoodyNow*`
+    const vars = {
+      orderNumber: formatOrderNumber(order.order_number),
+      storeName,
+      customerName: order.customer_name,
+      items: orderItems,
+      total: formatCurrency(order.total ?? 0),
+      deliveryAddress: order.delivery_address || "Ver ubicación en la app",
+      statusText: getStatusText(status),
     }
+
+    if (orderStatusMessages?.[status]) {
+      return fillVariables(orderStatusMessages[status], vars)
+    }
+
+    return fillVariables(DEFAULT_MESSAGES[status as OrderStatus] ?? DEFAULT_MESSAGES.confirmed, vars)
+  }
+
+  const saveStatusMessage = async (storeId: string, status: string, message: string | null) => {
+    const payload: Record<string, unknown> = {
+      order_status_messages: { [status]: message },
+    }
+    const response = await fetch(`/api/stores/${storeId}/whatsapp`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    if (!response.ok) {
+      throw new Error("Error al guardar el mensaje")
+    }
+    return response.json()
   }
 
   const sendWhatsAppMessage = async (order: OrderWithItems, status: string) => {
@@ -709,6 +609,8 @@ Estado: ${getStatusText(status)}
           order,
           message,
           link: result.whatsapp_link,
+          editing: false,
+          currentStatus: status,
         })
       } else if (result.success) {
         toast.success("Mensaje de WhatsApp enviado")
@@ -1284,11 +1186,12 @@ Estado: ${getStatusText(status)}
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-green-600" />
-              Mensaje de WhatsApp Generado
+              Mensaje de WhatsApp
             </DialogTitle>
             <DialogDescription>
-              El mensaje se ha generado automáticamente. Haz clic en el botón
-              para enviarlo al cliente.
+              {whatsappModal.editing
+                ? "Editá el mensaje antes de enviarlo."
+                : "Revisá el mensaje antes de enviarlo al cliente."}
             </DialogDescription>
           </DialogHeader>
 
@@ -1306,13 +1209,111 @@ Estado: ${getStatusText(status)}
 
               <div>
                 <h4 className="font-semibold mb-2">Mensaje:</h4>
-                <div className="bg-muted p-3 rounded-lg text-sm max-h-40 overflow-y-auto whitespace-pre-wrap">
-                  {whatsappModal.message}
-                </div>
+                <Textarea
+                  value={whatsappModal.message}
+                  onChange={(e) =>
+                    setWhatsappModal((prev) => ({
+                      ...prev,
+                      message: e.target.value,
+                    }))
+                  }
+                  disabled={!whatsappModal.editing}
+                  className="min-h-[160px] text-sm whitespace-pre-wrap"
+                />
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                {whatsappModal.editing ? (
+                  <>
+                    {whatsappModal.currentStatus && orderStatusMessages?.[whatsappModal.currentStatus] && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          if (!whatsappModal.currentStatus || !whatsappModal.order) return
+                          try {
+                            await saveStatusMessage(
+                              whatsappModal.order.store_id,
+                              whatsappModal.currentStatus,
+                              null,
+                            )
+                            const order = whatsappModal.order
+                            const storeName = store?.name || "Tu tienda"
+                            const orderItems = order.order_items
+                              .map((item) => `• ${item.quantity}x ${item.products.name}`)
+                              .join("\n")
+                            const vars = {
+                              orderNumber: formatOrderNumber(order.order_number),
+                              storeName,
+                              customerName: order.customer_name,
+                              items: orderItems,
+                              total: formatCurrency(order.total ?? 0),
+                              deliveryAddress: order.delivery_address || "Ver ubicación en la app",
+                              statusText: getStatusText(whatsappModal.currentStatus),
+                            }
+                            const defaultMsg = fillVariables(
+                              DEFAULT_MESSAGES[whatsappModal.currentStatus as OrderStatus] ?? DEFAULT_MESSAGES.confirmed,
+                              vars,
+                            )
+                            setWhatsappModal((prev) => ({ ...prev, message: defaultMsg, editing: false }))
+                            toast.success("Mensaje restablecido")
+                          } catch {
+                            toast.error("Error al restablecer el mensaje")
+                          }
+                        }}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Restablecer
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setWhatsappModal((prev) => ({ ...prev, editing: false }))
+                      }
+                    >
+                      Cancelar edición
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setWhatsappModal((prev) => ({ ...prev, editing: true }))
+                    }
+                  >
+                    <Edit3 className="w-4 h-4 mr-1" />
+                    Editar
+                  </Button>
+                )}
+
+                {whatsappModal.editing && (
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      if (!whatsappModal.currentStatus || !whatsappModal.order) return
+                      try {
+                        await saveStatusMessage(
+                          whatsappModal.order.store_id,
+                          whatsappModal.currentStatus,
+                          whatsappModal.message,
+                        )
+                        setWhatsappModal((prev) => ({ ...prev, editing: false }))
+                        toast.success("Mensaje guardado")
+                      } catch {
+                        toast.error("Error al guardar el mensaje")
+                      }
+                    }}
+                  >
+                    Guardar mensaje
+                  </Button>
+                )}
               </div>
 
               {whatsappModal.link && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-2 border-t">
                   <Button
                     onClick={() => {
                       window.open(whatsappModal.link!, "_blank")
