@@ -48,7 +48,7 @@ export function StoreHeader({ store, showBackButton = false }: StoreHeaderProps)
               <img
                 src={store.logo_url}
                 alt={store.name}
-                className="h-12 md:h-16 w-auto max-w-[140px] object-contain"
+                className="h-16 w-24 md:h-24 md:w-36 object-cover"
               />
             ) : (
               <h1 className="text-lg md:text-xl font-bold text-foreground text-center leading-tight">
@@ -75,16 +75,15 @@ export function StoreHeader({ store, showBackButton = false }: StoreHeaderProps)
           {/* Gradient overlay for legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           <div className="relative z-10 text-white px-4 md:px-10 py-4 md:py-8">
+            <h2 className="font-heading font-extrabold text-[22px] md:text-[40px] leading-none text-white max-w-[16ch] md:max-w-[18ch]">
+            {store.name}
+            </h2>
             {store.description && (
               <div className="text-[11px] md:text-[13px] font-bold uppercase tracking-[0.08em] text-[#b3db66] mb-1 md:mb-2">
-                {store.description.length > 40
-                  ? store.description.slice(0, 40) + "…"
-                  : store.description}
+                {store.description}
               </div>
             )}
-            <h2 className="font-heading font-extrabold text-[22px] md:text-[40px] leading-none text-white max-w-[16ch] md:max-w-[18ch]">
-              {store.name}
-            </h2>
+
           </div>
         </div>
       )}
