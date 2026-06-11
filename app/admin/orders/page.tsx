@@ -81,7 +81,8 @@ export default async function OrdersPage() {
         id,
         payment_method,
         provider,
-        status
+        status,
+        raw
       )
     `)
     .eq("store_id", store.id)

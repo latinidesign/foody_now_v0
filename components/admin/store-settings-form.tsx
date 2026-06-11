@@ -94,6 +94,14 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
     () => localStorage.getItem("orders_auto_print_enabled") !== "false",
   )
 
+  const [cashDiscountEnabled, setCashDiscountEnabled] = useState(
+    () => settings?.cash_discount_percent != null && settings.cash_discount_percent > 0 && settings.cash_discount_percent < 100,
+  )
+
+  const [cashDiscountPercent, setCashDiscountPercent] = useState(
+    () => (settings?.cash_discount_percent != null ? String(settings.cash_discount_percent) : ""),
+  )
+
   const [paymentSettings, setPaymentSettings] = useState({
     mercadopagoAccessToken: settings?.mercadopago_access_token || "",
     mercadopagoPublicKey: settings?.mercadopago_public_key || "",
@@ -246,13 +254,31 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
     setError("")
     setSuccess("")
 
+    const percent = Number.parseInt(cashDiscountPercent, 10)
+
+    if (cashDiscountEnabled) {
+      if (!cashDiscountPercent || isNaN(percent)) {
+        setError("Ingresa un porcentaje de descuento válido")
+        setLoading(false)
+        return
+      }
+      if (percent <= 0 || percent >= 100) {
+        setError("El porcentaje debe ser mayor a 0 y menor a 100")
+        setLoading(false)
+        return
+      }
+    }
+
     try {
       const response = await fetch(`/api/stores/${store.id}/settings`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(paymentSettings),
+        body: JSON.stringify({
+          ...paymentSettings,
+          cashDiscountPercent: cashDiscountEnabled ? percent : null,
+        }),
       })
 
       if (!response.ok) {
@@ -728,6 +754,57 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
                 </a>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Descuento por pago en Efectivo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePaymentUpdate} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="cash-discount-toggle">Ofrecer descuento por pago en efectivo</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Aplica un porcentaje de descuento al total del pedido cuando el cliente elige pagar en efectivo.
+                  </p>
+                </div>
+                <Switch
+                  id="cash-discount-toggle"
+                  checked={cashDiscountEnabled}
+                  onCheckedChange={setCashDiscountEnabled}
+                />
+              </div>
+
+              {cashDiscountEnabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="cashDiscountPercent">Porcentaje de descuento</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="cashDiscountPercent"
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={cashDiscountPercent}
+                      onChange={(e) => setCashDiscountPercent(e.target.value)}
+                      placeholder="Ej: 10"
+                      className="w-32"
+                    />
+                    <span className="text-lg">%</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    El descuento se mostrará al cliente al seleccionar pago en efectivo antes de confirmar el pedido. El
+                    valor debe ser entre 1% y 99%.
+                  </p>
+                </div>
+              )}
+
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Cambios
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </TabsContent>

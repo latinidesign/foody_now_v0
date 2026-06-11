@@ -44,6 +44,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.business_hours = settingsData.business_hours
     }
 
+    // Agregar descuento por pago en efectivo si está presente
+    if (settingsData.cashDiscountPercent !== undefined) {
+      updateData.cash_discount_percent = settingsData.cashDiscountPercent
+    }
+
     const { data: settings, error } = await supabase
       .from("store_settings")
       .upsert(updateData, {

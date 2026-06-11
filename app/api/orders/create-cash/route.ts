@@ -105,6 +105,12 @@ export async function POST(request: Request) {
     return fail(403, "Store is not active")
   }
 
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("cash_discount_percent")
+    .eq("store_id", resolvedStoreId)
+    .maybeSingle()
+
   const orderItemsPayload: {
     product_id: string
     quantity: number
@@ -217,7 +223,19 @@ export async function POST(request: Request) {
 
   const computedSubtotal = orderItemsPayload.reduce((sum, item) => sum + item.total_price, 0)
   const computedDeliveryFee = orderData?.deliveryType === "delivery" ? storeRecord.delivery_fee : 0
-  const computedTotal = computedSubtotal + computedDeliveryFee
+
+  const cashDiscountPercent =
+    storeSettings?.cash_discount_percent != null &&
+    storeSettings.cash_discount_percent > 0 &&
+    storeSettings.cash_discount_percent < 100
+      ? storeSettings.cash_discount_percent
+      : null
+
+  const computedTotalBeforeDiscount = computedSubtotal + computedDeliveryFee
+  const computedCashDiscountAmount = cashDiscountPercent
+    ? Math.round(computedTotalBeforeDiscount * (cashDiscountPercent / 100))
+    : 0
+  const computedTotal = computedTotalBeforeDiscount - computedCashDiscountAmount
 
   const checkoutItems = items.map((item, index) => ({
     id: item.id,
@@ -229,6 +247,10 @@ export async function POST(request: Request) {
     selectedOptions: orderItemsPayload[index].selected_options,
     pricing_snapshot: orderItemsPayload[index].pricing_snapshot,
   }))
+
+  const discountInfo = cashDiscountPercent
+    ? { percent: cashDiscountPercent, amount: computedCashDiscountAmount }
+    : null
 
   try {
     // Get the next order number atomically (prevents number consumption if insert fails)
@@ -283,19 +305,19 @@ export async function POST(request: Request) {
     }
 
     // Create payment record for cash payment
-    const { data: paymentRecord, error: paymentError } = await supabase
-      .from("payments")
-      .insert({
-        order_id: order.id,
-        store_id: storeRecord.id,
-        provider: "manual",
-        payment_method: "cash",
-        status: "pending",
-        transaction_amount: computedTotal,
-        currency: "ARS",
-        payer_email: orderData.customerEmail,
-        raw: null,
-      })
+      const { data: paymentRecord, error: paymentError } = await supabase
+        .from("payments")
+        .insert({
+          order_id: order.id,
+          store_id: storeRecord.id,
+          provider: "manual",
+          payment_method: "cash",
+          status: "pending",
+          transaction_amount: computedTotal,
+          currency: "ARS",
+          payer_email: orderData.customerEmail,
+          raw: discountInfo ? { cash_discount: discountInfo } : null,
+        })
       .select("id")
       .single()
 

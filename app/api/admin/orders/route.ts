@@ -71,7 +71,8 @@ export async function GET() {
         id,
         payment_method,
         provider,
-        status
+        status,
+        raw
       )
     `)
     .eq("store_id", store.id)

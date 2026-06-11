@@ -63,6 +63,7 @@ interface OrderWithItems extends Order {
     payment_method?: string
     provider?: string
     status?: string
+    raw?: Record<string, any> | null
   }>
 }
 
@@ -225,6 +226,7 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
       .join("")
 
     const deliveryLabel = order.delivery_type === "pickup" ? "Retiro en local" : "Delivery"
+    const cashDiscount = getCashDiscount(order)
 
     return `
       <!DOCTYPE html>
@@ -284,6 +286,7 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
             <div class="section totals">
               <div class="row"><span>Subtotal</span><span>${formatCurrency(order.subtotal ?? 0)}</span></div>
               <div class="row"><span>Envío</span><span>${(order.delivery_fee ?? 0) > 0 ? formatCurrency(order.delivery_fee!) : "No incluye precio de delivery"}</span></div>
+              ${cashDiscount ? `<div class="row"><span>Descuento pago efvo. (${cashDiscount.percent}%)</span><span>-${formatCurrency(cashDiscount.amount)}</span></div>` : ""}
               <div class="row total-row"><span>Total</span><span>${formatCurrency(order.total ?? 0)}</span></div>
             </div>
 
@@ -527,6 +530,13 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store }:
       return getPaymentMethodLabel("mercadopago", payment.payment_method ?? null)
     }
     return payment.payment_method || "MercadoPago"
+  }
+
+  const getCashDiscount = (order: OrderWithItems): { percent: number; amount: number } | null => {
+    const raw = order.payments?.[0]?.raw
+    if (!raw) return null
+    const data = typeof raw === "string" ? JSON.parse(raw) : raw
+    return data?.cash_discount ?? null
   }
 
   const getWhatsAppMessage = (order: OrderWithItems, status: string) => {
@@ -1020,6 +1030,14 @@ Estado: ${getStatusText(status)}
                       <p className="font-extrabold">
                         {formatCurrency(order.total ?? 0)}
                       </p>
+                      {(() => {
+                        const cd = getCashDiscount(order)
+                        return cd ? (
+                          <p className="text-xs text-green-600">
+                            Incluye desc. efectivo ({cd.percent}%): -{formatCurrency(cd.amount)}
+                          </p>
+                        ) : null
+                      })()}
                       <p>{order.order_items.length} productos</p>
                     </div>
                   </div>
@@ -1192,11 +1210,32 @@ Estado: ${getStatusText(status)}
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t font-bold text-lg">
-                    <span>Total:</span>
-                    <span className="text-accent">
-                      {formatCurrency(selectedOrder.total ?? 0)}
-                    </span>
+                  <div className="space-y-1 pt-2 border-t">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(selectedOrder.subtotal ?? 0)}</span>
+                    </div>
+                    {selectedOrder.delivery_fee > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Envío</span>
+                        <span>{formatCurrency(selectedOrder.delivery_fee)}</span>
+                      </div>
+                    )}
+                    {(() => {
+                      const cd = getCashDiscount(selectedOrder)
+                      return cd ? (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Descuento pago efectivo ({cd.percent}%)</span>
+                          <span>-{formatCurrency(cd.amount)}</span>
+                        </div>
+                      ) : null
+                    })()}
+                    <div className="flex justify-between font-bold text-lg pt-1 border-t">
+                      <span>Total:</span>
+                      <span className="text-accent">
+                        {formatCurrency(selectedOrder.total ?? 0)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

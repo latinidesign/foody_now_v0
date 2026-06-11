@@ -30,9 +30,15 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   }
 
   const adminClient = createAdminClient()
-
-  const { data: paymentSettings } = await adminClient    .from("mp_accounts")
+  const { data: paymentSettings } = await adminClient
+    .from("mp_accounts")
     .select("public_key")
+    .eq("store_id", store.id)
+    .maybeSingle()
+
+  const { data: storeSettings } = await adminClient
+    .from("store_settings")
+    .select("cash_discount_percent")
     .eq("store_id", store.id)
     .maybeSingle()
 
@@ -56,7 +62,11 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <CheckoutForm store={store} mercadopagoPublicKey={paymentSettings?.public_key ?? null} />
+        <CheckoutForm
+          store={store}
+          mercadopagoPublicKey={paymentSettings?.public_key ?? null}
+          cashDiscountPercent={storeSettings?.cash_discount_percent ?? null}
+        />
       </main>
     </div>
   )

@@ -17,6 +17,7 @@ import type { Store } from "@/lib/types/database"
 interface CheckoutFormProps {
   store: Store
   mercadopagoPublicKey?: string | null
+  cashDiscountPercent?: number | null
 }
 
 interface OrderData {
@@ -41,7 +42,7 @@ const normalizePhone = (phone: string): string => {
   }
 }
 
-export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps) {
+export function CheckoutForm({ store, mercadopagoPublicKey, cashDiscountPercent }: CheckoutFormProps) {
   const { state, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -58,7 +59,19 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
 
   const deliveryFee = orderData.deliveryType === "delivery" ? store.delivery_fee : 0
   const subtotal = state.total
-  const total = subtotal + deliveryFee
+  const totalBeforeDiscount = subtotal + deliveryFee
+
+  const hasCashDiscount =
+    orderData.paymentMethod === "cash" &&
+    cashDiscountPercent != null &&
+    cashDiscountPercent > 0 &&
+    cashDiscountPercent < 100
+
+  const cashDiscountAmount = hasCashDiscount
+    ? Math.round(totalBeforeDiscount * (cashDiscountPercent / 100))
+    : 0
+
+  const total = totalBeforeDiscount - cashDiscountAmount
 
   // Check minimum order amount for delivery
   const meetsMinimum = orderData.deliveryType === "pickup" || subtotal >= store.min_order_amount
@@ -93,6 +106,7 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
             orderData,
             subtotal,
             deliveryFee,
+            cashDiscountPercent: hasCashDiscount ? cashDiscountPercent : null,
             total,
           }),
         })
@@ -321,9 +335,17 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
                 <span>${deliveryFee.toFixed(2)}</span>
               </div>
             )}
+            {hasCashDiscount && (
+              <div className="flex justify-between text-green-600">
+                <span>Descuento pago en efectivo ({cashDiscountPercent}%):</span>
+                <span>-${cashDiscountAmount.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-bold text-lg border-t pt-2">
               <span>Total:</span>
-              <span className="text-primary">${total.toFixed(2)}</span>
+              <span className={hasCashDiscount ? "text-green-600" : "text-primary"}>
+                ${total.toFixed(2)}
+              </span>
             </div>
           </div>
 
@@ -371,7 +393,14 @@ export function CheckoutForm({ store, mercadopagoPublicKey }: CheckoutFormProps)
                   </div>
                   <div>
                     <p className="font-medium">Pago en Efectivo</p>
-                    <p className="text-sm text-muted-foreground">Paga al recibir el pedido.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Paga al recibir el pedido.
+                      {cashDiscountPercent != null && cashDiscountPercent > 0 && cashDiscountPercent < 100 && (
+                        <span className="text-green-600 font-medium">
+                          {" "}— {cashDiscountPercent}% de descuento
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
               </Label>
