@@ -135,7 +135,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
         },
       })
 
-      toast.success("¡Agregado al carrito!", {
+      toast.success("¡Agregado al pedido!", {
         description: product.name,
         icon: "🛒",
         className: "bg-emerald-600 text-white font-bold shadow-2xl text-center",
@@ -152,7 +152,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
         },
       })
     } catch (error) {
-      toast.error("No se pudo agregar el producto al carrito")
+      toast.error("No se pudo agregar el producto al pedido")
     } finally {
       setIsAdding(false)
     }
@@ -199,7 +199,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                 {product.name}
               </p>
             </div>
-            {/* Right: Carrito de compras */}
+            {/* Right: Pedidos de compras */}
             <div className="flex items-center">
               <CartButton />
             </div>   
@@ -373,13 +373,13 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                     ) : (
                       <>
                         <ShoppingCart className="w-4 h-4 mr-2" />
-                        Agregar al Carrito
+                        Agregar al Pedido
                       </>
                     )}
                   </Button>
                   {isPackSelectionIncomplete && (
                     <p className="text-sm font-semibold text-destructive mt-2">
-                      Aún faltan {remainingOptionsToSelect} variedad(es) por seleccionar antes de agregar al carrito.
+                      Aún faltan {remainingOptionsToSelect} variedad(es) por seleccionar antes de agregar al pedido.
                     </p>
                   )}
                 </div>

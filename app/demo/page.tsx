@@ -160,7 +160,7 @@ export default function DemoPage() {
             <h3 className="font-semibold text-green-800 mb-2">🚀 Modo Demostración</h3>
             <p className="text-green-700 text-sm">
               Esta es una tienda de demostración completa. Explora todas las funcionalidades de FOODYNOW: 
-              navegación de categorías, carrito de compras, opciones de productos y más.
+              navegación de categorías, lista de pedidos, opciones de productos y más.
             </p>
           </div>
           <ProductCatalog store={demoStore as any} categories={demoCategories as any} />

@@ -70,7 +70,7 @@ export default async function PaymentFailurePage({ searchParams }: PaymentFailur
 
           <div className="bg-muted/50 rounded-lg p-4">
             <p className="text-sm text-muted-foreground mb-2">No te preocupes</p>
-            <p className="font-medium">Tu carrito sigue disponible</p>
+            <p className="font-medium">Tu pedido sigue disponible</p>
             <p className="text-sm">Puedes intentar pagar nuevamente desde la tienda</p>
           </div>
 

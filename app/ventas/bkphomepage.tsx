@@ -199,7 +199,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Carrito de compras</span>
+                    <span>Lista de Pedidos</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-green-500" />
