@@ -376,14 +376,14 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
                       }}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Logotipo que aparecerá en el header de tu tienda (recomendado: 100x100px)
+                      Logotipo que aparecerá en el header de tu tienda (Tamaño recomendado: 500x200px)
                     </p>
                     {storeData.logoUrl && (
                       <div className="flex items-center gap-2">
                         <img
                           src={storeData.logoUrl || "/placeholder.svg"}
                           alt="Vista previa del logotipo"
-                          className="w-16 h-16 object-cover rounded-lg border"
+                          className="w-24 h-16 object-contain rounded-lg border"
                           onError={(e) => {
                             e.currentTarget.style.display = "none"
                           }}

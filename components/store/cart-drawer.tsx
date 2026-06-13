@@ -60,7 +60,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           {state.items.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-muted-foreground mb-4">Tu carrito está vacío</p>
+                <p className="text-muted-foreground mb-4">Tu pedido está vacío</p>
                 <Button onClick={onClose} variant="outline">
                   Continuar Comprando
                 </Button>
