@@ -98,6 +98,12 @@ export interface ProductOptionValue {
   id: string
   option_id: string
   name: string
+  /**
+   * Precio absoluto de la variedad en ARS.
+   * Antes de 2026-06 era interpretado como un delta sobre products.price;
+   * ahora es el precio completo que el cliente paga si elige esta variedad.
+   * Ver tasks/05-pricing-absolute-varieties.md.
+   */
   price_modifier: number
   sort_order: number
   is_available: boolean

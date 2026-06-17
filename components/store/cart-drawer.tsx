@@ -30,18 +30,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     onClose()
   }
 
-  const getPackQuantity = (item: any) => {
+  const getPackInfo = (item: any) => {
     const config = item.pricing_snapshot?.config
     if (config?.mode === "unit_only" && typeof config.quantity === "number" && config.quantity > 0) {
-      return Math.round(item.quantity / config.quantity)
+      // Para unit_only, item.quantity es packs (no piezas). Multiplicamos por
+      // packSize para mostrar la cantidad de piezas equivalentes.
+      return { packs: item.quantity, pieces: item.quantity * config.quantity }
     }
     return null
   }
 
   const renderQuantityLabel = (item: any) => {
-    const packQuantity = getPackQuantity(item)
-    if (packQuantity !== null) {
-      return `Cantidad: ${packQuantity} pack${packQuantity === 1 ? "" : "s"} (${item.quantity} unidad${item.quantity === 1 ? "" : "es"})`
+    const packInfo = getPackInfo(item)
+    if (packInfo !== null) {
+      return `Cantidad: ${packInfo.packs} pack${packInfo.packs === 1 ? "" : "s"} (${packInfo.pieces} unidad${packInfo.pieces === 1 ? "" : "es"})`
     }
     return `Cantidad: ${item.quantity}`
   }

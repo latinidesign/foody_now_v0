@@ -303,20 +303,24 @@ export function CheckoutForm({ store, mercadopagoPublicKey, cashDiscountPercent 
         </CardHeader>
         <CardContent className="space-y-4">
           {state.items.map((item) => {
-            const packQuantity =
-              item.pricing_snapshot?.config?.mode === "unit_only" &&
-              typeof item.pricing_snapshot.config.quantity === "number" &&
-              item.pricing_snapshot.config.quantity > 0
-                ? Math.round(item.quantity / item.pricing_snapshot.config.quantity)
+            const config = item.pricing_snapshot?.config
+            const packSize =
+              config?.mode === "unit_only" &&
+              typeof config.quantity === "number" &&
+              config.quantity > 0
+                ? config.quantity
                 : null
+            const isUnitOnly = packSize !== null
+            const unitLabel = isUnitOnly ? "pack" : "unidad"
+            const pieces = isUnitOnly ? item.quantity * packSize : item.quantity
 
             return (
               <div key={item.id} className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">{item.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    ${item.price} x {item.quantity} unidad{item.quantity === 1 ? "" : "es"}
-                    {packQuantity !== null && ` (${packQuantity} pack${packQuantity === 1 ? "" : "s"})`}
+                    ${item.price} x {item.quantity} {unitLabel}{item.quantity === 1 ? "" : "es"}
+                    {isUnitOnly && ` (${pieces} unidad${pieces === 1 ? "" : "es"})`}
                   </p>
                 </div>
                 <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>

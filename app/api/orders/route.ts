@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getTenantSlugFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
 import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
-import { calculateProductPrice, calculateSelectedOptionsPrice } from "@/lib/utils/pricing"
+import { computeItemPricing } from "@/lib/utils/pricing"
 
 export const runtime = "nodejs"
 
@@ -183,30 +183,29 @@ export async function POST(request: Request) {
       return fail(400, (validationError as Error).message, validationError)
     }
 
-    let pricing
+    let itemPricing
     try {
-      pricing = calculateProductPrice({
+      itemPricing = computeItemPricing({
         product,
-        quantity,
+        pricingQuantity: quantity,
+        selectedOptions: item.selectedOptions ?? null,
       })
     } catch (pricingError) {
       return fail(400, "Invalid pricing configuration for product", pricingError)
     }
 
-    const optionsTotal = calculateSelectedOptionsPrice(product, item.selectedOptions ?? null)
-    const totalPrice = pricing.total + optionsTotal
-    const unitPrice = Math.round(totalPrice / quantity)
-
     orderItemsPayload.push({
       product_id: productId,
-      quantity,
-      unit_price: unitPrice,
-      total_price: totalPrice,
+      quantity: itemPricing.pricingQuantity,
+      unit_price: itemPricing.unitPrice,
+      total_price: itemPricing.total,
       selected_options: item.selectedOptions ?? null,
       pricing_snapshot: {
         config: product.pricing_config ?? null,
-        breakdown: pricing.breakdown,
-        options_total: optionsTotal,
+        source: itemPricing.source,
+        breakdown: itemPricing.breakdown,
+        options_breakdown: itemPricing.optionsBreakdown,
+        raw_total: itemPricing.rawTotal,
       },
     })
   }

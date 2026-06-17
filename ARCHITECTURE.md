@@ -168,7 +168,7 @@ interface ProductOptionValue {
   id: string
   option_id: string       // FK -> product_options.id
   name: string
-  price_modifier: number  // ajuste al precio base
+  price_modifier: number  // precio absoluto de la variedad (antes era delta sobre product.price)
   sort_order: number
 }
 ```
@@ -389,6 +389,20 @@ type PackPricing = {
 ```
 
 El cálculo usa `Math.ceil(cantidad_solicitada / quantity)` para determinar cuántos packs cobrar.
+
+### Precio de variedades (campo `price_modifier`)
+
+Desde 2026-06, el campo `price_modifier` de `product_option_values` representa el **precio absoluto de la variedad** (no un delta sobre `product.price`). Esto aplica a TODA opcion (single, multiple, quantity) de TODO producto, independientemente del modo de pricing. La logica de combinacion con `product.price` y el `pricing_config` vive en `computeItemPricing` en `lib/utils/pricing.ts`. Ver `tasks/05-pricing-absolute-varieties.md` para el detalle completo del cambio y la migracion de datos.
+
+Reglas de combinacion segun el caso:
+
+- Producto con `pricing_config` definido: el precio viene del `pricing_config`. Para `unit_only` (pack/conjunto) se usa el modelo per-pack: `item.price = config.unit_price` (por pack), `item.quantity = packs`, `item.total_price = packs × config.unit_price`. Esto evita el artefacto de centavos por division no entera del per-piece. Las varieties se ignoran para el calculo.
+- Producto sin `pricing_config` con opciones quantity-type seleccionadas: el total es `Σ(qty × price_modifier)` de las varieties elegidas. `product.price` NO participa.
+- Producto sin `pricing_config` con opciones single-type seleccionadas: el precio de la variedad REEMPLAZA al precio base (no se suma). El total es `singleVariety.price_modifier × productQuantity` (mas las multiples si las hay).
+- Producto sin `pricing_config` con opciones multiple-type seleccionadas (sin single): el total es `(product.price + Σ(price_modifier)) × productQuantity`.
+- Producto sin `pricing_config` y sin opciones: el total es `product.price × quantity`.
+
+Regla de redondeo: si el `rawTotal` calculado ya es entero, no se redondea. Si tiene decimales, se hace `Math.ceil(rawTotal)` al entero mas cercano (beneficia al vendedor). `unitPrice = total / pricingQuantity`, redondeado a 2 decimales para MP. Esto garantiza que lo que ve el comprador, lo que cobra MercadoPago y lo que se persiste en `order_items` sea exactamente el mismo numero, y que el vendedor se beneficie de cualquier diferencia de precision.
 
 ## Contratos principales
 

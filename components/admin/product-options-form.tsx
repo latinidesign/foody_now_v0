@@ -55,12 +55,12 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           isRequired: true,
           isAvailable: true,
           values: [
-            { name: "Carne", priceModifier: 0, isAvailable: true },
-            { name: "Pollo", priceModifier: 0, isAvailable: true },
-            { name: "Jamón y Queso", priceModifier: 0, isAvailable: true },
-            { name: "Verdura", priceModifier: 0, isAvailable: true },
-            { name: "Humita", priceModifier: 0, isAvailable: true },
-            { name: "Caprese", priceModifier: 0, isAvailable: true },
+            { name: "Carne", priceModifier: 1500, isAvailable: true },
+            { name: "Pollo", priceModifier: 1500, isAvailable: true },
+            { name: "Jamón y Queso", priceModifier: 1700, isAvailable: true },
+            { name: "Verdura", priceModifier: 1500, isAvailable: true },
+            { name: "Humita", priceModifier: 1700, isAvailable: true },
+            { name: "Caprese", priceModifier: 1800, isAvailable: true },
           ],
         }
         break
@@ -72,8 +72,8 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           isAvailable: true,
           values: [
             { name: "Chicas", priceModifier: 0, isAvailable: true },
-            { name: "Medianas", priceModifier: 50, isAvailable: true },
-            { name: "Grandes", priceModifier: 100, isAvailable: true },
+            { name: "Medianas", priceModifier: 2500, isAvailable: true },
+            { name: "Grandes", priceModifier: 3500, isAvailable: true },
           ],
         }
         break
@@ -85,9 +85,9 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           isAvailable: true,
           values: [
             { name: "Solo hamburguesa", priceModifier: 0, isAvailable: true },
-            { name: "Con papas chicas y gaseosa chica", priceModifier: 200, isAvailable: true },
-            { name: "Con papas medianas y gaseosa mediana", priceModifier: 350, isAvailable: true },
-            { name: "Con papas grandes y gaseosa grande", priceModifier: 500, isAvailable: true },
+            { name: "Con papas chicas y gaseosa chica", priceModifier: 4500, isAvailable: true },
+            { name: "Con papas medianas y gaseosa mediana", priceModifier: 5800, isAvailable: true },
+            { name: "Con papas grandes y gaseosa grande", priceModifier: 7200, isAvailable: true },
           ],
         }
         break
@@ -99,9 +99,9 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           isAvailable: true,
           values: [
             { name: "Personal (25cm)", priceModifier: 0, isAvailable: true },
-            { name: "Mediana (30cm)", priceModifier: 300, isAvailable: true },
-            { name: "Grande (35cm)", priceModifier: 600, isAvailable: true },
-            { name: "Familiar (40cm)", priceModifier: 900, isAvailable: true },
+            { name: "Mediana (30cm)", priceModifier: 3000, isAvailable: true },
+            { name: "Grande (35cm)", priceModifier: 4500, isAvailable: true },
+            { name: "Familiar (40cm)", priceModifier: 6000, isAvailable: true },
           ],
         }
         break
@@ -113,9 +113,9 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
           isAvailable: true,
           values: [
             { name: "Sin bebida", priceModifier: 0, isAvailable: true },
-            { name: "Chica (350ml)", priceModifier: 80, isAvailable: true },
-            { name: "Mediana (500ml)", priceModifier: 120, isAvailable: true },
-            { name: "Grande (1L)", priceModifier: 180, isAvailable: true },
+            { name: "Chica (350ml)", priceModifier: 1000, isAvailable: true },
+            { name: "Mediana (500ml)", priceModifier: 1500, isAvailable: true },
+            { name: "Grande (1L)", priceModifier: 2500, isAvailable: true },
           ],
         }
         break
@@ -206,9 +206,10 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          En modo pricing, el precio base se configura en el producto.
-          Los valores de opción pueden tener un costo adicional por unidad dentro del pack/conjunto.
-          Deja el precio en 0 para indicar que no hay costo extra.
+          El precio de cada variedad es el precio COMPLETO que paga el cliente si la elige
+          (no es un diferencial sobre el precio base del producto). Esto hace mas claro el
+          menu para tus clientes y reduce errores al cargar el catalogo.
+          Deja el precio en 0 si la variedad no tiene costo adicional.
         </AlertDescription>
       </Alert>
 
@@ -220,17 +221,17 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                 <CardTitle className="text-lg">Opción {optionIndex + 1}</CardTitle>
                 {!isPricingMode && getFreeOptionsCount(option) > 0 && (
                   <Badge variant="secondary" className="text-xs">
-                    {getFreeOptionsCount(option)} Sin costo adicionalç
+                    {getFreeOptionsCount(option)} sin costo adicional
                   </Badge>
                 )}
                 {getPaidOptionsCount(option) > 0 && (
                   <Badge variant="default" className="text-xs">
-                    {getPaidOptionsCount(option)} con costo
+                    {getPaidOptionsCount(option)} con precio
                   </Badge>
                 )}
                 {getMaxPrice(option) > 0 && (
                   <Badge variant="outline" className="text-xs">
-                    Hasta +${getMaxPrice(option)}
+                    Hasta ${getMaxPrice(option)}
                   </Badge>
                 )}
               </div>
@@ -296,7 +297,7 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                 </div>
                 {isPricingMode && (
                   <p className="text-xs text-muted-foreground">
-                    En modo pricing, los precios de cada opción no se configuran aquí. El cliente pagará según el precio por unidad configurado en el producto.
+                    En modo pricing, los precios de cada variedad no se usan para el calculo. El cliente paga segun el precio por unidad configurado en el producto.
                   </p>
                 )}
               </div>
@@ -331,22 +332,15 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                           Number.parseFloat(e.target.value) || 0,
                         )
                       }
-                      placeholder="Costo extra (0 para sin costo)"
+                      placeholder="Precio de la variedad"
                       className={
                         value.priceModifier === 0
                           ? "border-green-200 bg-green-50"
-                          : value.priceModifier > 0
-                            ? "border-blue-200 bg-blue-50"
-                            : "border-red-200 bg-red-50"
+                          : "border-blue-200 bg-blue-50"
                       }
                     />
                     {value.priceModifier > 0 && (
                       <Badge variant="default" className="absolute -top-2 -right-2 text-xs px-1 py-0">
-                        +${value.priceModifier}
-                      </Badge>
-                    )}
-                    {value.priceModifier < 0 && (
-                      <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs px-1 py-0">
                         ${value.priceModifier}
                       </Badge>
                     )}
@@ -383,10 +377,10 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                     <strong>Combo Hamburguesa Doble:</strong>
                   </p>
                   <p>• Solo hamburguesa ($0)</p>
-                  <p>• Con papas chicas y gaseosa chica (+$200)</p>
-                  <p>• Con papas medianas y gaseosa mediana (+$350)</p>
-                  <p>• Con papas grandes y gaseosa grande (+$500)</p>
-                  <p className="text-green-600 font-medium">✓ El cliente ve claramente las diferencias de precio</p>
+                  <p>• Con papas chicas y gaseosa chica ($4500)</p>
+                  <p>• Con papas medianas y gaseosa mediana ($5800)</p>
+                  <p>• Con papas grandes y gaseosa grande ($7200)</p>
+                  <p className="text-green-600 font-medium">El cliente ve el precio completo de cada combo</p>
                 </div>
               )}
 
@@ -395,9 +389,9 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                   <p>
                     <strong>Ingredientes Extra para Pizza:</strong>
                   </p>
-                  <p>• Aceitunas ($0), Orégano ($0)</p>
-                  <p>• Jamón (+$200), Queso extra (+$150)</p>
-                  <p>• Camarones (+$400), Salmón (+$500)</p>
+                  <p>• Aceitunas ($0), Oregano ($0)</p>
+                  <p>• Jamon ($1200), Queso extra ($800)</p>
+                  <p>• Camarones ($2500), Salmon ($3200)</p>
                 </div>
               )}
 
@@ -406,8 +400,8 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
                   <p>
                     <strong>Empanadas con Precios Variables:</strong>
                   </p>
-                  <p>• Carne ($0), Pollo ($0), Jamón y Queso ($0)</p>
-                  <p>• Mariscos (+$50 c/u), Salmón (+$80 c/u)</p>
+                  <p>• Carne ($1500 c/u), Pollo ($1500 c/u), Jamon y Queso ($1700 c/u)</p>
+                  <p>• Mariscos ($2200 c/u), Salmon ($2500 c/u)</p>
                 </div>
               )}
             </div>

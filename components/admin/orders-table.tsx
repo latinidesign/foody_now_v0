@@ -96,9 +96,9 @@ const formatCurrency = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value)
 
-const formatPriceModifier = (price: number): string => {
+const formatOptionPrice = (price: number): string => {
   if (price === 0) return ""
-  return ` (+${formatCurrency(price)})`
+  return ` — ${formatCurrency(price)}`
 }
 
 const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): string[] => {
@@ -114,14 +114,14 @@ const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): stri
     if (option.type === "single") {
       const value = values.find((v: any) => v.id === optionValue)
       if (!value) return [optionValue]
-      return [`${value.name}${formatPriceModifier(value.price_modifier ?? 0)}`]
+      return [`${value.name}${formatOptionPrice(value.price_modifier ?? 0)}`]
     }
 
     if (option.type === "multiple" && Array.isArray(optionValue)) {
       return optionValue.map((valueId: string) => {
         const value = values.find((v: any) => v.id === valueId)
         if (!value) return valueId
-        return `${value.name}${formatPriceModifier(value.price_modifier ?? 0)}`
+        return [`${value.name}${formatOptionPrice(value.price_modifier ?? 0)}`]
       })
     }
 
@@ -132,7 +132,7 @@ const getSelectedOptionsSummary = (selectedOptions: unknown, product: any): stri
           if (!value) return `${qty} x ${valueId}`
           const unitPrice = value.price_modifier ?? 0
           const totalPrice = unitPrice * qty
-          return `${qty} x ${value.name}${formatPriceModifier(totalPrice)}`
+          return [`${qty} x ${value.name}${formatOptionPrice(totalPrice)}`]
         })
         .filter(Boolean)
     }

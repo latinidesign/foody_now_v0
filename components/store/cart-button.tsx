@@ -12,14 +12,13 @@ export function CartButton() {
   const [isOpen, setIsOpen] = useState(false)
 
   const packItemCount = state.items.reduce((sum, item) => {
-    const packSize =
+    const isUnitOnly =
       item.pricing_snapshot?.config?.mode === "unit_only" &&
       typeof item.pricing_snapshot.config.quantity === "number" &&
       item.pricing_snapshot.config.quantity > 0
-        ? Math.round(item.quantity / item.pricing_snapshot.config.quantity)
-        : item.quantity
-
-    return sum + packSize
+    // Para unit_only, item.quantity ya esta expresado en packs.
+    // Para los demas casos, item.quantity es la cantidad directa.
+    return sum + item.quantity
   }, 0)
 
   return (

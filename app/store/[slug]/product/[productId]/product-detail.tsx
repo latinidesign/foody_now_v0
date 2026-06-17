@@ -16,7 +16,7 @@ import { RelatedProducts } from "./components/related-products"
 import { usePathname } from "next/navigation"
 import { combineStorePath, deriveStoreBasePathFromPathname } from "@/lib/store/path"
 import { getSelectedOptionsQuantityTotal } from "@/lib/utils/order-validation"
-import { calculateProductPrice, calculateSelectedOptionsPrice, type PricingBreakdownItem } from "@/lib/utils/pricing"
+import { computeItemPricing, type PricingBreakdownItem } from "@/lib/utils/pricing"
 
 interface ProductDetailProps {
   store: Store
@@ -47,32 +47,68 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const selectedOptionsQuantity = getSelectedOptionsQuantityTotal(selectedOptions)
   const isPricingProduct = Boolean(product.pricing_config)
   const packSize = product.pricing_config?.mode === "unit_only" ? Number(product.pricing_config.quantity) : undefined
+  // True si el producto tiene al menos una opcion de tipo "quantity" (sin importar
+  // si el usuario ya selecciono algo). Determina si el contador inferior debe
+  // ocultarse (Caso B) y si las variedades tienen cap (no, en Caso B son libres).
+  const productHasQuantityTypeOption = product.product_options?.some(
+    (opt: any) => opt.type === "quantity",
+  ) ?? false
   const maxOptionQuantity = isPricingProduct
     ? product.pricing_config?.mode === "unit_only"
       ? packSize * quantity
       : undefined
-    : quantity
+    : productHasQuantityTypeOption
+      ? undefined
+      : quantity
   const pricingQuantity = isPricingProduct
     ? product.pricing_config?.mode === "unit_only"
-      ? Math.max(selectedOptionsQuantity, packSize * quantity)
+      ? Math.max(selectedOptionsQuantity, (packSize ?? 0) * quantity)
       : selectedOptionsQuantity
     : quantity
 
   const requiredOptionsQuantity = isPricingProduct && product.pricing_config?.mode === "unit_only"
-    ? packSize * quantity
+    ? (packSize ?? 0) * quantity
     : undefined
   const remainingOptionsToSelect = requiredOptionsQuantity !== undefined
     ? Math.max(0, requiredOptionsQuantity - selectedOptionsQuantity)
     : undefined
   const isPackSelectionIncomplete = remainingOptionsToSelect !== undefined && remainingOptionsToSelect > 0
 
-  const pricing = pricingQuantity > 0
-    ? calculateProductPrice({ product, quantity: pricingQuantity })
-    : { total: 0, breakdown: [] }
-  const optionsTotal = calculateSelectedOptionsPrice(product, selectedOptions, isPricingProduct)
-  const pricingTotal = pricing.total + optionsTotal
-  const approximateUnitPrice = pricingQuantity > 0 ? Math.round(pricingTotal / pricingQuantity) : 0
-  const canAddToCart = !isPricingProduct || (!isPackSelectionIncomplete && selectedOptionsQuantity > 0)
+  // Calculo centralizado. `computeItemPricing` decide que fuente usar segun
+  // el modo del producto y las opciones seleccionadas, y aplica el fix de
+  // redondeo al alza a centavos (2 decimales) sobre el unit price.
+  const itemPricing = pricingQuantity > 0
+    ? computeItemPricing({ product, pricingQuantity, selectedOptions })
+    : null
+  const pricingTotal = itemPricing?.total ?? 0
+  const unitPrice = itemPricing?.unitPrice ?? 0
+  const rawTotal = itemPricing?.rawTotal ?? 0
+  const pricingBreakdown = itemPricing?.breakdown ?? []
+  const optionsBreakdown = itemPricing?.optionsBreakdown ?? { items: [], total: 0 }
+  const pricingSource = itemPricing?.source ?? "base_only"
+  const effectiveQuantity = itemPricing?.pricingQuantity ?? pricingQuantity
+
+  const hasQuantityOptionSelected = optionsBreakdown.items.some((i) => i.type === "variety_quantity")
+  const canAddToCart = !isPricingProduct
+    ? true
+    : (!isPackSelectionIncomplete && selectedOptionsQuantity > 0)
+
+  // Log de debugging: ver el breakdown completo en la consola del navegador.
+  // Util para detectar inconsistencias entre lo que ve el cliente y lo que cobra MP.
+  if (typeof window !== "undefined") {
+    console.log("[foodynow/pricing] item breakdown", {
+      productId: product.id,
+      pricingSource,
+      pricingQuantity,
+      effectiveQuantity,
+      rawTotal,
+      unitPrice,
+      total: pricingTotal,
+      selectedOptions,
+      breakdown: pricingBreakdown,
+      optionsBreakdown,
+    })
+  }
 
   const calculateAdditionalPrice = () => {
     if (!product.product_options) return 0
@@ -120,18 +156,19 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
       // create separate entries in the cart.
       await addItem({
         id: variantId,
-        // keep original product id for reference
         product_id: product.id,
         name: product.name,
-        price: approximateUnitPrice,
+        price: unitPrice,
         total_price: pricingTotal,
         image_url: product.image_url,
-        quantity: pricingQuantity,
+        quantity: effectiveQuantity,
         selectedOptions,
         pricing_snapshot: {
           config: product.pricing_config ?? null,
-          breakdown: pricing.breakdown,
-          options_total: optionsTotal,
+          source: pricingSource,
+          breakdown: pricingBreakdown,
+          options_breakdown: optionsBreakdown,
+          raw_total: rawTotal,
         },
       })
 
@@ -238,8 +275,32 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                         <div className="text-sm text-muted-foreground mt-1">
                           {product.pricing_config.mode === "unit_only"
                             ? `Pack de ${product.pricing_config.quantity} unidad(es)`
-                            : `Precio unitario aprox. $${approximateUnitPrice}`}
+                            : `Precio unitario aprox. $${unitPrice.toFixed(2)}`}
                         </div>
+                      </div>
+                    </div>
+                  ) : productHasQuantityTypeOption ? (
+                    <div>
+                      <span className="text-2xl font-bold text-primary">${pricingTotal.toFixed(2)}</span>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {effectiveQuantity > 0
+                          ? `${effectiveQuantity} unidad(es) segun variedades elegidas`
+                          : "Elegi las variedades para ver el total"}
+                      </div>
+                    </div>
+                  ) : pricingSource === "single_multiple_options" ? (
+                    <div>
+                      <span className="text-2xl font-bold text-primary">${pricingTotal.toFixed(2)}</span>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {(() => {
+                          const singleItems = optionsBreakdown.items.filter((i) => i.type === "variety_single")
+                          if (singleItems.length > 0) {
+                            return singleItems.length === 1
+                              ? singleItems[0].name
+                              : `${singleItems.length} opciones seleccionadas`
+                          }
+                          return "Precio base + adicionales"
+                        })()}
                       </div>
                     </div>
                   ) : product.sale_price && product.sale_price < product.price ? (
@@ -254,9 +315,6 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                     </div>
                   ) : (
                     <span className="text-2xl font-bold text-primary">${product.price}</span>
-                  )}
-                  {optionsTotal > 0 && (
-                    <div className="text-sm text-muted-foreground mt-1">+ ${optionsTotal} por opciones</div>
                   )}
                 </div>
               </div>
@@ -305,6 +363,19 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                         </p>
                       )}
                     </div>
+                  ) : productHasQuantityTypeOption ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Unidades seleccionadas:</span>
+                        <span className="font-semibold">{effectiveQuantity}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Elige cuantas unidades de cada variedad queres. El total se calcula multiplicando la cantidad de cada variedad por su precio.
+                      </p>
+                      {effectiveQuantity === 0 && (
+                        <p className="text-sm text-destructive">Selecciona al menos una variedad con cantidad mayor a 0.</p>
+                      )}
+                    </div>
                   ) : (
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Cantidad:</span>
@@ -326,10 +397,10 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                   )}
 
                   <div className="space-y-2">
-                    {product.pricing_config ? (
+                    {pricingSource === "pricing_config" ? (
                       <div className="space-y-2">
                         <div className="text-sm text-muted-foreground">Detalle de precio:</div>
-                        {pricing.breakdown.map((item: PricingBreakdownItem, index) => (
+                        {pricingBreakdown.map((item: PricingBreakdownItem, index) => (
                           <div key={`${item.type}-${index}`} className="flex items-center justify-between text-sm">
                             <span>
                               {item.type === "dozen" && `${item.quantity} docena(s)`}
@@ -339,25 +410,81 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                             <span>${item.total.toFixed(2)}</span>
                           </div>
                         ))}
-                        {optionsTotal > 0 && (
-                          <div className="flex items-center justify-between text-sm">
-                            <span>Adicionales:</span>
-                            <span>+${optionsTotal.toFixed(2)}</span>
-                          </div>
-                        )}
+                      </div>
+                    ) : pricingSource === "quantity_options" ? (
+                      <div className="space-y-2">
+                        <div className="text-sm text-muted-foreground">Detalle por variedad:</div>
+                        {optionsBreakdown.items
+                          .filter((i) => i.type === "variety_quantity")
+                          .map((item) => {
+                            const v = item as Extract<typeof item, { type: "variety_quantity" }>
+                            return (
+                              <div key={`${item.optionId}-${item.valueId}`} className="flex items-center justify-between text-sm">
+                                <span>
+                                  {v.quantity} × {v.name} <span className="text-muted-foreground">@ ${v.unitPrice}</span>
+                                </span>
+                                <span>${v.subtotal.toFixed(2)}</span>
+                              </div>
+                            )
+                          })}
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Precio base:</span>
-                          <span>${basePrice.toFixed(2)}</span>
-                        </div>
-                        {optionsTotal > 0 && (
-                          <div className="flex items-center justify-between text-sm">
-                            <span>Adicionales:</span>
-                            <span>+${optionsTotal.toFixed(2)}</span>
-                          </div>
-                        )}
+                        {(() => {
+                          const singleItems = optionsBreakdown.items.filter(
+                            (i) => i.type === "variety_single",
+                          )
+                          const multipleItems = optionsBreakdown.items.filter(
+                            (i) => i.type === "variety_multiple",
+                          )
+                          const hasSingle = singleItems.length > 0
+                          if (singleItems.length === 0 && multipleItems.length === 0) {
+                            return (
+                              <div className="flex items-center justify-between text-sm">
+                                <span>Precio base:</span>
+                                <span>${basePrice.toFixed(2)}</span>
+                              </div>
+                            )
+                          }
+                          return (
+                            <div className="space-y-1">
+                              {hasSingle ? (
+                                singleItems.map((item) => {
+                                  const v = item as Extract<typeof item, { type: "variety_single" }>
+                                  return (
+                                    <div key={`${item.optionId}-${item.valueId}`} className="flex items-center justify-between text-sm">
+                                      <span>
+                                        {quantity} × {v.name}
+                                        <span className="text-muted-foreground"> @ ${v.unitPrice.toFixed(2)}</span>
+                                      </span>
+                                      <span>${(v.unitPrice * quantity).toFixed(2)}</span>
+                                    </div>
+                                  )
+                                })
+                              ) : (
+                                <div className="flex items-center justify-between text-sm">
+                                  <span>
+                                    {quantity} × producto base
+                                    <span className="text-muted-foreground"> @ ${basePrice.toFixed(2)}</span>
+                                  </span>
+                                  <span>${(basePrice * quantity).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {multipleItems.map((item) => {
+                                const v = item as Extract<typeof item, { type: "variety_multiple" }>
+                                return (
+                                  <div key={`${item.optionId}-${item.valueId}`} className="flex items-center justify-between text-sm">
+                                    <span>
+                                      {quantity} × {v.name}
+                                      <span className="text-muted-foreground"> @ ${v.unitPrice.toFixed(2)}</span>
+                                    </span>
+                                    <span>${(v.unitPrice * quantity).toFixed(2)}</span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )
+                        })()}
                       </>
                     )}
 

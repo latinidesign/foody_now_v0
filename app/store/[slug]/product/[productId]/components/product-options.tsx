@@ -215,7 +215,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
         {getTotalAdditionalPrice() > 0 && (
           <Badge variant="default" className="flex items-center gap-1">
             <DollarSign className="w-3 h-3" />
-            +${getTotalAdditionalPrice()}
+            ${getTotalAdditionalPrice()}
           </Badge>
         )}
       </div>
@@ -245,14 +245,9 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                       Por cantidad
                     </Badge>
                   )}
-                  {!pricingConfig && getOptionValues(option).some((v: any) => v.price_modifier === 0) && (
-                    <Badge variant="secondary" className="text-xs">
-                      Opciones gratis
-                    </Badge>
-                  )}
                   {getOptionValues(option).some((v: any) => v.price_modifier > 0) && (
                     <Badge variant="default" className="text-xs">
-                      Con costo extra
+                      Con precio
                     </Badge>
                   )}
                   {pricingConfig && option.type === "quantity" ? (
@@ -260,10 +255,6 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                       {pricingConfig.mode === "unit_only"
                         ? `$${pricingConfig.unit_price} por pack`
                         : `$${pricingConfig.unit_price} c/u`}
-                    </Badge>
-                  ) : optionPrice > 0 ? (
-                    <Badge variant="default" className="text-xs">
-                      +${optionPrice}
                     </Badge>
                   ) : null}
                 </div>
@@ -273,37 +264,51 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                   {maxQuantity !== undefined
                     ? `${Math.max(0, maxQuantity - getTotalQuantity(option.id))} de ${maxQuantity} disponibles`
                     : `Total seleccionado: ${getTotalQuantity(option.id)} unidades`}
-                  {optionExtras > 0 && ` (+$${optionExtras})`}
+                  {optionExtras > 0 && ` — $${optionExtras}`}
                 </p>
               )}
             </CardHeader>
             <CardContent>
               {option.type === "single" ? (
-                <RadioGroup
-                  value={selectedOptions[option.id] || ""}
-                  onValueChange={(value) => handleOptionChange(option.id, value)}
-                >
-                  {getAvailableValues(getOptionValues(option)).map((value: any) => (
-                    <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value={value.id} id={value.id} />
-                        <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
-                          {value.name}
-                          {!pricingConfig && value.price_modifier === 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              GRATIS
-                            </Badge>
-                          )}
-                        </Label>
+                <>
+                  <RadioGroup
+                    value={selectedOptions[option.id] || ""}
+                    onValueChange={(value) => handleOptionChange(option.id, value)}
+                  >
+                    {getAvailableValues(getOptionValues(option)).map((value: any) => (
+                      <div key={value.id} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value={value.id} id={value.id} />
+                          <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
+                            {value.name}
+                          </Label>
+                        </div>
+                        {!pricingConfig && value.price_modifier > 0 && (
+                          <Badge variant="default" className="text-xs">
+                            ${value.price_modifier}
+                          </Badge>
+                        )}
                       </div>
-                      {value.price_modifier !== 0 && (
-                        <Badge variant={value.price_modifier > 0 ? "default" : "destructive"} className="text-xs">
-                          {value.price_modifier > 0 ? "+" : ""}${value.price_modifier}
-                        </Badge>
-                      )}
+                    ))}
+                  </RadioGroup>
+                  {selectedOptions[option.id] && !pricingConfig && (
+                    <div className="mt-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground"
+                        onClick={() => {
+                          const nextOptions = { ...selectedOptions }
+                          delete nextOptions[option.id]
+                          onOptionsChange(nextOptions)
+                        }}
+                      >
+                        Opcion sin adicionales
+                      </Button>
                     </div>
-                  ))}
-                </RadioGroup>
+                  )}
+                </>
               ) : option.type === "multiple" ? (
                 <div className="space-y-2">
                   {getAvailableValues(getOptionValues(option)).map((value: any) => (
@@ -318,16 +323,11 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         />
                         <Label htmlFor={value.id} className="flex items-center gap-2 cursor-pointer">
                           {value.name}
-                          {!pricingConfig && value.price_modifier === 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              GRATIS
-                            </Badge>
-                          )}
                         </Label>
                       </div>
-                      {value.price_modifier !== 0 && (
-                        <Badge variant={value.price_modifier > 0 ? "default" : "destructive"} className="text-xs">
-                          {value.price_modifier > 0 ? "+" : ""}${value.price_modifier}
+                      {!pricingConfig && value.price_modifier > 0 && (
+                        <Badge variant="default" className="text-xs">
+                          ${value.price_modifier}
                         </Badge>
                       )}
                     </div>
@@ -339,20 +339,15 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                     <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{value.name}</span>
-                        {!pricingConfig && value.price_modifier === 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            GRATIS
-                          </Badge>
-                        )}
                         {pricingConfig ? (
                           value.price_modifier > 0 ? (
                             <Badge variant="default" className="text-xs">
-                              +${value.price_modifier} c/u
+                              ${value.price_modifier} c/u
                             </Badge>
                           ) : null
-                        ) : value.price_modifier !== 0 ? (
-                          <Badge variant={value.price_modifier > 0 ? "default" : "destructive"} className="text-xs">
-                            {value.price_modifier > 0 ? "+" : ""}${value.price_modifier} c/u
+                        ) : value.price_modifier > 0 ? (
+                          <Badge variant="default" className="text-xs">
+                            ${value.price_modifier} c/u
                           </Badge>
                         ) : null}
                       </div>
@@ -392,19 +387,6 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
           </Card>
         )
       })}
-
-      {getTotalAdditionalPrice() > 0 && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Costo adicional por opciones:</span>
-              <Badge variant="default" className="text-base px-3 py-1">
-                +${getTotalAdditionalPrice()}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
