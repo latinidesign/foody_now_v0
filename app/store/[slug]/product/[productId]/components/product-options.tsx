@@ -213,7 +213,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-lg">Opciones</h3>
         {getTotalAdditionalPrice() > 0 && (
-          <Badge variant="default" className="flex items-center gap-1">
+          <Badge variant="default" className="flex items-center gap-1 text-black bg-lime-200">
             <DollarSign className="w-3 h-3" />
             ${getTotalAdditionalPrice()}
           </Badge>
@@ -246,7 +246,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                     </Badge>
                   )}
                   {getOptionValues(option).some((v: any) => v.price_modifier > 0) && (
-                    <Badge variant="default" className="text-xs">
+                    <Badge variant="default" className="text-xs  text-black bg-lime-200">
                       Con precio
                     </Badge>
                   )}
@@ -284,7 +284,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                           </Label>
                         </div>
                         {!pricingConfig && value.price_modifier > 0 && (
-                          <Badge variant="default" className="text-xs">
+                          <Badge variant="default" className="text-xs text-black bg-lime-200">
                             ${value.price_modifier}
                           </Badge>
                         )}
@@ -326,7 +326,7 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         </Label>
                       </div>
                       {!pricingConfig && value.price_modifier > 0 && (
-                        <Badge variant="default" className="text-xs">
+                        <Badge variant="default" className="text-xs text-black bg-lime-200">
                           ${value.price_modifier}
                         </Badge>
                       )}
@@ -341,12 +341,12 @@ export function ProductOptions({ options, selectedOptions, onOptionsChange, maxQ
                         <span className="font-medium">{value.name}</span>
                         {pricingConfig ? (
                           value.price_modifier > 0 ? (
-                            <Badge variant="default" className="text-xs">
+                            <Badge variant="default" className="text-xs text-black bg-lime-200">
                               ${value.price_modifier} c/u
                             </Badge>
                           ) : null
                         ) : value.price_modifier > 0 ? (
-                          <Badge variant="default" className="text-xs">
+                          <Badge variant="default" className="text-xs text-black bg-lime-200">
                             ${value.price_modifier} c/u
                           </Badge>
                         ) : null}
