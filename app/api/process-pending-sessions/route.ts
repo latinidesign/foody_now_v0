@@ -65,10 +65,19 @@ export async function POST() {
         }
 
         // Crear la orden
+        const { data: orderNumberData, error: orderNumberError } = await supabase
+          .rpc("get_next_order_number", { p_store_id: store.id })
+
+        if (orderNumberError || orderNumberData === null || orderNumberData === undefined) {
+          results.push({ sessionId: session.id, status: 'error', reason: 'Failed to get order number', error: orderNumberError })
+          continue
+        }
+
         const { data: order, error: orderError } = await supabase
           .from("orders")
           .insert({
             store_id: store.id,
+            order_number: orderNumberData,
             customer_name: orderData.customerName,
             customer_email: orderData.customerEmail,
             customer_phone: orderData.customerPhone,

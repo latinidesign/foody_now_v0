@@ -629,10 +629,19 @@ async function handleMerchantOrderWebhook(
       }
 
       // Crear la orden
+      const { data: orderNumberData, error: orderNumberError } = await supabase
+        .rpc("get_next_order_number", { p_store_id: resolvedStoreId })
+
+      if (orderNumberError || orderNumberData === null || orderNumberData === undefined) {
+        console.error(`[webhooks:mercadopago][cid:${cid}] Failed to get next order number`, orderNumberError)
+        continue
+      }
+
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .insert({
           store_id: resolvedStoreId,
+          order_number: orderNumberData,
           customer_name: orderData.customerName,
           customer_email: orderData.customerEmail,
           customer_phone: orderData.customerPhone,

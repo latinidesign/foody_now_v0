@@ -217,10 +217,19 @@ export async function POST(request: NextRequest) {
     const deliveryAddress = sessionOrderData.deliveryAddress ?? null
     const deliveryNotes = sessionOrderData.deliveryNotes ?? null
 
+    const { data: orderNumberData, error: orderNumberError } = await supabase
+      .rpc("get_next_order_number", { p_store_id: session.store_id })
+
+    if (orderNumberError || orderNumberData === null || orderNumberData === undefined) {
+      console.error(`[payments:webhook][cid:${cid}] Failed to get next order number`, orderNumberError)
+      return fail(500, "Unable to assign order number", orderNumberError)
+    }
+
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         store_id: session.store_id,
+        order_number: orderNumberData,
         customer_name: customerName,
         customer_email: customerEmail,
         customer_phone: customerPhone,
