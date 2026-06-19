@@ -2,7 +2,13 @@ import { WhatsAppSettings } from "@/components/admin/whatsapp-settings"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
-export default async function WhatsAppSettingsPage() {
+export default async function WhatsAppSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ highlightStatus?: string }>
+}) {
+  const params = await searchParams
+  const highlightStatus = params.highlightStatus
   const supabase = await createClient()
 
   const {
@@ -42,6 +48,7 @@ export default async function WhatsAppSettingsPage() {
         autoNotifications={storeSettings?.whatsapp_notifications_enabled ?? undefined}
         initialMessage={storeSettings?.whatsapp_message ?? undefined}
         orderStatusMessages={storeSettings?.order_status_messages as Record<string, string> | undefined}
+        highlightStatus={highlightStatus}
       />
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +21,17 @@ interface WhatsAppSettingsProps {
   autoNotifications?: boolean
   initialMessage?: string
   orderStatusMessages?: Record<string, string>
+  highlightStatus?: string
 }
+
+const AVAILABLE_VARS = [
+  { label: "Nombre del cliente", value: "{customer_name}" },
+  { label: "Número de pedido", value: "{order_number}" },
+  { label: "Nombre de la tienda", value: "{store_name}" },
+  { label: "Productos", value: "{items}" },
+  { label: "Total", value: "{total}" },
+  { label: "Dirección de entrega", value: "{delivery_address}" },
+]
 
 export function WhatsAppSettings({
   storeId,
@@ -31,6 +41,7 @@ export function WhatsAppSettings({
   autoNotifications: initialAutoNotifications,
   initialMessage,
   orderStatusMessages: initialStatusMessages,
+  highlightStatus,
 }: WhatsAppSettingsProps) {
   const [phone, setPhone] = useState(currentPhone || "")
   const [autoNotifications, setAutoNotifications] = useState(initialAutoNotifications ?? true)
@@ -48,6 +59,45 @@ export function WhatsAppSettings({
     }
     return initial
   })
+
+  const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({})
+
+  const insertVariable = useCallback((status: string, variable: string) => {
+    const textarea = textareaRefs.current[status]
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const newValue =
+      statusMessages[status].slice(0, start) +
+      variable +
+      statusMessages[status].slice(end)
+    setStatusMessages((prev) => ({ ...prev, [status]: newValue }))
+    requestAnimationFrame(() => {
+      textarea.focus()
+      const newCursorPos = start + variable.length
+      textarea.setSelectionRange(newCursorPos, newCursorPos)
+    })
+  }, [statusMessages])
+
+  const setTextareaRef = useCallback((status: string) => (el: HTMLTextAreaElement | null) => {
+    textareaRefs.current[status] = el
+  }, [])
+
+  useEffect(() => {
+    if (!highlightStatus) return
+    const timer = setTimeout(() => {
+      const textarea = textareaRefs.current[highlightStatus]
+      if (textarea) {
+        textarea.focus()
+        textarea.scrollIntoView({ behavior: "smooth", block: "center" })
+        textarea.classList.add("ring-2", "ring-primary")
+        setTimeout(() => {
+          textarea.classList.remove("ring-2", "ring-primary")
+        }, 3000)
+      }
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [highlightStatus])
 
   const storeUrl = `https://${storeSlug}.foodynow.com.ar`
   const defaultMessage = whatsappService.generateStoreLinkResponse(storeSlug, storeName)
@@ -170,12 +220,7 @@ export function WhatsAppSettings({
           <CardDescription>
             Personalizá los mensajes que se envían a los clientes cuando cambia el estado de su pedido.
             Dejá un campo vacío para usar el mensaje por defecto.
-            Podés usar las variables: <code className="text-xs bg-muted px-1 rounded">{`{customer_name}`}</code>,{" "}
-            <code className="text-xs bg-muted px-1 rounded">{`{order_number}`}</code>,{" "}
-            <code className="text-xs bg-muted px-1 rounded">{`{store_name}`}</code>,{" "}
-            <code className="text-xs bg-muted px-1 rounded">{`{items}`}</code>,{" "}
-            <code className="text-xs bg-muted px-1 rounded">{`{total}`}</code>,{" "}
-            <code className="text-xs bg-muted px-1 rounded">{`{delivery_address}`}</code>
+            Usá los botones debajo del campo para insertar variables automáticas.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -199,6 +244,8 @@ export function WhatsAppSettings({
                 </Button>
               </div>
               <Textarea
+                id={`status-message-${status}`}
+                ref={setTextareaRef(status)}
                 value={statusMessages[status]}
                 onChange={(e) =>
                   setStatusMessages((prev) => ({
@@ -210,6 +257,21 @@ export function WhatsAppSettings({
                 rows={4}
                 className="text-sm"
               />
+              <div className="flex gap-1.5 flex-wrap">
+                {AVAILABLE_VARS.map((v) => (
+                  <Button
+                    key={v.value}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 px-4 py-1 border-1"
+                    style={{ borderColor: "var(--accent)", cursor: "pointer" }}
+                    onClick={() => insertVariable(status, v.value)}
+                  >
+                    {v.label}
+                  </Button>
+                ))}
+              </div>
               <details className="text-xs text-muted-foreground">
                 <summary className="cursor-pointer hover:text-foreground">Vista previa del mensaje por defecto</summary>
                 <div className="mt-2 bg-muted p-3 rounded whitespace-pre-wrap">
