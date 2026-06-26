@@ -17,7 +17,7 @@ interface SearchParams {
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: SearchParams
+  searchParams: Promise<SearchParams>
 }) {
   const supabase = await createClient()
 
@@ -36,16 +36,20 @@ export default async function AnalyticsPage({
     redirect("/onboarding")
   }
 
+  const { startDate: startDateParam, endDate: endDateParam } = await searchParams
+
   const now = new Date()
   let startDate: Date
-  let endDate: Date = now
+  let endDate: Date
 
-  if (searchParams.startDate && searchParams.endDate) {
-    startDate = new Date(searchParams.startDate)
-    endDate = new Date(searchParams.endDate)
+  if (startDateParam && endDateParam) {
+    startDate = new Date(startDateParam)
+    endDate = new Date(endDateParam)
+    endDate.setHours(23, 59, 59, 999)
   } else {
     // Default to current month
     startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
   }
 
   // Get orders for selected period

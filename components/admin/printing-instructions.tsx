@@ -5,19 +5,9 @@ interface PrintingInstructionsProps {
 export function PrintingInstructions({ browserName }: PrintingInstructionsProps) {
   const showAll = !browserName
 
-  const ChromeSection = () => (
-    <div>
-      <p className="font-semibold">Google Chrome:</p>
-      <p className="text-xs text-muted-foreground mt-1">Agregá el flag <code className="bg-muted px-1 rounded">--kiosk-printing</code> al acceso directo. No requiere modo kiosk completo.</p>
-      <div className="p-3 bg-muted rounded-md text-xs font-mono mt-1">
-        "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing https://foodynow.com.ar/admin/orders
-      </div>
-    </div>
-  )
-
   const EdgeSection = () => (
     <div>
-      <p className="font-semibold">Microsoft Edge:</p>
+      <p className="font-semibold">Microsoft Edge (Recomendado):</p>
       <p className="text-xs text-muted-foreground mt-1">
         Edge requiere <strong>full kiosk mode</strong> (pantalla completa, sin barra de direcciones, sin pestañas).
         Usá estos tres flags juntos:
@@ -28,18 +18,13 @@ export function PrintingInstructions({ browserName }: PrintingInstructionsProps)
     </div>
   )
 
-  const FirefoxSection = () => (
+  const ChromeSection = () => (
     <div>
-      <p className="font-semibold">Mozilla Firefox:</p>
-      <p className="text-xs text-muted-foreground mt-1">
-        Firefox no tiene flag de línea de comandos para impresión silenciosa. En su lugar:
-      </p>
-      <ol className="list-decimal list-inside text-xs mt-1 space-y-1">
-        <li>Escribí <code className="bg-muted px-1 rounded">about:config</code> en la barra de direcciones</li>
-        <li>Aceptá el riesgo</li>
-        <li>Buscá <code className="bg-muted px-1 rounded">print.always_print_silent</code></li>
-        <li>Cambialo a <code className="bg-muted px-1 rounded">true</code></li>
-      </ol>
+      <p className="font-semibold">Google Chrome:</p>
+      <p className="text-xs text-muted-foreground mt-1">Agregá el flag <code className="bg-muted px-1 rounded">--kiosk-printing</code> al acceso directo. No requiere modo kiosk completo.</p>
+      <div className="p-3 bg-muted rounded-md text-xs font-mono mt-1">
+        "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing https://foodynow.com.ar/admin/orders
+      </div>
     </div>
   )
 
@@ -56,12 +41,11 @@ export function PrintingInstructions({ browserName }: PrintingInstructionsProps)
           predeterminada del sistema.
         </li>
         <li>
-          <strong>Paso 2:</strong> Según tu navegador, creá un acceso directo en
-          el escritorio con el comando indicado abajo.
+          <strong>Paso 2:</strong> Elegí el navegador, hacé clic derecho sobre el icono de acceso directo en tu escritorio y selecciona <b>Propiedades</b>. <br />
+          Ve a la pestaña <b>Acceso directo</b> y ubica el campo llamado <b>Destino</b> y pegá este codigo:
           <div className="mt-2 space-y-3 ml-4">
-            {showAll || browserName === "chrome" ? <ChromeSection /> : null}
             {showAll || browserName === "edge" ? <EdgeSection /> : null}
-            {showAll || browserName === "firefox" ? <FirefoxSection /> : null}
+            {showAll || browserName === "chrome" ? <ChromeSection /> : null}
             {showAll ? (
               <p className="text-xs text-muted-foreground">
                 {browserName === "safari" || browserName === "otro" || browserName === "ssr"
