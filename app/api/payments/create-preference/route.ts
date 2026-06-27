@@ -6,6 +6,7 @@ import { NextResponse } from "next/server"
 import { getValidAccessToken } from "@/lib/mercadopago/SellerUtils"
 import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
 import { computeItemPricing } from "@/lib/utils/pricing"
+import { calculateStoreStatus, isStoreConfigured } from "@/lib/store-hours"
 
 
 export const runtime = "nodejs"
@@ -91,6 +92,22 @@ export async function POST(request: Request) {
 
   if (!store.is_active) {
     return fail(403, "Store is not active")
+  }
+
+  const { data: orderHoursSettings } = await supabase
+    .from("store_settings")
+    .select("business_hours, is_open")
+    .eq("store_id", store.id)
+    .maybeSingle()
+
+  if (orderHoursSettings) {
+    const hoursStatus = calculateStoreStatus(orderHoursSettings.business_hours, orderHoursSettings.is_open)
+    if (!hoursStatus.isOpen) {
+      if (isStoreConfigured(orderHoursSettings.business_hours)) {
+        return fail(403, "La tienda está cerrada en este momento. No se pueden recibir pedidos.")
+      }
+      return fail(403, "La tienda no tiene horarios de atención configurados. No se pueden recibir pedidos.")
+    }
   }
 
   const host = request.headers.get("host")
@@ -235,6 +252,22 @@ async function handleCheckoutSession(
 
   if (!store.is_active) {
     return fail(403, "La tienda no está activa")
+  }
+
+  const { data: hoursSettings } = await supabase
+    .from("store_settings")
+    .select("business_hours, is_open")
+    .eq("store_id", store.id)
+    .maybeSingle()
+
+  if (hoursSettings) {
+    const hoursStatus = calculateStoreStatus(hoursSettings.business_hours, hoursSettings.is_open)
+    if (!hoursStatus.isOpen) {
+      if (isStoreConfigured(hoursSettings.business_hours)) {
+        return fail(403, "La tienda está cerrada en este momento. No se pueden recibir pedidos.")
+      }
+      return fail(403, "La tienda no tiene horarios de atención configurados. No se pueden recibir pedidos.")
+    }
   }
 
   const isValidUuid = (value: string) =>

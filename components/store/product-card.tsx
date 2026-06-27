@@ -3,6 +3,7 @@
 import type { Product } from "@/lib/types/database"
 import { ArrowRight, Minus, Plus } from "lucide-react"
 import { useCart } from "./cart-context"
+import { useStoreStatus } from "./store-hours-context"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -99,6 +100,7 @@ function QuantityControls({
 
 export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart()
+  const { isOpen, isConfigured } = useStoreStatus()
   const [isAdding, setIsAdding] = useState(false)
   const quantity = getItemQuantity(product.id)
   const pathname = usePathname()
@@ -119,9 +121,20 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
   }
 
   const hasOffer = !!(product.sale_price && product.sale_price < product.price)
+  const canPurchase = isOpen === true
 
   if (viewMode === "list") {
-    return <ProductListCard product={product} productLink={productLink} quantity={quantity} updateQuantity={updateQuantity} hasOffer={hasOffer} />
+    return (
+      <ProductListCard
+        product={product}
+        productLink={productLink}
+        quantity={quantity}
+        updateQuantity={updateQuantity}
+        hasOffer={hasOffer}
+        canPurchase={canPurchase}
+        isConfigured={isConfigured}
+      />
+    )
   }
 
   return (
@@ -163,14 +176,22 @@ export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) 
         <div className="mt-auto pt-1 md:pt-1.5">
           <PriceDisplay product={product} />
           <div className="mt-2 md:mt-3">
-            {quantity > 0 ? (
-              <QuantityControls
-                quantity={quantity}
-                onDecrement={() => updateQuantity(product.id, quantity - 1)}
-                onIncrement={() => updateQuantity(product.id, quantity + 1)}
-              />
+            {canPurchase ? (
+              quantity > 0 ? (
+                <QuantityControls
+                  quantity={quantity}
+                  onDecrement={() => updateQuantity(product.id, quantity - 1)}
+                  onIncrement={() => updateQuantity(product.id, quantity + 1)}
+                />
+              ) : (
+                <BuyButton href={productLink} />
+              )
             ) : (
-              <BuyButton href={productLink} />
+              <div className="text-center py-2">
+                <span className="text-xs text-muted-foreground font-medium">
+                  {isConfigured ? "Cerrado" : "Próximamente"}
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -185,12 +206,16 @@ function ProductListCard({
   quantity,
   updateQuantity,
   hasOffer,
+  canPurchase,
+  isConfigured,
 }: {
   product: Product
   productLink: string
   quantity: number
   updateQuantity: (id: string, qty: number) => void
   hasOffer: boolean
+  canPurchase: boolean
+  isConfigured: boolean
 }) {
   return (
     <>
@@ -230,15 +255,21 @@ function ProductListCard({
           )}
           <div className="flex items-center justify-between mt-auto pt-1.5 gap-2">
             <PriceDisplay product={product} />
-            {quantity > 0 ? (
-              <QuantityControls
-                quantity={quantity}
-                onDecrement={() => updateQuantity(product.id, quantity - 1)}
-                onIncrement={() => updateQuantity(product.id, quantity + 1)}
-                compact
-              />
+            {canPurchase ? (
+              quantity > 0 ? (
+                <QuantityControls
+                  quantity={quantity}
+                  onDecrement={() => updateQuantity(product.id, quantity - 1)}
+                  onIncrement={() => updateQuantity(product.id, quantity + 1)}
+                  compact
+                />
+              ) : (
+                <BuyButton href={productLink} compact />
+              )
             ) : (
-              <BuyButton href={productLink} compact />
+              <span className="text-xs text-muted-foreground font-medium">
+                {isConfigured ? "Cerrado" : "Próximamente"}
+              </span>
             )}
           </div>
         </div>
@@ -281,16 +312,22 @@ function ProductListCard({
         </div>
         <div className="flex flex-col items-end justify-center gap-3 flex-shrink-0 min-w-[170px]">
           <PriceDisplay product={product} align="right" />
-          {quantity > 0 ? (
-            <QuantityControls
-              quantity={quantity}
-              onDecrement={() => updateQuantity(product.id, quantity - 1)}
-              onIncrement={() => updateQuantity(product.id, quantity + 1)}
-            />
+          {canPurchase ? (
+            quantity > 0 ? (
+              <QuantityControls
+                quantity={quantity}
+                onDecrement={() => updateQuantity(product.id, quantity - 1)}
+                onIncrement={() => updateQuantity(product.id, quantity + 1)}
+              />
+            ) : (
+              <div className="w-[170px]">
+                <BuyButton href={productLink} />
+              </div>
+            )
           ) : (
-            <div className="w-[170px]">
-              <BuyButton href={productLink} />
-            </div>
+            <span className="text-xs text-muted-foreground font-medium">
+              {isConfigured ? "Cerrado" : "Próximamente"}
+            </span>
           )}
         </div>
       </div>

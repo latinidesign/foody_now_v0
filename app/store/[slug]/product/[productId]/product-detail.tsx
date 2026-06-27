@@ -10,6 +10,8 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { useCart } from "@/components/store/cart-context"
 import { CartButton } from "@/components/store/cart-button"
+import { StoreHoursProvider, useStoreStatus } from "@/components/store/store-hours-context"
+import { StoreHoursBanner } from "@/components/store/store-hours-banner"
 import { ProductGallery } from "./components/product-gallery"
 import { ProductOptions } from "./components/product-options"
 import { RelatedProducts } from "./components/related-products"
@@ -25,11 +27,26 @@ interface ProductDetailProps {
     categories?: { name: string }
   }
   relatedProducts: Product[]
+  storeBusinessHours?: Record<string, any> | null
+  storeIsOpen?: boolean
 }
 
 const getOptionValues = (option: any) => option.values ?? option.product_option_values ?? []
 
-export function ProductDetail({ store, product, relatedProducts }: ProductDetailProps) {
+export function ProductDetail({ store, product, relatedProducts, storeBusinessHours, storeIsOpen = true }: ProductDetailProps) {
+  return (
+    <StoreHoursProvider businessHours={storeBusinessHours as any} isOpen={storeIsOpen}>
+      <ProductDetailInner
+        store={store}
+        product={product}
+        relatedProducts={relatedProducts}
+      />
+    </StoreHoursProvider>
+  )
+}
+
+function ProductDetailInner({ store, product, relatedProducts }: Omit<ProductDetailProps, 'storeBusinessHours' | 'storeIsOpen'>) {
+  const { isOpen, isConfigured } = useStoreStatus()
   const { addItem, getItemQuantity, updateQuantity } = useCart()
   const [selectedOptions, setSelectedOptions] = useState<Record<string, any>>({})
   const [quantity, setQuantity] = useState(1)
@@ -89,6 +106,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const effectiveQuantity = itemPricing?.pricingQuantity ?? pricingQuantity
 
   const hasQuantityOptionSelected = optionsBreakdown.items.some((i) => i.type === "variety_quantity")
+  const canPurchase = isOpen === true
   const canAddToCart = !isPricingProduct
     ? true
     : (!isPackSelectionIncomplete && selectedOptionsQuantity > 0)
@@ -150,6 +168,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
   const finalPrice = basePrice + additionalPrice
 
   const handleAddToCart = async () => {
+    if (!canPurchase) return
     setIsAdding(true)
     try {
       // Use the variant id when adding the item so different option selections
@@ -245,6 +264,7 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
         </div>
       </div>
 
+      <StoreHoursBanner />
       <div className="container mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Product Gallery */}
@@ -494,9 +514,14 @@ export function ProductDetail({ store, product, relatedProducts }: ProductDetail
                     </div>
                   </div>
 
-                  <Button onClick={handleAddToCart} disabled={isAdding || !canAddToCart} className="w-full" size="lg">
+                  <Button onClick={handleAddToCart} disabled={isAdding || !canAddToCart || !canPurchase} className="w-full" size="lg">
                     {isAdding ? (
                       "Agregando..."
+                    ) : !canPurchase ? (
+                      <>
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                        {isConfigured ? "Tienda Cerrada" : "Próximamente"}
+                      </>
                     ) : (
                       <>
                         <ShoppingCart className="w-4 h-4 mr-2" />

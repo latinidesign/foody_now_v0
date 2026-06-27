@@ -5,6 +5,7 @@ import { getTenantSlugFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
 import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
 import { computeItemPricing } from "@/lib/utils/pricing"
+import { calculateStoreStatus, isStoreConfigured } from "@/lib/store-hours"
 
 export const runtime = "nodejs"
 
@@ -107,9 +108,19 @@ export async function POST(request: Request) {
 
   const { data: storeSettings } = await supabase
     .from("store_settings")
-    .select("cash_discount_percent")
+    .select("cash_discount_percent, business_hours, is_open")
     .eq("store_id", resolvedStoreId)
     .maybeSingle()
+
+  if (storeSettings) {
+    const hoursStatus = calculateStoreStatus(storeSettings.business_hours, storeSettings.is_open)
+    if (!hoursStatus.isOpen) {
+      if (isStoreConfigured(storeSettings.business_hours)) {
+        return fail(403, "La tienda está cerrada en este momento. No se pueden recibir pedidos.")
+      }
+      return fail(403, "La tienda no tiene horarios de atención configurados. No se pueden recibir pedidos.")
+    }
+  }
 
   const orderItemsPayload: {
     product_id: string

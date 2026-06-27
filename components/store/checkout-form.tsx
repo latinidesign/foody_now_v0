@@ -112,7 +112,8 @@ export function CheckoutForm({ store, mercadopagoPublicKey, cashDiscountPercent 
         })
 
         if (!cashResponse.ok) {
-          throw new Error("Error al crear el pedido con pago en efectivo")
+          const errBody = await cashResponse.json().catch(() => ({}))
+          throw new Error(errBody.error || "Error al crear el pedido con pago en efectivo")
         }
 
         const { order_id, session_id } = await cashResponse.json()
@@ -146,7 +147,8 @@ export function CheckoutForm({ store, mercadopagoPublicKey, cashDiscountPercent 
         })
 
         if (!paymentResponse.ok) {
-          throw new Error("Error al crear el pago")
+          const errBody = await paymentResponse.json().catch(() => ({}))
+          throw new Error(errBody.error || "Error al crear el pago")
         }
 
         const { initPoint, preferenceId } = await paymentResponse.json()

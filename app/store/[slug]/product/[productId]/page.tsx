@@ -29,6 +29,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound()
   }
 
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("business_hours, is_open")
+    .eq("store_id", store.id)
+    .maybeSingle()
+
+  const storeBusinessHours = storeSettings?.business_hours ?? null
+  const storeIsOpen = storeSettings?.is_open ?? true
+
   // Get product with options
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -73,7 +82,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .neq("id", productId)
     .limit(4)
 
-  return <ProductDetail store={store} product={product} relatedProducts={relatedProducts || []} />
+  return (
+    <ProductDetail
+      store={store}
+      product={product}
+      relatedProducts={relatedProducts || []}
+      storeBusinessHours={storeBusinessHours}
+      storeIsOpen={storeIsOpen}
+    />
+  )
 }
 
 export async function generateMetadata({ params }: ProductPageProps) {

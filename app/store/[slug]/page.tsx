@@ -5,6 +5,8 @@ import { WhatsAppContact } from "@/components/store/whatsapp-contact"
 import { CheckoutSuccessModal } from "@/components/store/checkout-success-modal"
 import { StoreFooter } from "@/components/store/store-footer"
 import { StoreMetaTags } from "@/components/store/store-meta-tags"
+import { StoreHoursProvider } from "@/components/store/store-hours-context"
+import { StoreHoursBanner } from "@/components/store/store-hours-banner"
 
 interface StorePageProps {
   params: Promise<{ slug: string }>
@@ -237,9 +239,15 @@ export default async function StorePage({ params }: StorePageProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <StoreHeader store={storeWithSettings} />
-      <main className="flex-1">
-        <ProductCatalog store={storeWithSettings} categories={categories || []} />
-      </main>
+      <StoreHoursProvider
+        businessHours={storeWithSettings.business_hours as any}
+        isOpen={storeWithSettings.is_open}
+      >
+        <StoreHoursBanner />
+        <main className="flex-1">
+          <ProductCatalog store={storeWithSettings} categories={categories || []} />
+        </main>
+      </StoreHoursProvider>
       <StoreFooter />
       {store.whatsapp_phone && (
         <WhatsAppContact storeSlug={store.slug} storePhone={store.whatsapp_phone} storeName={store.name} />

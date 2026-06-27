@@ -5,6 +5,7 @@ import { getTenantSlugFromHost } from "@/lib/tenant"
 import { NextResponse } from "next/server"
 import { ensureOrderItemQuantityWithinLimit } from "@/lib/utils/order-validation"
 import { computeItemPricing } from "@/lib/utils/pricing"
+import { calculateStoreStatus, isStoreConfigured } from "@/lib/store-hours"
 
 export const runtime = "nodejs"
 
@@ -99,6 +100,22 @@ export async function POST(request: Request) {
 
   if (storeError || !storeRecord) {
     return fail(404, "Store not found", storeError)
+  }
+
+  const { data: hoursSettings } = await supabase
+    .from("store_settings")
+    .select("business_hours, is_open")
+    .eq("store_id", resolvedStoreId)
+    .maybeSingle()
+
+  if (hoursSettings) {
+    const status = calculateStoreStatus(hoursSettings.business_hours, hoursSettings.is_open)
+    if (!status.isOpen) {
+      if (isStoreConfigured(hoursSettings.business_hours)) {
+        return fail(403, "La tienda está cerrada en este momento. No se pueden recibir pedidos.")
+      }
+      return fail(403, "La tienda no tiene horarios de atención configurados. No se pueden recibir pedidos.")
+    }
   }
 
   const orderItemsPayload: {
