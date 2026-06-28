@@ -3,6 +3,7 @@
 import { StoreHeader } from "@/components/store/store-header"
 import { ProductCatalog } from "@/components/store/product-catalog"
 import { CartProvider } from "@/components/store/cart-context"
+import { StoreHoursProvider } from "@/components/store/store-hours-context"
 
 export default function DemoPage() {
   const demoStore = {
@@ -152,21 +153,26 @@ export default function DemoPage() {
   ]
 
   return (
-    <CartProvider>
-      <div className="min-h-screen bg-background">
-        <StoreHeader store={demoStore as any} />
-        <main className="container mx-auto px-4 py-6">
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 className="font-semibold text-green-800 mb-2">🚀 Modo Demostración</h3>
-            <p className="text-green-700 text-sm">
-              Esta es una tienda de demostración completa. Explora todas las funcionalidades de FOODYNOW: 
-              navegación de categorías, lista de pedidos, opciones de productos y más.
-            </p>
-          </div>
-          <ProductCatalog store={demoStore as any} categories={demoCategories as any} />
-        </main>
-      </div>
-    </CartProvider>
+    <StoreHoursProvider
+      businessHours={demoStore.business_hours}
+      isOpen={demoStore.is_open}
+    >
+      <CartProvider>
+        <div className="min-h-screen bg-background">
+          <StoreHeader store={demoStore as any} />
+          <main className="container mx-auto px-4 py-6">
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">🚀 Modo Demostración</h3>
+              <p className="text-green-700 text-sm">
+                Esta es una tienda de demostración completa. Explora todas las funcionalidades de FOODYNOW:
+                navegación de categorías, lista de pedidos, opciones de productos y más.
+              </p>
+            </div>
+            <ProductCatalog store={demoStore as any} categories={demoCategories as any} />
+          </main>
+        </div>
+      </CartProvider>
+    </StoreHoursProvider>
   )
 }
 
