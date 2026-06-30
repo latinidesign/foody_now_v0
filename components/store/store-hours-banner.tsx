@@ -22,12 +22,14 @@ export function StoreHoursBanner() {
 
   if (!isOpen) {
     return (
-      <div className="mx-3.5 md:mx-7 mt-4 mb-2">
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+      <div className="mx-3.5 md:mx-auto mt-4 mb-2 md:w-[400px]">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center">
           <p className="text-red-700 text-sm font-medium">
             La tienda est&aacute; cerrada en este momento.
-            {scheduleInfo && ` ${scheduleInfo}.`}
           </p>
+          {scheduleInfo && (
+            <p className="text-red-700 text-sm font-bold mt-0.5">{scheduleInfo}.</p>
+          )}
         </div>
       </div>
     )

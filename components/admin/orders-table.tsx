@@ -651,11 +651,12 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle>Lista de Pedidos</CardTitle>
-        <div className="space-y-4">
+        <div className="space-y-2 pt-1">
+          {/* Búsqueda */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Buscar por cliente o producto..."
               value={searchTerm}
@@ -664,9 +665,10 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          {/* Estado + Entrega */}
+          <div className="grid grid-cols-2 gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-auto min-w-32 bg-background">
+              <SelectTrigger className="w-full bg-background">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg">
@@ -682,7 +684,7 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
             </Select>
 
             <Select value={deliveryFilter} onValueChange={setDeliveryFilter}>
-              <SelectTrigger className="w-auto min-w-32 bg-background">
+              <SelectTrigger className="w-full bg-background">
                 <SelectValue placeholder="Entrega" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg">
@@ -691,21 +693,16 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
                 <SelectItem value="delivery">Delivery</SelectItem>
               </SelectContent>
             </Select>
+          </div>
 
-            <AnalyticsDateSelector />
+          {/* Selector de fechas */}
+          <AnalyticsDateSelector />
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshOrders}
-              disabled={isRefreshing}
-            >
-              {isRefreshing ? "Actualizando..." : "Refrescar ahora"}
-            </Button>
-
-            <div className="flex items-center gap-2 ml-auto">
-              <label htmlFor="auto-print-toggle" className="text-sm font-medium">
-                Impresión automática
+          {/* Auto-impresión + Refrescar + Limpiar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <label htmlFor="auto-print-toggle" className="text-sm font-medium whitespace-nowrap">
+                Auto-impresión
               </label>
               <Switch
                 id="auto-print-toggle"
@@ -717,16 +714,21 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
                 size="sm"
                 onClick={() => browserPrint(buildTestTicketHtml())}
                 title="Probar impresión"
+                className="h-8 w-8 p-0"
               >
                 <Printer className="w-4 h-4" />
               </Button>
             </div>
-
-            {(searchTerm ||
-              statusFilter !== "all" ||
-              deliveryFilter !== "all" ||
-              startDate ||
-              endDate) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshOrders}
+              disabled={isRefreshing}
+              className="ml-auto"
+            >
+              {isRefreshing ? "Actualizando..." : "Refrescar"}
+            </Button>
+            {(searchTerm || statusFilter !== "all" || deliveryFilter !== "all" || startDate || endDate) && (
               <Button variant="outline" size="sm" onClick={clearFilters}>
                 <X className="w-4 h-4 mr-1" />
                 Limpiar
@@ -734,9 +736,9 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
             )}
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            Mostrando {filteredAndSortedOrders.length} de {ordersData.length} pedidos
-          </div>
+          <p className="text-xs text-muted-foreground">
+            {filteredAndSortedOrders.length} de {ordersData.length} pedidos
+          </p>
         </div>
       </CardHeader>
 
@@ -867,81 +869,62 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredAndSortedOrders.map((order) => (
               <div
                 key={order.id}
-                className={`flex items-center gap-4 p-4 border rounded-lg ${
+                className={`rounded-2xl shadow-sm p-3 md:p-4 space-y-2.5 ${
                   order.status === "pending"
-                    ? "bg-fuchsia-50"
+                    ? "bg-fuchsia-100 dark:bg-fuchsia-950/30"
                     : order.status === "delivered"
-                      ? "bg-gray-50"
+                      ? "bg-muted/60"
                       : order.status === "ready" || order.status === "sent"
-                        ? "bg-lime-50"
-                        : ""
+                        ? "bg-lime-100 dark:bg-lime-950/30"
+                        : "bg-card"
                 }`}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold">#{formatOrderNumber(order.order_number)}</h3>
-                    <Badge variant={getStatusColor(order.status)}>
-                      {getStatusText(order.status)}
-                    </Badge>
-                    <Badge variant="outline">
-                      {order.delivery_type === "pickup" ? "Retiro" : "Delivery"}
-                    </Badge>
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {order.customer_name}
-                      </p>
-                      <p>{order.customer_phone}</p>
-                    </div>
-                    <div>
-                      <p>
-                        {new Date(order.created_at).toLocaleDateString("es-AR")}
-                      </p>
-                      <p>
-                        {new Date(order.created_at).toLocaleTimeString("es-AR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-extrabold">
-                        {formatCurrency(order.total ?? 0)}
-                      </p>
-                      {(() => {
-                        const cd = getCashDiscount(order)
-                        return cd ? (
-                          <p className="text-xs text-green-600">
-                            Incluye desc. efectivo ({cd.percent}%): -{formatCurrency(cd.amount)}
-                          </p>
-                        ) : null
-                      })()}
-                      <p>{order.order_items.length} productos</p>
-                    </div>
-                  </div>
+                {/* Fila superior: número + badges */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-[15px]">#{formatOrderNumber(order.order_number)}</h3>
+                  <Badge variant={getStatusColor(order.status)}>
+                    {getStatusText(order.status)}
+                  </Badge>
+                  <Badge variant="outline">
+                    {order.delivery_type === "pickup" ? "Retiro" : "Delivery"}
+                  </Badge>
+                  <span className="ml-auto font-extrabold text-[15px]">
+                    {formatCurrency(order.total ?? 0)}
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handlePrintTicket(order)}
-                    title="Imprimir ticket 80mm"
-                  >
-                    <Printer className="w-4 h-4" />
-                  </Button>
+                {/* Info: cliente + fecha */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm text-muted-foreground">
+                  <div>
+                    <p className="font-medium text-foreground leading-tight">{order.customer_name}</p>
+                    {order.customer_phone && <p className="text-xs">{order.customer_phone}</p>}
+                  </div>
+                  <div className="text-right">
+                    <p className="leading-tight">{new Date(order.created_at).toLocaleDateString("es-AR")}</p>
+                    <p className="text-xs">{new Date(order.created_at).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</p>
+                  </div>
+                  {(() => {
+                    const cd = getCashDiscount(order)
+                    return cd ? (
+                      <p className="col-span-2 text-xs text-green-600">
+                        Desc. efectivo ({cd.percent}%): -{formatCurrency(cd.amount)}
+                      </p>
+                    ) : null
+                  })()}
+                </div>
 
+                {/* Acciones */}
+                <div className="flex items-center gap-2 justify-end">
                   <Select
                     value={order.status}
                     onValueChange={(value) => updateOrderStatus(order.id, value)}
                     disabled={isUpdating === order.id}
                   >
-                    <SelectTrigger className="w-32 bg-background">
+                    <SelectTrigger className="w-[180px] md:w-[220px] bg-background h-8 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg">
@@ -954,10 +937,19 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
                       <SelectItem value="cancelled">Cancelado</SelectItem>
                     </SelectContent>
                   </Select>
-
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 w-8 p-0 shrink-0"
+                    onClick={() => handlePrintTicket(order)}
+                    title="Imprimir ticket 80mm"
+                  >
+                    <Printer className="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="h-8 w-8 p-0 shrink-0"
                     onClick={() => setSelectedOrder(order)}
                   >
                     <Eye className="w-4 h-4" />
