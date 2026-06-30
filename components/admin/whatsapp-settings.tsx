@@ -288,7 +288,8 @@ export function WhatsAppSettings({
         </CardContent>
       </Card>
 
-      <Card>
+
+      <Card className="hidden">
         <CardHeader>
           <CardTitle>Número de teléfono y notificaciones</CardTitle>
           <CardDescription>
@@ -327,7 +328,7 @@ export function WhatsAppSettings({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="hidden">
         <CardHeader>
           <CardTitle>Probar conexión</CardTitle>
           <CardDescription>
@@ -361,6 +362,7 @@ export function WhatsAppSettings({
           )}
         </CardContent>
       </Card>
+
 
       <Card>
         <CardHeader>
