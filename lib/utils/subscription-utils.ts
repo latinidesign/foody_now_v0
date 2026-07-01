@@ -163,7 +163,7 @@ export function calculateProratedPrice(fullPrice: number, daysUsed: number, tota
 /**
  * Genera configuración para Checkout Pro de MercadoPago
  */
-export function generateCheckoutConfig(subscription: any) {
+export function generateCheckoutConfig(_subscription: any) {
   return {
     theme: {
       elementsColor: '#009EE3',

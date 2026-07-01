@@ -186,8 +186,8 @@ export default function VentasPage() {
 					<div className="max-w-3xl mx-auto text-center">
 						<Quote className="w-16 h-16 mx-auto mb-8 text-fuchsia-300" />
 						<blockquote className="text-2xl md:text-3xl font-light mb-8 text-foreground italic">
-							"Ahora mis clientes ven mi menú sin preguntar todo el tiempo.
-							Tengo más tiempo para cocinar."
+							&ldquo;Ahora mis clientes ven mi menú sin preguntar todo el tiempo.
+							Tengo más tiempo para cocinar.&rdquo;
 						</blockquote>
 						<p className="text-lg text-muted-foreground">
 							— Viandas saludables

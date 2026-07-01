@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { MapPin, Navigation, ExternalLink } from "lucide-react"
+import { MapPin, Navigation } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface LocationMapProps {

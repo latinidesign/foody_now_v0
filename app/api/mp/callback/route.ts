@@ -55,16 +55,6 @@ if (!decodedStateCookie || !codeVerifier || decodedStateCookie !== state) {
   }
 
   // Guardamos los tokens en la base de datos
-  const {
-    access_token,
-    refresh_token,
-    expires_in,
-    user_id,
-    public_key,
-    scope,
-    live_mode
-  } = data;
-
   const supabase = await getBrowserClient()
 
   const expiresAt = new Date(

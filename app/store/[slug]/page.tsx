@@ -4,7 +4,6 @@ import { ProductCatalog } from "@/components/store/product-catalog"
 import { WhatsAppContact } from "@/components/store/whatsapp-contact"
 import { CheckoutSuccessModal } from "@/components/store/checkout-success-modal"
 import { StoreFooter } from "@/components/store/store-footer"
-import { StoreMetaTags } from "@/components/store/store-meta-tags"
 import { StoreHoursProvider } from "@/components/store/store-hours-context"
 import { StoreHoursBanner } from "@/components/store/store-hours-banner"
 
@@ -178,7 +177,7 @@ export default async function StorePage({ params }: StorePageProps) {
     return <StoreSuspendedMessage storeName={store.name} whatsappPhone={store.whatsapp_phone} />
   }
 
-  const { data: storeSettings, error } = await supabase
+  const { data: storeSettings, error: _error } = await supabase
     .from("store_settings")
     .select("business_hours, is_open")
     .eq("store_id", store.id)

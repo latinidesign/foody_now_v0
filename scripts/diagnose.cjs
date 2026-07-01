@@ -19,7 +19,7 @@ function log(color, message) {
 }
 
 function makeRequest(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     const urlObj = new URL(url)
     const client = urlObj.protocol === "https:" ? https : http
 

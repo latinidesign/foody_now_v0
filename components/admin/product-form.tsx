@@ -428,7 +428,7 @@ export function ProductForm({ storeId, categories, product }: ProductFormProps) 
                     <Info className="h-4 w-4" />
                     <AlertDescription>
                       Con esta configuración el precio se calculará desde la configuración de precios y no desde el precio base del producto.
-                      Si quieres un producto tipo "Armá tu pedido", deja el precio base en $0 y define la configuración de precios.
+                      Si quieres un producto tipo &quot;Armá tu pedido&quot;, deja el precio base en $0 y define la configuración de precios.
                     </AlertDescription>
                   </Alert>
 

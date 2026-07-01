@@ -67,8 +67,8 @@ function ConfirmEmailContent() {
         // Caso 4: Verificar si el usuario ya está confirmado
         if (!confirmationSuccess) {
           console.log('🔄 Verificando sesión actual...')
-          const { data: { user }, error: userError } = await supabase.auth.getUser()
-          
+          const { data: { user }, error: _userError } = await supabase.auth.getUser()
+
           if (user && user.email_confirmed_at) {
             confirmationSuccess = true
             console.log('✅ Usuario ya confirmado previamente')
@@ -81,7 +81,7 @@ function ConfirmEmailContent() {
         // Caso 5: Verificar si hay una sesión activa válida sin parámetros
         if (!confirmationSuccess && !code && !token_hash) {
           console.log('🔄 Verificando sesión activa...')
-          const { data: { user }, error: userError } = await supabase.auth.getUser()
+          const { data: { user }, error: _userError } = await supabase.auth.getUser()
           
           if (user) {
             console.log('✅ Usuario autenticado encontrado, asumiendo confirmación exitosa')

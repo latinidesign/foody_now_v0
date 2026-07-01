@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
-import { getSubscriptionService } from "@/lib/services/subscription-service"
 
 export const runtime = 'nodejs'
 
@@ -13,7 +12,7 @@ interface MercadoPagoPreApprovalResponse {
   preapproval_plan_id: string
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createClient()
     

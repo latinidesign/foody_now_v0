@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { getBrowserClient } from "@/lib/supabase/client"
-import { AlertCircle } from "lucide-react"
 
 interface SubscriptionGuardProps {
   children: React.ReactNode
@@ -12,11 +11,11 @@ interface SubscriptionGuardProps {
 
 export function SubscriptionGuard({ children, storeId }: SubscriptionGuardProps) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const _searchParams = useSearchParams()
   const router = useRouter()
   const [isChecking, setIsChecking] = useState(true)
   const [isAllowed, setIsAllowed] = useState(false)
-  const [showAlert, setShowAlert] = useState(false)
+  const [_showAlert, setShowAlert] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [subscriptionCache, setSubscriptionCache] = useState<{ [key: string]: boolean }>({})
 

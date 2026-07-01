@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     try {
       errorBody = await paymentResponse.json()
-    } catch (parseError) {
+    } catch (_parseError) {
       errorBody = await paymentResponse.text().catch(() => undefined)
     }
 

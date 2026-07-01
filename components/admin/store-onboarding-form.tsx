@@ -112,7 +112,7 @@ export function StoreOnboardingForm({ store }: StoreOnboardingFormProps) {
       // Si no existe tienda, crearla
       // Añadir 14 dias de prueba desde la creación mediante trial_ends_at
       if (!store) {
-        const { data: newStore, error: createError } = await supabase
+        const { error: createError } = await supabase
           .from("stores")
           .insert({
             owner_id: user.id,

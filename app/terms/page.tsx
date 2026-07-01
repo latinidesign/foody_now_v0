@@ -60,7 +60,7 @@ export default function TermsPage() {
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
               <p>
-                FoodyNow (en adelante, "la Plataforma") es un servicio digital provisto por Latini Design, que permite a
+                FoodyNow (en adelante, &quot;la Plataforma&quot;) es un servicio digital provisto por Latini Design, que permite a
                 comercios del rubro alimentario crear y administrar sus propias tiendas online, y a los usuarios
                 realizar pedidos de productos y servicios gastronómicos.
               </p>

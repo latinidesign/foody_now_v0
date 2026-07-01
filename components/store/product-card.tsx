@@ -101,14 +101,14 @@ function QuantityControls({
 export function ProductCard({ product, viewMode, storeSlug }: ProductCardProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart()
   const { isOpen, isConfigured } = useStoreStatus()
-  const [isAdding, setIsAdding] = useState(false)
+  const [_isAdding, setIsAdding] = useState(false)
   const quantity = getItemQuantity(product.id)
   const pathname = usePathname()
   const isStoreSubdomain = pathname ? !pathname.startsWith(`/store/${storeSlug}`) : false
   const productLinkBase = isStoreSubdomain ? "" : `/store/${storeSlug}`
   const productLink = `${productLinkBase}/product/${product.id}`
 
-  const handleAddToCart = async () => {
+  const _handleAddToCart = async () => {
     setIsAdding(true)
     await addItem({
       id: product.id,

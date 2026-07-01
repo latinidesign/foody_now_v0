@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
   if (excludedPaths.some((path) => url.pathname.startsWith(path))) {
     try {
       return await updateSession(request)
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.next()
     }
   }
@@ -82,7 +82,7 @@ export async function proxy(request: NextRequest) {
   if (isLocalhost) {
     try {
       return await updateSession(request)
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.next()
     }
   }
@@ -146,7 +146,7 @@ export async function proxy(request: NextRequest) {
           })
         }
         return response
-      } catch (error) {
+      } catch (_error) {
         return response
       }
     }
@@ -178,7 +178,7 @@ export async function proxy(request: NextRequest) {
 
   try {
     return await updateSession(request)
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.next()
   }
 }

@@ -4,8 +4,6 @@ import { AlertCircle, Clock, Lock } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import PlanCard from './PlanCard'
 import SubscribeButton from "./SubscribeButton"
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AccessBlockedBanner } from '@/components/admin/access-blocked-banner'
 
 /* ============================
@@ -19,14 +17,6 @@ type SubscriptionPlan = {
   price: number
   billing_interval: string
   trial_days: number
-}
-
-type UserSubscription = {
-  id: string
-  status: string
-  current_period_end: string
-  current_period_start: string
-  price: number
 }
 
 /* ============================

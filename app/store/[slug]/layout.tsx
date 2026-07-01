@@ -21,9 +21,9 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     store = data
   }
 
-  const storeName = store?.name || "Tienda"
+  const _storeName = store?.name || "Tienda"
   const logoUrl = store?.logo_url
-  const themeColor = store?.primary_color || "#2D5016"
+  const _themeColor = store?.primary_color || "#2D5016"
 
   return (
     <>

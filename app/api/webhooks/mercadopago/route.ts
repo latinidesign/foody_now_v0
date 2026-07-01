@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
 
       // Guardar el pago
       console.log("Recording payment for subscription:", subscriptionId)
-      const { data: newSubscriptionPayment, error: insertError } = await supabase.from("subscription_payments").insert({
+      const { error: insertError } = await supabase.from("subscription_payments").insert({
         subscription_id: subscriptionId,
         mercadopago_payment_id: paymentId,
         amount: transaction_amount,

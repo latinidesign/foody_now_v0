@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { AlertCircle, Clock, Lock, X } from "lucide-react"
+import { Lock, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function AccessBlockedBanner() {

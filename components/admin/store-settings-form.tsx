@@ -69,7 +69,6 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [showToken, setShowToken] = useState(false)
   const [showMpPublicKey, setShowMpPublicKey] = useState(false)
   const logoFileRef = useRef<HTMLInputElement>(null)
   const headerFileRef = useRef<HTMLInputElement>(null)
@@ -102,7 +101,7 @@ export function StoreSettingsForm({ store, settings, mpStatus, mpData, defaultTa
     () => (settings?.cash_discount_percent != null ? String(settings.cash_discount_percent) : ""),
   )
 
-  const [paymentSettings, setPaymentSettings] = useState({
+  const [paymentSettings, _setPaymentSettings] = useState({
     mercadopagoAccessToken: settings?.mercadopago_access_token || "",
     mercadopagoPublicKey: settings?.mercadopago_public_key || "",
   })

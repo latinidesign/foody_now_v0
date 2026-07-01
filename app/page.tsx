@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, Shield, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star, Check, RotateCw } from 'lucide-react'
+import { Store, MessageCircle, CreditCard, TrendingUp, Users, Zap, CheckCircle, ArrowRight, BarChart3, Bell, Package, Truck, DollarSign, Clock, Star, Check, RotateCw } from 'lucide-react'
 
 export const metadata = {
   title: "FoodyNow - Menú digital para gastronomía",

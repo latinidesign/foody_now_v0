@@ -1,8 +1,4 @@
-interface WhatsAppMessage {
-  to: string
-  message: string
-  storeSlug?: string
-}
+
 
 interface OrderNotification {
   orderId: string
@@ -28,12 +24,6 @@ export type WhatsAppMessageStrategy =
       languageCode: string
       components?: Array<Record<string, unknown>>
     }
-
-interface WhatsAppCloudApiCredentials {
-  waPhoneNumberId?: string
-  waAccessToken?: string
-  apiVersion?: string
-}
 
 type WhatsAppMessagePayload =
   | {
@@ -79,7 +69,7 @@ export class WhatsAppService {
   }
 
   // Generate WhatsApp link with store URL
-  generateStoreLinkResponse(storeSlug: string, storeName: string): string {
+  generateStoreLinkResponse(storeSlug: string, _storeName: string): string {
     const storeUrl = `https://${storeSlug}.foodynow.com.ar`
     const message = encodeURIComponent(
       `¡Hola! \nTe compartimos el link de nuestra tienda online: ${storeUrl}\n\n¡Esperamos tu pedido!`,

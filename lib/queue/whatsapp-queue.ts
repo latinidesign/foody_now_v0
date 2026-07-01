@@ -144,7 +144,7 @@ class WhatsAppQueue {
     const { whatsappService } = await import('@/lib/whatsapp/client')
     const { createAdminClient } = await import('@/lib/supabase/admin')
 
-    const supabase = createAdminClient()
+    const _supabase = createAdminClient()
 
     // Get store settings for WhatsApp credentials
     // No need to fetch store settings for WhatsApp credentials anymore

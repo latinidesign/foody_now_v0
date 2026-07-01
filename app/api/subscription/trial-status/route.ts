@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export const runtime = 'edge'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
     

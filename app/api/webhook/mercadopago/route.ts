@@ -710,7 +710,7 @@ async function handleMerchantOrderWebhook(
 
     // Registrar el payment en la tabla payments
     const normalizedPaymentStatus = mapPaymentStatus(PROVIDER_KEY, paymentDetail.status)
-    const normalizedOrderStatus = mapOrderStatus(PROVIDER_KEY, paymentDetail.status)
+    const _normalizedOrderStatus = mapOrderStatus(PROVIDER_KEY, paymentDetail.status)
 
     const paymentRecord = {
       order_id: finalOrderId,

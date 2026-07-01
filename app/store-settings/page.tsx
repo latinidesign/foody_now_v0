@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { getBrowserClient } from "@/lib/supabase/client"
 import { StoreSettingsForm } from "@/components/admin/store-settings-form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
 import type { Store, StoreSettings } from "@/lib/types/database"
 
 export default function StoreSettingsPage() {

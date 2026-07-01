@@ -12,7 +12,7 @@ export function CartButton() {
   const [isOpen, setIsOpen] = useState(false)
 
   const packItemCount = state.items.reduce((sum, item) => {
-    const isUnitOnly =
+    const _isUnitOnly =
       item.pricing_snapshot?.config?.mode === "unit_only" &&
       typeof item.pricing_snapshot.config.quantity === "number" &&
       item.pricing_snapshot.config.quantity > 0

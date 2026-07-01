@@ -13,7 +13,7 @@ function EmailConfirmationHandler() {
       // Verificar si hay parámetros de confirmación en la URL
       const error = searchParams.get('error')
       const errorCode = searchParams.get('error_code')
-      const errorDescription = searchParams.get('error_description')
+      const _errorDescription = searchParams.get('error_description')
       
       // Si hay parámetros de error de confirmación, redirigir a la página de confirmación
       if (error === 'access_denied' && errorCode === 'otp_expired') {
@@ -46,7 +46,7 @@ function EmailConfirmationHandler() {
           const supabase = getBrowserClient()
           
           // Verificar si hay una sesión activa
-          const { data: { user }, error: userError } = await supabase.auth.getUser()
+          const { data: { user }, error: _userError } = await supabase.auth.getUser()
           
           if (user && user.email_confirmed_at) {
             console.log('✅ Usuario confirmado exitosamente')

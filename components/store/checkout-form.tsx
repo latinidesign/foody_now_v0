@@ -42,7 +42,7 @@ const normalizePhone = (phone: string): string => {
   }
 }
 
-export function CheckoutForm({ store, mercadopagoPublicKey, cashDiscountPercent }: CheckoutFormProps) {
+export function CheckoutForm({ store, mercadopagoPublicKey: _mercadopagoPublicKey, cashDiscountPercent }: CheckoutFormProps) {
   const { state, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -164,7 +164,7 @@ export function CheckoutForm({ store, mercadopagoPublicKey, cashDiscountPercent 
         // Redirect to MercadoPago checkout
         window.location.href = initPoint
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Error al procesar el pedido. Intenta nuevamente.")
     } finally {
       setLoading(false)

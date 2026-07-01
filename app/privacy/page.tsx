@@ -60,7 +60,7 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
               <p>
-                FoodyNow (en adelante, "la Plataforma"), propiedad de Latini Design, es un sistema de tiendas online
+                FoodyNow (en adelante, &quot;la Plataforma&quot;), propiedad de Latini Design, es un sistema de tiendas online
                 multicomercio destinado al sector gastronómico y alimentario. A través de FoodyNow, los usuarios pueden
                 acceder a los catálogos de productos, realizar pedidos, efectuar pagos y comunicarse con los comercios
                 adheridos.

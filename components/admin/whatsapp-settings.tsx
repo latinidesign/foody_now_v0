@@ -7,11 +7,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { Copy, Check, Phone, Send, ExternalLink, RotateCcw, Save } from "lucide-react"
+import { Copy, Check, Send, ExternalLink, RotateCcw, Save } from "lucide-react"
 import { whatsappService } from "@/lib/whatsapp/client"
 import { toast } from "sonner"
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, DEFAULT_MESSAGES } from "@/lib/whatsapp/default-messages"
-import type { OrderStatus } from "@/lib/whatsapp/default-messages"
 
 interface WhatsAppSettingsProps {
   storeId: string

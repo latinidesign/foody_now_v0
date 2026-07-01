@@ -2,7 +2,7 @@ import { NextRequest } from "next/server"
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const supabase = await createClient()    
     const {
       data: { user },

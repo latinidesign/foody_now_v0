@@ -2,10 +2,8 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { User, Mail, Calendar, CreditCard, Clock, CheckCircle, AlertCircle, XCircle } from "lucide-react"
+import { User, Mail, Calendar } from "lucide-react"
 import Link from "next/link"
-import { SubscriptionStatus } from "@/components/admin/subscription-status"
 
 export default async function ProfilePage() {
   const supabase = await createClient()

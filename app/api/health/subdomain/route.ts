@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Test database connection
-    const { data: healthCheck, error: healthError } = await supabase.from("stores").select("count").limit(1)
+    const { error: healthError } = await supabase.from("stores").select("count").limit(1)
 
     if (healthError) {
       response.checks.database = {
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   return NextResponse.json(
     {
       message: "Use GET method for health checks",

@@ -22,7 +22,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
-  const router = useRouter()
+  const _router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()

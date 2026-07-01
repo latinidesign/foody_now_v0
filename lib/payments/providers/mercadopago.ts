@@ -68,7 +68,9 @@ export class MercadoPagoProvider implements PaymentProvider {
       if (expYearStr.length !== 2) throw new PaymentProviderError('Invalid expiration_year format', { status: 400 })
 
       // Normalized values (not added to requestPayload when using tokens).
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const expiration_month = expMonth
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const expiration_year = expYearStr
       // If you ever send raw card data to Mercado Pago, include these fields.
     }

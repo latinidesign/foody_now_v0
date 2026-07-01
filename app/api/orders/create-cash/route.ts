@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return fail(400, "Invalid JSON payload", error)
   }
 
-  const { storeId, items, orderData, subtotal, deliveryFee, total } = payload ?? {}
+  const { storeId, items, orderData } = payload ?? {}
 
   if (!orderData?.customerName || !orderData?.customerPhone) {
     return fail(400, "Customer information is incomplete")

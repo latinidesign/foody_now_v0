@@ -17,7 +17,7 @@ interface AboutPageProps {
 
 export default function AboutPageClient({ params }: AboutPageProps) {
   const { slug } = params
-  const [supabase, setSupabase] = useState<any>(null)
+  const [_supabase, setSupabase] = useState<any>(null)
   const [storeWithHours, setStoreWithHours] = useState<any>(null)
   const [demoMode, setDemoMode] = useState<boolean>(false)
   const pathname = usePathname()

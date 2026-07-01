@@ -5,8 +5,8 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "diagnose": "node scripts/diagnose.js",
-    "diagnose:subdomain": "node scripts/diagnose.js",
+    "diagnose": "node scripts/diagnose.cjs",
+    "diagnose:subdomain": "node scripts/diagnose.cjs",
     "lint": "eslint .",
     "start": "next start"
   },

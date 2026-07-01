@@ -13,7 +13,7 @@ export function PrintingInstructions({ browserName }: PrintingInstructionsProps)
         Usá estos tres flags juntos:
       </p>
       <div className="p-3 bg-muted rounded-md text-xs font-mono mt-1">
-        "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --kiosk --edge-kiosk-type=fullscreen --kiosk-printing https://foodynow.com.ar/admin/orders
+        &quot;C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe&quot; --kiosk --edge-kiosk-type=fullscreen --kiosk-printing https://foodynow.com.ar/admin/orders
       </div>
     </div>
   )
@@ -23,7 +23,7 @@ export function PrintingInstructions({ browserName }: PrintingInstructionsProps)
       <p className="font-semibold">Google Chrome:</p>
       <p className="text-xs text-muted-foreground mt-1">Agregá el flag <code className="bg-muted px-1 rounded">--kiosk-printing</code> al acceso directo. No requiere modo kiosk completo.</p>
       <div className="p-3 bg-muted rounded-md text-xs font-mono mt-1">
-        "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing https://foodynow.com.ar/admin/orders
+        &quot;C:\Program Files\Google\Chrome\Application\chrome.exe&quot; --kiosk-printing https://foodynow.com.ar/admin/orders
       </div>
     </div>
   )
@@ -67,7 +67,7 @@ export function PrintingInstructions({ browserName }: PrintingInstructionsProps)
         </li>
         <li>
           <strong>Paso 5:</strong> Activá la opción{" "}
-          <em>"Impresión automática"</em> en el panel de pedidos. Cada nuevo
+          <em>&ldquo;Impresión automática&rdquo;</em> en el panel de pedidos. Cada nuevo
           pedido se imprimirá automáticamente.
         </li>
       </ol>

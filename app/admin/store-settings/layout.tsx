@@ -1,7 +1,6 @@
-import type React from "react"
 import { redirect } from "next/navigation"
 
-export default function AdminStoreSettingsLayout({ children }: { children: React.ReactNode }) {
+export default function AdminStoreSettingsLayout() {
   // Redireccionar a /store-settings
   redirect("/store-settings")
 }

@@ -10,7 +10,7 @@ interface WhatsAppContactProps {
   storeName: string
 }
 
-export function WhatsAppContact({ storeSlug, storePhone, storeName }: WhatsAppContactProps) {
+export function WhatsAppContact({ storeSlug, storePhone, storeName: _storeName }: WhatsAppContactProps) {
   const handleWhatsAppContact = () => {
     const link = whatsappService.generateStoreLink(storeSlug, storePhone)
     window.open(link, "_blank")

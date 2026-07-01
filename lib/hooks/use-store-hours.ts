@@ -19,7 +19,7 @@ export function useStoreHours(businessHours: any, storeIsOpen = true): StoreHour
   useEffect(() => {
     const updateStatus = () => {
       const status = calculateStoreStatus(businessHours, storeIsOpen)
-      setState(prev => ({ ...status, isLoading: false }))
+      setState(_prev => ({ ...status, isLoading: false }))
     }
 
     // Calcular inmediatamente

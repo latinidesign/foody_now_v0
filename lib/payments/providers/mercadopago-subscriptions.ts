@@ -3,7 +3,7 @@
  * Implementación completa para el manejo de suscripciones con MercadoPago
  */
 
-import { SubscriptionPlan, Subscription, MercadoPagoPreapproval, SubscriptionPayment } from "@/lib/types/subscription"
+import { MercadoPagoPreapproval, SubscriptionPayment } from "@/lib/types/subscription"
 
 interface MercadoPagoConfig {
   accessToken: string

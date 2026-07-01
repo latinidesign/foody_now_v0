@@ -103,10 +103,10 @@ interface OrderData {
 export async function createPaymentPreference(
   storeId: string,
   items: any[],
-  orderData: OrderData,
-  subtotal: number,
-  deliveryFee: number,
-  total: number
+  _orderData: OrderData,
+  _subtotal: number,
+  _deliveryFee: number,
+  _total: number
 ): Promise<{ init_point: string; preference_id: string }> {
   const accessToken = await getValidAccessToken(storeId)
 

@@ -72,7 +72,7 @@ export default function AdminHelpPage() {
           <ol className="mt-3 list-decimal space-y-2 pl-4 text-sm text-muted-foreground">
             <li>Completá los datos de tu tienda en la sección <Link className="text-primary hover:underline" href="#guia-inicio"><span className="font-bold">Configuración.</span></Link></li>
             <li>Vinculá la tienda con tu perfil de <span className="font-bold text-accent">MercadoPago</span>.</li>
-            <li>Definí los <span className="font-bold text-accent">Horarios</span> de atención y verificá que el estado de la tienda sea "Abierto".</li>
+            <li>Definí los <span className="font-bold text-accent">Horarios</span> de atención y verificá que el estado de la tienda sea &quot;Abierto&quot;.</li>
             <li>En la sección <Link className="text-primary hover:underline" href="#comunicacion"><span className="font-bold text-accent">Comunicación</span></Link>, obtené un mensaje para compartir con tus clientes y que accedan a tu tienda.</li>
             <li>Creá las <span className="font-bold text-accent">Categorías</span> principales y agregá al menos 5 <span className="font-bold text-accent">Productos</span>.</li>
             <li>En <span className="font-bold text-accent">Ver Mi Tienda</span>, revisá cómo se ve y realizá un pedido de prueba para validar el flujo completo. ¡Ya podés comenzar a vender!</li>
@@ -157,7 +157,7 @@ export default function AdminHelpPage() {
             Organizá tu catálogo para que los clientes encuentren lo que buscan sin esfuerzo, agrupando productos similares.
           </p>
           <ul className="list-disc space-y-2 pl-4 text-sm text-muted-foreground">
-            <li>Usá nombres cortos, por ejemplo: "Hamburguesas", "Pizzas", "Bebidas sin alcohol", "Vinos".</li>
+            <li>Usá nombres cortos, por ejemplo: &quot;Hamburguesas&quot;, &quot;Pizzas&quot;, &quot;Bebidas sin alcohol&quot;, &quot;Vinos&quot;.</li>
             <li>También podés agrupar en una categoría las Ofertas, Promociones o el menú del día.</li>
           </ul>
         </section>
@@ -248,7 +248,7 @@ export default function AdminHelpPage() {
             </li>
             <li>
               <span className="font-bold text-accent">Actualización de estados.</span> En cada cambio, se genera un mensaje automático listo para enviar al cliente por WhatsApp con la información del pedido y su situación.
-              <p className="mt-1 italic">Recomendamos instalar WhatsApp en su computadora y habilitar la opción "Siempre permitir que api.whatsapp.com abra este tipo de vínculos en la app asociada."</p>
+              <p className="mt-1 italic">Recomendamos instalar WhatsApp en su computadora y habilitar la opción &quot;Siempre permitir que api.whatsapp.com abra este tipo de vínculos en la app asociada.&quot;</p>
               <ul className="mt-2 list-disc space-y-1 pl-4">
                 <li><span className="font-bold">Pendiente.</span> Ingreso de nuevo pedido.</li>
                 <li><span className="font-bold">Confirmado.</span> El pedido fue recibido. Se envía mensaje al cliente de que está siendo preparado.</li>

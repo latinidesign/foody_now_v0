@@ -15,7 +15,7 @@ export default function ResendConfirmationPage() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
-  const router = useRouter()
+  const _router = useRouter()
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault()

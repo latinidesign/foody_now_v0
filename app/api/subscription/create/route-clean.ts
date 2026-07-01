@@ -12,7 +12,7 @@ interface MercadoPagoPreApprovalResponse {
   preapproval_plan_id: string
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createClient()
     

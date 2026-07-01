@@ -11,17 +11,17 @@ function ConfirmContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const _searchParams = useSearchParams()
 
   useEffect(() => {
     const processConfirmation = async () => {
       console.log('🔍 Procesando confirmación de email...')
-      
+
       try {
         const supabase = getBrowserClient()
-        
+
         // Verificar si ya hay una sesión activa
-        const { data: { user }, error: sessionError } = await supabase.auth.getUser()
+        const { data: { user }, error: _sessionError } = await supabase.auth.getUser()
         
         if (user && user.email_confirmed_at) {
           console.log('✅ Usuario ya confirmado y logueado')
@@ -53,7 +53,8 @@ function ConfirmContent() {
     }
 
     processConfirmation()
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="w-full max-w-md">

@@ -15,10 +15,7 @@ import {
   ExternalLink,
   MessageCircle,
   CreditCard,
-  Bell,
   LifeBuoy,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { memo } from "react"

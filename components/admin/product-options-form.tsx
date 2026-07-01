@@ -363,7 +363,7 @@ export function ProductOptionsForm({ options, onChange, pricingMode = "default" 
 
               {option.values.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay valores agregados. Haz clic en "Agregar Valor" para comenzar.
+                  No hay valores agregados. Haz clic en &quot;Agregar Valor&quot; para comenzar.
                 </p>
               )}
             </div>

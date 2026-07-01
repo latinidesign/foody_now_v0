@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Bell, BellOff, MessageSquare, Smartphone } from "lucide-react"
+import { Bell, MessageSquare, Smartphone } from "lucide-react"
 import { toast } from "sonner"
 import { storeNotificationService } from "@/lib/notifications/store-notifications"
 import { whatsappQueue } from "@/lib/queue/whatsapp-queue"

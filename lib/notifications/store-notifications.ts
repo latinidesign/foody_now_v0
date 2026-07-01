@@ -11,15 +11,6 @@ interface PushNotificationPayload {
   }>
 }
 
-interface StoreNotificationData {
-  type: 'new_order' | 'payment_received' | 'order_cancelled'
-  orderId: string
-  storeId: string
-  customerName: string
-  total: number
-  timestamp: string
-}
-
 class StoreNotificationService {
   private static instance: StoreNotificationService
   private subscription: PushSubscription | null = null
@@ -38,19 +29,19 @@ class StoreNotificationService {
   }
 
   // Subscribe to push notifications
-  async subscribe(storeId: string): Promise<boolean> {
+  async subscribe(_storeId: string): Promise<boolean> {
     console.warn('[StoreNotifications] PWA removed - subscription disabled')
     return false
   }
 
   // Unsubscribe from push notifications
-  async unsubscribe(storeId: string): Promise<boolean> {
+  async unsubscribe(_storeId: string): Promise<boolean> {
     console.warn('[StoreNotifications] PWA removed - unsubscribe disabled')
     return false
   }
 
   // Send local notification (fallback)
-  showLocalNotification(payload: PushNotificationPayload) {
+  showLocalNotification(_payload: PushNotificationPayload) {
     console.warn('[StoreNotifications] PWA removed - local notifications disabled')
   }
 
@@ -124,7 +115,7 @@ export const buildPaymentReceivedNotification = (data: {
 })
 
 // Server-side notification sending (disabled - PWA removed)
-export const sendStoreNotification = async (storeId: string, payload: PushNotificationPayload) => {
+export const sendStoreNotification = async (_storeId: string, _payload: PushNotificationPayload) => {
   console.warn('[StoreNotifications] Sending notifications disabled - PWA removed')
   return false
 }

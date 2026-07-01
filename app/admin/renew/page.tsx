@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { getBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Store, Check, CreditCard, ArrowRight, AlertCircle, RefreshCw } from "lucide-react"
+import { Check, CreditCard, ArrowRight, AlertCircle, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
 

@@ -58,7 +58,7 @@ function ProductDetailInner({ store, product, relatedProducts }: Omit<ProductDet
   // Create a stable id for the cart item that includes selected options so
   // variants with different options are stored as separate items in the cart.
   const variantId = `${product.id}:${encodeURIComponent(JSON.stringify(selectedOptions || {}))}`
-  const cartQuantity = getItemQuantity(variantId)
+  const _cartQuantity = getItemQuantity(variantId)
   const basePrice = product.sale_price || product.price
 
   const selectedOptionsQuantity = getSelectedOptionsQuantityTotal(selectedOptions)
@@ -105,7 +105,7 @@ function ProductDetailInner({ store, product, relatedProducts }: Omit<ProductDet
   const pricingSource = itemPricing?.source ?? "base_only"
   const effectiveQuantity = itemPricing?.pricingQuantity ?? pricingQuantity
 
-  const hasQuantityOptionSelected = optionsBreakdown.items.some((i) => i.type === "variety_quantity")
+  const _hasQuantityOptionSelected = optionsBreakdown.items.some((i) => i.type === "variety_quantity")
   const canPurchase = isOpen === true
   const canAddToCart = !isPricingProduct
     ? true
@@ -165,7 +165,7 @@ function ProductDetailInner({ store, product, relatedProducts }: Omit<ProductDet
   }
 
   const additionalPrice = calculateAdditionalPrice()
-  const finalPrice = basePrice + additionalPrice
+  const _finalPrice = basePrice + additionalPrice
 
   const handleAddToCart = async () => {
     if (!canPurchase) return
@@ -207,14 +207,14 @@ function ProductDetailInner({ store, product, relatedProducts }: Omit<ProductDet
           display: "block",
         },
       })
-    } catch (error) {
+    } catch (_error) {
       toast.error("No se pudo agregar el producto al pedido")
     } finally {
       setIsAdding(false)
     }
   }
 
-  const handleUpdateCartQuantity = (newQuantity: number) => {
+  const _handleUpdateCartQuantity = (newQuantity: number) => {
     // When updating quantity from the product detail page we must update the
     // variant entry in the cart (if present) using variantId.
     if (newQuantity === 0) {

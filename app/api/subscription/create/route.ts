@@ -1,10 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { 
-  MERCADOPAGO_PLANS, 
-  getPlanTypeByHistory, 
+import {
+  MERCADOPAGO_PLANS,
+  getPlanTypeByHistory,
   generateCheckoutUrl,
-  STATES_WITH_TRIAL_USED,
   getTrialDays
 } from '@/lib/config/subscription-plans'
 
@@ -97,7 +96,7 @@ export async function POST(request: Request) {
 
     // 🆕 PASO 2: Determinar plan correcto según historial
     const planType = getPlanTypeByHistory(hasUsedTrial)
-    const mercadoPagoPlanId = MERCADOPAGO_PLANS[planType].id
+    const _mercadoPagoPlanId = MERCADOPAGO_PLANS[planType].id
     const trialDays = getTrialDays(planType)
 
     console.log(`🔍 Store ${storeId}: hasUsedTrial=${hasUsedTrial}, planType=${planType}, trialDays=${trialDays}`)
