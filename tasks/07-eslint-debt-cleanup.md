@@ -135,24 +135,43 @@ Después de cada commit, ejecutar `pnpm lint` para confirmar que el contador baj
 ## Criterio de done
 
 ### Por commit
-- [x] Commit 1: `git log --oneline -1` muestra el mensaje esperado; `pnpm lint` corre sin los 4 `prefer-const`
-- [x] Commit 2: `pnpm lint` corre con las dos reglas deshabilitadas; counter baja ~200
-- [x] Commit 3: `pnpm lint` muestra solo los 7 `exhaustive-deps` restantes; `pnpm build` no se rompe; los scripts `pnpm diagnose` y `pnpm diagnose:subdomain` siguen funcionando (renombrados a `.cjs`)
+- [x] Commit 1 (`2ae1fd0`): `chore: apply eslint --fix for prefer-const` — 4 fixes, push OK
+- [x] Commit 2 (`ddecdfe`): `chore: disable no-explicit-any and no-img-element rules` — silencia 200 issues, push OK
+- [x] Commit 3 (`043fa77`): `chore: clean up remaining lint debt` — 28 JSX + 5 require() + 118 unused-vars + eslint override, push OK
 
 ### Quality gate final
 - [x] `pnpm build` sin errores
-- [x] `pnpm lint` queda en ~0/7 (7 warnings de `exhaustive-deps` documentados como deuda)
+- [x] `pnpm lint` queda en 0 errors / 7 warnings (los `exhaustive-deps` documentados abajo)
+- [x] `pnpm diagnose` y `pnpm diagnose:subdomain` funcionan con los scripts renombrados a `.cjs`
 - [x] Los 3 commits están en `origin/main`
+
+## Deuda Técnica Residual
+
+### 7 `react-hooks/exhaustive-deps` (no abordadas en este task)
+
+Son dependencias intencionalmente omitidas o bugs reales que requieren refactor del useEffect. Resolverlas bien necesita leer el contexto de cada una, no es trabajo mecánico.
+
+| Archivo | Línea | Dependencia faltante | Tipo |
+|---|---|---|---|
+| `app/admin/subscription/success/page.tsx` | 26 | `router` | Intencional — el `useEffect` corre una vez al montar y `router` se lee dentro del `setInterval` |
+| `app/store-settings/page.tsx` | 96 | `searchParams` | Real — debería re-cargar cuando cambian los searchParams |
+| `app/store/[slug]/product/[productId]/components/product-options.tsx` | 166 | `availableOptions` | Real — el cálculo se desactualiza cuando cambian las opciones |
+| `components/admin/orders-table.tsx` | 459 | `supabase` | Intencional — `supabase` es estable del singleton |
+| `components/admin/subscription-guard.tsx` | 114 | `subscriptionCache` | Real — el cache interno no se invalida cuando cambia |
+| `components/admin/whatsapp-queue-manager.tsx` | 89 | `loadQueueData` | Real — la función no se memoiza, se recrea cada render |
+| `components/subscription/subscription-manager.tsx` | 24 | `loadData` | Real — la función no se memoiza, se recrea cada render |
+
+**Acción recomendada:** En un próximo task, leer cada contexto y decidir si agregar la dep (con `useCallback` si es función) o usar `eslint-disable-next-line` con comentario explicativo. La regla es real y estos casos son los más riesgosos del codebase.
 
 ## Notas para el agente
 
 - **Por qué deshabilitar y no tipar los 174 `any`:** la memoria del proyecto indica que el codebase fue vibecodeado y tiene acoplamiento oculto. Tipar `any` adivinando los tipos reales tiene riesgo alto de romper comportamiento. El proyecto no usa `noImplicitAny` en `tsconfig.json`, así que TypeScript sigue siendo estricto con lo que está tipado.
 - **Por qué deshabilitar `no-img-element`:** los `<img>` que están en el código se usan en dos contextos legítimos: (a) previsualización de imágenes subidas por el owner antes de obtener la URL final, (b) SVGs inline o data URIs donde `next/image` no aplica. Migrar a `next/image` requiere setear `width`/`height` explícitos y eso puede romper layouts responsivos si se hace mecánicamente.
-- **Por qué no tocar los 7 `exhaustive-deps`:** suelen ser dependencias intencionalmente omitidas (router de Next, supabase client, etc. que son estables) o genuinos bugs que requieren refactor del useEffect. Resolverlos bien necesita leer el contexto de cada uno, no es trabajo mecánico.
+- **Por qué no tocar los 7 `exhaustive-deps`:** ver sección "Deuda Técnica Residual" arriba.
+- **Convención `_` prefix para unused:** se agregó al eslint config `argsIgnorePattern: "^_"` y `varsIgnorePattern: "^_"` para que prefijar con `_` sea la forma idiomática de marcar "intencionalmente no usado". Esto evita tener que eliminar imports o agregar `// eslint-disable-next-line` en cada caso.
 - **Orden de los commits:** 1 → 2 → 3. El Commit 3 se beneficia del Commit 2 ya mergeado porque las reglas que silencia no tapan los warnings que sí corregimos (unused-vars sigue activo).
 
 ## Al terminar
 
-- Verificar contador final con `pnpm lint`
-- Documentar los 7 `exhaustive-deps` restantes en el task como "Deuda Técnica" para una iteración futura
+- Verificar contador final con `pnpm lint` → debe ser `0 errors, 7 warnings`
 - Sesión cerrada con `mem_session_summary` referenciando este task
