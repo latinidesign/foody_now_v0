@@ -3,6 +3,9 @@
 # dependencies
 /node_modules
 
+# macOS metadata
+.DS_Store
+
 # next.js
 /.next/
 /out/

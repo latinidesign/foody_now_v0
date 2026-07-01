@@ -1,5 +1,5 @@
 import Link from "next/link"
-import ScrollToTop from '@/components/admin/ScrollToTop.tsx'
+import ScrollToTop from '@/components/admin/ScrollToTop'
 
 const sections = [
   {
