@@ -13,6 +13,53 @@ import { useState } from "react"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { toast } from "sonner"
 
+type RegistrationUtm = {
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
+  utm_content?: string
+  utm_term?: string
+}
+
+function parseRegistrationUtm(): RegistrationUtm {
+  if (typeof window === "undefined") return {}
+  const params = new URLSearchParams(window.location.search)
+  const get = (key: keyof RegistrationUtm) => params.get(key) || undefined
+  return {
+    utm_source: get("utm_source"),
+    utm_medium: get("utm_medium"),
+    utm_campaign: get("utm_campaign"),
+    utm_content: get("utm_content"),
+    utm_term: get("utm_term"),
+  }
+}
+
+async function notifyRegistration(args: {
+  accessToken: string
+  firstName: string
+  lastName: string
+  email: string
+  utm: RegistrationUtm
+}): Promise<void> {
+  try {
+    await fetch("/api/admin/notify-registration", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${args.accessToken}`,
+      },
+      body: JSON.stringify({
+        firstName: args.firstName,
+        lastName: args.lastName,
+        email: args.email,
+        utm: args.utm,
+      }),
+    })
+  } catch (err) {
+    console.error("[notify-registration] fetch failed:", err)
+  }
+}
+
 export default function Page() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -22,6 +69,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [utm] = useState<RegistrationUtm>(parseRegistrationUtm)
   const _router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -37,7 +85,7 @@ export default function Page() {
     }
 
     try {
-      const { error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -45,19 +93,35 @@ export default function Page() {
           data: {
             first_name: firstName,
             last_name: lastName,
-            full_name: `${firstName} ${lastName}`.trim()
+            full_name: `${firstName} ${lastName}`.trim(),
+            ...utm,
           }
         },
       })
-      
+
       if (authError) throw authError
-      
+
       toast.success("¡Cuenta creada! Revisa tu email para confirmar tu cuenta.")
-      
+
       // Mostrar pantalla de confirmación de email enviado
       setEmailSent(true)
-      
+
       console.log('✅ Registro exitoso, email de confirmación enviado a:', email)
+
+      // Notificar a los admins via Resend (fire-and-forget).
+      // Si la sesión no existe aún (puede pasar con confirmación de email
+      // obligatoria), simplemente no se notifica; el registro del usuario
+      // ya se completó y no se ve afectado.
+      const accessToken = data.session?.access_token
+      if (accessToken) {
+        void notifyRegistration({
+          accessToken,
+          firstName,
+          lastName,
+          email,
+          utm,
+        })
+      }
 
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Ocurrió un error")
