@@ -7,7 +7,7 @@
     "dev": "next dev",
     "diagnose": "node scripts/diagnose.js",
     "diagnose:subdomain": "node scripts/diagnose.js",
-    "lint": "next lint",
+    "lint": "eslint .",
     "start": "next start"
   },
   "dependencies": {
@@ -73,6 +73,7 @@
     "zod": "3.25.67"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
     "@types/react": "^19",
