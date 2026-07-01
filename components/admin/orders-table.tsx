@@ -160,6 +160,7 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
   const [ordersData, setOrdersData] = useState<OrderWithItems[]>(orders)
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
   const handledOrderIdRef = useRef<string | null>(null)
+  const newOrderAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -423,6 +424,12 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
     localStorage.setItem(MOUNTED_AT_KEY, new Date().toISOString())
   }, [])
 
+  // Precargar audio de pedido nuevo (lazy init para evitar SSR)
+  useEffect(() => {
+    newOrderAudioRef.current = new Audio("/sounds/Sonido_Pedido_Nuevo.mp3")
+    newOrderAudioRef.current.preload = "auto"
+  }, [])
+
   useEffect(() => {
     const channel = supabase
       .channel(`orders-realtime-${storeId}`)
@@ -436,6 +443,12 @@ export const OrdersTable = memo(function OrdersTable({ storeId, orders, store, o
         },
         () => {
           refreshOrdersRef.current()
+          if (newOrderAudioRef.current) {
+            newOrderAudioRef.current.currentTime = 0
+            newOrderAudioRef.current.play().catch((err) => {
+              console.warn("[NewOrderSound] No se pudo reproducir el sonido:", err)
+            })
+          }
         }
       )
       .subscribe()
