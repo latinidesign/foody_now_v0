@@ -20,7 +20,7 @@ function encodeDER(tag: number, value: Buffer): Buffer {
 }
 
 function encodeInteger(value: bigint | number): Buffer {
-  let v = typeof value === "number" ? BigInt(value) : value
+  const v = typeof value === "number" ? BigInt(value) : value
   if (v < 0n) throw new Error("Negative integers not supported")
   let hex = v.toString(16)
   if (hex.length % 2 !== 0) hex = "0" + hex

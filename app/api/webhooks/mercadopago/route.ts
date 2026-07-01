@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
 
       if (!subscription) {
         console.log("Creating new subscription for user:", userId)
-        let days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
+        const days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
 
         const { data: store } = await supabase
           .from("stores")
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         // Actualizar suscripción existente para extender la fecha de fin, que es la duracion en dias desde el final del periodo anterior, indicado en paid_ends_at (esto es para cuando renueva una suscripcion ya activa). Si la suscripcion estaba vencida, se toma la fecha actual.
         const currentEndDate = new Date(subscription.paid_ends_at)
         const startDate = currentEndDate > new Date() ? currentEndDate : new Date()
-        let days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
+        const days = planId === "basic-monthly" ? 30 : planId === "basic-quarterly" ? 90 : 365
         const newEndDate = new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000)
 
         await supabase
